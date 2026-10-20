@@ -2,7 +2,7 @@ import { defineComponent } from '../core/types.js';
 import type { SystemDef } from '../core/scheduler.js';
 import type { EntityId } from '../core/types.js';
 import type { World } from '../core/world.js';
-import type { InputSnapshot } from '../ports/index.js';
+import type { InputSnapshot, IPhysics, ShapeHandle } from '../ports/index.js';
 
 /** 技术夹具用组件：不是游戏内容，只用来证明管线通。 */
 export const Position = defineComponent('Position', { x: 'f64', y: 'f64' });
@@ -169,6 +169,80 @@ export function createBulletCleanupSystem(width: number, height: number): System
         if (position.x < -32 || position.x > width + 32 || position.y < -32 || position.y > height + 32) {
           ctx.commands.despawn(entity);
         }
+      }
+    },
+  };
+}
+
+/**
+ * 把 ECS 位置同步到物理端口：物理只做查询，实体位置仍是唯一真相。
+ * 已销毁实体对应的刚体在下一 tick 移除，避免悬空。
+ */
+export function createBodySyncSystem(physics: IPhysics): SystemDef {
+  const handles = new Map<EntityId, ShapeHandle>();
+  return {
+    name: 'demo.bodySync',
+    phase: 'collision',
+    reads: [Position, Box],
+    writes: [],
+    update: (ctx) => {
+      for (const entity of ctx.world.query(Position, Box)) {
+        const position = ctx.world.get(entity, Position);
+        const box = ctx.world.get(entity, Box);
+        if (position === undefined || box === undefined) {
+          continue;
+        }
+        const handle = handles.get(entity);
+        if (handle === undefined) {
+          handles.set(entity, physics.addCircle(entity, position.x, position.y, box.size / 2));
+        } else {
+          physics.setTransform(handle, position.x, position.y);
+        }
+      }
+      for (const [entity, handle] of handles) {
+        if (!ctx.world.isAlive(entity)) {
+          physics.remove(handle);
+          handles.delete(entity);
+        }
+      }
+    },
+  };
+}
+
+export interface HitOptions {
+  /** 玩家自己不会被子弹命中（夹具语义）。 */
+  readonly player: EntityId;
+  readonly radius?: number;
+}
+
+/**
+ * 命中检测：子弹位置向物理端口查圆，命中即销毁子弹与目标并发事件。
+ * 命中列表先排序再取第一个，保证确定性。
+ */
+export function createHitSystem(physics: IPhysics, options: HitOptions): SystemDef {
+  const radius = options.radius ?? 5;
+  return {
+    name: 'demo.hit',
+    phase: 'damage',
+    reads: [Position, Bullet],
+    writes: [],
+    update: (ctx) => {
+      for (const bullet of ctx.world.query(Position, Bullet)) {
+        const position = ctx.world.get(bullet, Position);
+        if (position === undefined) {
+          continue;
+        }
+        const hits = physics
+          .queryCircle(position.x, position.y, radius)
+          .filter((entity) => entity !== bullet && entity !== options.player && ctx.world.isAlive(entity))
+          .sort((left, right) => left - right);
+        const target = hits[0];
+        if (target === undefined) {
+          continue;
+        }
+        ctx.commands.despawn(bullet);
+        ctx.commands.despawn(target);
+        ctx.bus.emit('demo.hit', { bullet, target, x: position.x, y: position.y });
       }
     },
   };

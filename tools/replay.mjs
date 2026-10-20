@@ -7,7 +7,8 @@ import {
   World,
 } from '../packages/engine/dist/src/core/index.js';
 import { parseContent } from '../packages/engine/dist/src/data/content.js';
-import { Box, Position, spawnBoxes } from '../packages/engine/dist/src/demo/index.js';
+import { Box, Bullet, Position, spawnBoxes } from '../packages/engine/dist/src/demo/index.js';
+import { createPhysicsPort, PhysicsWorld } from '../packages/engine/dist/src/impl/physics.js';
 import {
   deserialize,
   hashHex,
@@ -15,6 +16,7 @@ import {
   serialize,
   serializeInput,
   worldHash,
+  worldHashGroups,
 } from '../packages/engine/dist/src/determinism/index.js';
 
 /**
@@ -105,7 +107,8 @@ function replayApp(file, expectedHash) {
   world.add(player, Position, { x: width / 2, y: height / 2 });
   world.add(player, Box, { size: 22, tint: 0xff8844 });
   let current = { tick: 0, keys: new Set(), buttons: new Set(), pointer: { x: 0, y: 0 } };
-  const systems = createSystems({ width, height, player, getInput: () => current });
+  const physics = createPhysicsPort(new PhysicsWorld());
+  const systems = createSystems({ width, height, player, getInput: () => current, physics });
   const scheduler = new Scheduler();
   for (const system of systems) {
     scheduler.add(system);
@@ -119,7 +122,7 @@ function replayApp(file, expectedHash) {
       current = snapshot;
       scheduler.run(world, bus, commands, tick);
     },
-    hash: () => worldHash(world, [Position, Box]),
+    hash: () => worldHashGroups(world, [[Position, Box], [Position, Bullet]]),
   });
   const final = hashHex(result.finalHash);
   console.log(`ticks      ${result.ticks}`);

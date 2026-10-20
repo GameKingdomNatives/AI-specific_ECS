@@ -61,3 +61,16 @@ export function worldHash(world: World, defs: readonly ComponentDef[]): number {
 export function hashHex(hash: number): string {
   return (hash >>> 0).toString(16).padStart(8, '0');
 }
+
+/**
+ * 分组世界哈希：每组独立按「拥有全部组件」的实体算一次，再按组序混入。
+ * 用于「一类实体有 Box、另一类只有 Bullet」这类互斥组合——单次 worldHash 会得到空集。
+ */
+export function worldHashGroups(world: World, groups: readonly (readonly ComponentDef[])[]): number {
+  let hash = FNV_OFFSET;
+  for (const group of groups) {
+    hash = mix(hash, group.length);
+    hash = mix(hash, worldHash(world, group));
+  }
+  return hash >>> 0;
+}

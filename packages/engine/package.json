@@ -24,6 +24,10 @@
       "types": "./dist/src/impl/pixi-renderer.d.ts",
       "default": "./dist/src/impl/pixi-renderer.js"
     },
+    "./physics": {
+      "types": "./dist/src/impl/physics.d.ts",
+      "default": "./dist/src/impl/physics.js"
+    },
     "./data": {
       "types": "./dist/src/data/index.d.ts",
       "default": "./dist/src/data/index.js"

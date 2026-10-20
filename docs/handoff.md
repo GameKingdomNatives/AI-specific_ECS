@@ -34,7 +34,11 @@
 - 贴图接入：端口 `RenderItem.texture?`（ADR-004，HARD 附加变更），渲染层按 URL 缓存 Texture 用 Sprite，失败退回几何图形；实测页面 65 个实体全部为 `Sprite`。
 - 临时鼠标交互：按住左键朝指针连射（冷却 6 tick、速度 14），子弹用 `bullet.png`；实测按住 0.9s 场上 4 发、松开 1.8s 后归零。
 - 顺手修的真问题：子弹原来走的是「会反弹」的方块移动系统，永远不出界也不回收；已拆成 `demo.bulletMovement`（直线、出界即 despawn），方块移动改用 `query(Position, Velocity, Box)`。
-- 下一步：命中检测（子弹 × 方块，走物理查询端口）、射击音效占位、弹道拖尾。
+- 命中检测走物理端口：`demo.bodySync`（collision 阶段把 ECS 位置同步为圆形刚体）＋`demo.hit`（damage 阶段 `queryCircle`，命中即销毁子弹与目标并发 `demo.hit` 事件），页面 HUD 显示 kills／bodies。
+- 抓到的第二个真问题：`worldHash([Position, Box, Bullet])` 语义是「同时拥有三者」，而方块与子弹互斥 → 哈希恒为 FNV 基值 `811c9dc5`，确定性校验形同虚设。已新增 `worldHashGroups`（ADR-005，既有算法不变），浏览器与 CLI 统一为 `[[Position, Box], [Position, Bullet]]`。
+- 验证：浏览器录制 386 tick（含射击与命中，kills 1）→ `node tools/replay.mjs --app … --expect-hash e6e4938c` 得到同一哈希；而上一版录制被 startHash 正确拒绝（跨版本/非干净开局）。
+- 范围说明：`demo.*` 是**技术夹具**，用于验证系统排序、命令缓冲、刚体同步、事件与确定性；机甲／辐能／僚机／关卡仍不在范围内。
+- 下一步：音频端口占位与静音回退、输入重映射（键位配置走数据）、面板加「基准趋势」。 
 
 ## 第三批剩余
 

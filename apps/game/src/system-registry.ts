@@ -1,8 +1,10 @@
 import type { EntityId, SystemDef } from '@itb/engine/core';
-import type { InputSnapshot } from '@itb/engine/ports';
+import type { InputSnapshot, IPhysics } from '@itb/engine/ports';
 import {
+  createBodySyncSystem,
   createBulletCleanupSystem,
   createBulletMovementSystem,
+  createHitSystem,
   createMovementSystem,
   createWeaponSystem,
   Position,
@@ -13,6 +15,7 @@ export interface SystemDeps {
   readonly height: number;
   readonly player: EntityId;
   readonly getInput: () => InputSnapshot;
+  readonly physics: IPhysics;
 }
 
 const PLAYER_SPEED = 10;
@@ -47,6 +50,8 @@ export function createSystems(deps: SystemDeps): SystemDef[] {
     createBulletMovementSystem(deps.width, deps.height, { after: ['demo.movement'] }),
     playerSystem,
     createWeaponSystem({ player: deps.player, getInput: deps.getInput, after: ['demo.player'] }),
+    createBodySyncSystem(deps.physics),
+    createHitSystem(deps.physics, { player: deps.player }),
     createBulletCleanupSystem(deps.width, deps.height),
   ];
 }

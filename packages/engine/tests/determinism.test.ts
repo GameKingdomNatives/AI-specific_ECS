@@ -3,13 +3,42 @@ import assert from 'node:assert/strict';
 import { CommandBuffer, defineComponent, EventBus, Scheduler, World } from '../src/core/index.js';
 import type { SystemDef } from '../src/core/index.js';
 import type { InputSnapshot } from '../src/ports/index.js';
-import { deserialize, hashHex, Recorder, serialize, toSnapshot, worldHash } from '../src/determinism/index.js';
+import { deserialize, hashHex, Recorder, serialize, toSnapshot, worldHash, worldHashGroups } from '../src/determinism/index.js';
 
 const Position = defineComponent('Position', { x: 'f64', y: 'f64' });
+const Tag = defineComponent('Tag', { value: 'u32' });
 
 function snapshot(tick: number, dx: number, dy: number): InputSnapshot {
   return { tick, keys: new Set<string>(), buttons: new Set<number>(), pointer: { x: dx, y: dy } };
 }
+
+test('分组哈希覆盖互斥组件组合，空组等于基值', () => {
+  const world = new World();
+  const boxed = world.spawn();
+  world.add(boxed, Position, { x: 1, y: 2 });
+  world.add(boxed, Tag, { value: 7 });
+  const plain = world.spawn();
+  world.add(plain, Position, { x: 3, y: 4 });
+
+  assert.equal(worldHashGroups(world, []), 0x811c9dc5);
+  const groups = [[Position, Tag], [Position]] as const;
+  const first = worldHashGroups(world, groups);
+  assert.equal(worldHashGroups(world, groups), first, '同状态同分组必须同哈希');
+  assert.notEqual(worldHashGroups(world, [[Position]]), first, '分组数参与混合');
+  assert.notEqual(worldHashGroups(world, [[Position], [Position, Tag]]), first, '组序参与混合');
+});
+
+test('子弹组变化只影响自身组', () => {
+  const world = new World();
+  const bullet = world.spawn();
+  world.add(bullet, Position, { x: 10, y: 10 });
+  world.add(bullet, Tag, { value: 1 });
+  const before = worldHashGroups(world, [[Position], [Position, Tag]]);
+  world.set(bullet, Tag, { value: 2 });
+  const after = worldHashGroups(world, [[Position], [Position, Tag]]);
+  assert.notEqual(before, after);
+  assert.equal(worldHash(world, [Position]), worldHash(world, [Position]));
+});
 
 function runScenario(inputs: readonly InputSnapshot[]): string[] {
   const world = new World();

@@ -1,10 +1,11 @@
-/// <reference types="vite/client" />
+﻿/// <reference types="vite/client" />
 import { CommandBuffer, EventBus, FixedClock, Scheduler, World } from '@itb/engine/core';
 import type { EntityId, SystemDef } from '@itb/engine/core';
 import type { BoxSpec } from '@itb/engine/data';
-import { hashHex, Recorder, serialize, worldHash } from '@itb/engine/determinism';
+import { hashHex, Recorder, serialize, worldHashGroups } from '@itb/engine/determinism';
 import { Box, Bullet, Position, spawnBoxes } from '@itb/engine/demo';
 import { createPixiRenderer } from '@itb/engine/impl';
+import { createPhysicsPort, PhysicsWorld } from '@itb/engine/physics';
 import { createLocalStorage, createSaveStore } from '@itb/engine/storage';
 import type { RenderItem } from '@itb/engine/ports';
 import { initialContent, watchContent } from './content.js';
@@ -75,8 +76,19 @@ function applySystems(list: readonly SystemDef[]): void {
   scheduler.build();
 }
 
-const deps = { width: WIDTH, height: HEIGHT, player, getInput: (): typeof current => current };
+const deps = {
+  width: WIDTH,
+  height: HEIGHT,
+  player,
+  getInput: (): typeof current => current,
+  physics: createPhysicsPort(new PhysicsWorld()),
+};
 applySystems(createSystems(deps));
+
+let kills = 0;
+bus.on('demo.hit', () => {
+  kills += 1;
+});
 
 const initial = initialContent();
 let dataStatus = initial.ok ? 'data ok' : `data fallback: ${initial.issue ?? 'invalid'}`;
@@ -87,7 +99,7 @@ function spawnSpec(spec: BoxSpec): EntityId[] {
 }
 
 let boxes = spawnSpec(initial.spec);
-const recorder = new Recorder(20261020, hashHex(worldHash(world, [Position, Box])));
+const recorder = new Recorder(20261020, hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]])));
 
 interface SavePayload {
   readonly tick: number;
@@ -170,7 +182,7 @@ const renderer = await createPixiRenderer(canvas, {
 renderer.setCamera(WIDTH / 2, HEIGHT / 2, 1);
 
 let last = performance.now();
-let lastHash = hashHex(worldHash(world, [Position, Box]));
+let lastHash = hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]]));
 
 function renderTable(): RenderItem[] {
   const items: RenderItem[] = [];
@@ -230,13 +242,14 @@ function frame(now: number): void {
     scheduler.run(world, bus, commands, tick);
   }
   if (clock.tick % 60 === 0) {
-    lastHash = hashHex(worldHash(world, [Position, Box]));
+    lastHash = hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]]));
   }
   renderer.submit(renderTable());
   if (hud !== null && clock.tick % 10 === 0) {
     const mode = probe === null ? 'run' : `probe ${probe}`;
     const bullets = world.query(Position, Bullet).length;
-    hud.textContent = `${mode} · tick ${clock.tick} · entities ${world.aliveCount} · bullets ${bullets} · rec ${recorder.count} · err ${dumps.length} · ${lastHash} · ${dataStatus}`;
+    const bodies = deps.physics.stats().bodies;
+    hud.textContent = `${mode} · tick ${clock.tick} · entities ${world.aliveCount} · bullets ${bullets} · kills ${kills} · bodies ${bodies} · rec ${recorder.count} · err ${dumps.length} · ${lastHash} · ${dataStatus}`;
   }
   requestAnimationFrame(frame);
 }
@@ -244,7 +257,7 @@ function frame(now: number): void {
 Object.assign(globalThis, {
   __itb: {
     recording: () => serialize(recorder.toRecording()),
-    hash: () => hashHex(worldHash(world, [Position, Box])),
+    hash: () => hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]])),
     snapshot: () => current,
     player: () => world.get(player, Position),
     dumps: () => dumps,
