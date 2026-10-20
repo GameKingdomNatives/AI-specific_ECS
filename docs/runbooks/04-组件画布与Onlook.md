@@ -68,6 +68,38 @@ bun dev                  # http://localhost:3000
 
 命令含义（取自仓库 `package.json`）：`backend:start = bun --filter @onlook/backend start`、`setup:env = cd packages/scripts && bun run start`。
 
+#### 若 `bun install` 卡在 `free-email-domains` postinstall
+
+现象：
+
+```
+error: postinstall script from "free-email-domains" exited with 1
+  Error: Request timed out   at simple-get/index.js:76
+```
+
+原因：该包的 postinstall 会联网刷新域名列表，超时时在 socket 回调里抛错而不是走它自己的回退分支。
+**这个脚本是可选的**：`domains.js` 直接 `require('./domains.json')`，列表随包发布。
+
+处理（实测可行）：
+
+```powershell
+cd E:\Onlook\onlook
+bun install --ignore-scripts
+```
+
+验证包仍可用（2026-10-21 实测）：
+
+```powershell
+bun -e "import('free-email-domains').then(m => console.log((m.default||m).length))"
+# 输出 31163
+```
+
+如果之后某一步提示缺少生成的产物（例如 esbuild/sharp 的本地产物），再在**网络可用时**补跑：
+
+```powershell
+bun install          # 或给代理：$env:HTTPS_PROXY="http://127.0.0.1:端口"
+```
+
 ### 2.3 只用 Docker 部署可以吗
 
 不行，至少仍需要 Bun：`docker-compose.yml` 只起 `web-client`（3000），需要 `apps/web/client/.env`，并依赖外部网络 `supabase_network_onlook-web`；官方文档的 compose 流程同样先 `bun install` + `bun run setup:env`。
