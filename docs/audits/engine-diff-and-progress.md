@@ -1,18 +1,23 @@
-# 进度对照差异表（2026-10-21）
+﻿# 引擎差异与进度对照表
+
+- 更新：2026-10-21（每次收尾或里程碑后刷新）
+- 位置：`docs/audits/`（与 lessons/adr/runbooks 分开，避免与操作手册混在一起）
+- 口径：按规格章节逐条勾对；数字全部用命令从 git/门禁读取，不凭印象
 
 ## 0. 事实基线（git 读取）
 
 | 项 | 数值 |
 |---|---|
-| 提交数 | 42 |
-| 受版本管理文件 | 183 |
+| 提交数 | 46 |
+| 受版本管理文件 | 208 |
 | 引擎源码 | 34 文件 |
 | 引擎测试 | 21 文件 |
-| 应用代码 | 12 文件 |
+| 应用代码 | 14 文件 |
+| 独立 starter | 21 文件 |
 | 工具链 | 23 文件 |
-| 文档 | 25 文件 |
-| 门禁步骤 | 33 |
-| 逻辑帧 | 最近 0.821ms（基线 0.688，容差 1.5，预算 4ms） |
+| 文档 | 27 文件 |
+| 门禁步骤 | 34 |
+| 逻辑帧 | 最近 0.788ms（基线 0.688，容差 1.5，预算 4ms） |
 
 ## 1. 逐层对照
 
@@ -29,11 +34,11 @@
 | §11 热重载/隔离 | HMR、熔断、dump | 系统 HMR、内容 HMR、单系统熔断、dump 持久化 | 无系统级 dispose 契约文档 | `main.ts`、`impl/diagnostics.ts` |
 | §12 调试 | 探针、debugDraw、stats | 探针页、调试绘制、HUD | 无运行时开关面板 | `?probe=`、`__itb` |
 | §13 性能 | 3000 实体 ≤4ms | 0.6~0.8ms 中位数，基线+容差 | 无渲染侧基准 | `bench` 步骤 |
-| §14/15 门禁 | 解析型检查、印章、演练 | 33 步：tsc/eslint/registry/tests/replay/gitfacts/depcruise/drill/findings/build/storybook/assets/bench | 无覆盖率阈值 | `gate.mjs`、`drill.mjs` |
+| §14/15 门禁 | 解析型检查、印章、演练 | 34 步：tsc/eslint/registry/tests(21)/replay/gitfacts/depcruise/drill/findings/build/storybook/starter/assets/bench | 无覆盖率阈值 | `gate.mjs`、`drill.mjs` |
 | §16 面板 | 六块 + 诊断明细 | 8 块（含文件:行:规则:片段:规则源） | 无基准趋势曲线 | `tools/panel` |
-| §18 文档 | 流程、ADR、runbook | 25 文件；ADR 2/4/5/6/7/8/9；runbook 1–6 | 无独立 API 参考 | `docs/` |
+| §18 文档 | 流程、ADR、runbook | 27 文件；ADR 2/4/5/6/7/8/9；runbook 1–6；audits 独立目录 | 无独立 API 参考 | `docs/` |
 | §19 验收 | 面板/门禁/回放/基准 | 全部可复跑 | 违规演练仅两类 | gate 报告 |
-| §22 UI 层 | React + Tailwind + 可视化编辑 | React 19 + Tailwind 4 + Storybook + token 故事 + 静态交付 | 组件未拆（M2）；无可视化写回（已排除） | `src/ui/**`、`storybook` 步骤 |
+| §22 UI 层 | React + Tailwind + 可视化编辑 | React 19 + Tailwind 4 + Storybook + token 故事 + 静态交付 + 独立 starter（9 故事） | 组件未拆（M2）；无可视化写回（已排除） | `src/ui/**`、`starters/ui-storybook-kit`、`storybook`/`starter` 步骤 |
 
 ## 2. 进度判断
 
@@ -45,8 +50,8 @@
 | 物理 | 90% | 查询层完整；两类接口缺独立测试 |
 | 确定性 | 90% | 输入级闭环保真；事件级未接 |
 | 数据 / 存储 | 85% | 迁移、存档、资产加载齐；图集缺 |
-| 门禁 / 治理 | 90% | 33 步；覆盖率与更多演练待补 |
-| UI | 70% | 契约/覆盖层/Storybook 齐；拆组件与状态待做 |
+| 门禁 / 治理 | 92% | 34 步（含 drill/storybook/starter）；覆盖率与更多演练待补 |
+| UI | 75% | 契约/覆盖层/Storybook/starter 齐；拆组件与状态待做 |
 | **引擎整体（不含游戏内容）** | **≈ 82%** | 上述加权 |
 
 ## 3. 剩余差异（按风险排序）
@@ -55,7 +60,7 @@
 2. `IModHost` 只有形状，无加载器/沙箱。
 3. 渲染无批处理/剔除/图集，渲染性能无基准。
 4. 无覆盖率阈值；违规演练只覆盖 import 越界与文件预算。
-5. UI 组件未拆（ControlBar/StatusNote/StatRow），状态故事不全。
+5. UI 组件未拆（ControlBar/StatusText/InfoRow），状态故事不全。
 6. 事件记录未参与重演；`contacts`/`debugShapes` 缺独立测试。
 7. 输入重映射（键位配置走数据）未做。
 

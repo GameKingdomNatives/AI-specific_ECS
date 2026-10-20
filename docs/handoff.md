@@ -57,34 +57,33 @@
 - Onlook 依赖链已查清：仓库 `packageManager: bun@1.3.1`（带 `bun.lock`/`bunfig.toml`），官方本地步骤来自 `docs/content/docs/developers/running-locally.mdx`（`bun install` → `bun backend:start` → `bun run setup:env` → `bun db:push` → `bun db:seed` → `bun dev`）。Docker compose 路线也仍需 Bun。
 - Bun 已在本机装好：`npm install -g bun --ignore-scripts=false` → 1.4.3，`where.exe bun` 命中 `%APPDATA%\npm\bun.cmd`；bun.sh 在沙箱内超时，故走 npm 方式。步骤与排错写入 runbook 04。
 - Onlook 依赖链继续补齐：`supabase` CLI 已装（npm 全局 2.121.0）；`supabase start` 还需要 Docker Desktop——本机 `docker` 未安装，runbook 04 给了两条路（装 Docker / 用云端 Supabase 跳过 backend:start）。
-- `stripe-webhook` 已绕过（日志 `Skipped serving Function`）；随后迁移 `0008_preview-img-storage.sql` 直删 `storage.objects` 被新版 Storage 拒绝（SQLSTATE 42501）。仓库 `bun.lock` 钉 supabase **2.53.6**，本机全局 2.121.0；且 2.53.6 拒绝全局安装、npm 局部安装的 postinstall 下载二进制时 ECONNRESET。修法见 runbook 04（手动下二进制 2.53.6 / 迁移改幂等 upsert）。
-- Onlook 策略回退（2026-10-21，ADR-009）：**设计侧改为 Figma 优先，Onlook 已排除**。背景：本项目是个人项目，设计协作尚未常态；本轮是为**未来可能的合作**探索工具链，要求本地、免费、可复制。自托管链本次实测不可复现，桌面版能力未验证。
+- `stripe-webhook` 已绕过（日志 `Skipped serving Function`）；随后迁移 `0008_preview-img-storage.sql` 直删 `storage.objects` 被新版 Storage 拒绝（SQLSTATE 42501）。仓库 `bun.lock` 钉 supabase **2.53.6**，本机全局 2.121.0；且 2.53.6 拒绝全局安装、npm 局部安装的 postinstall 下载二进制时 ECONNRESET。完整评估与修法见 `docs/lessons/2026-10-ui-tooling.md`（Onlook 已排除，不再维护安装链）。
+- Onlook 与 Figma Dev Mode 均已排除（ADR-009，第二次修订）：设计评审改为 **Storybook 本地唯一路径**。背景：本项目是个人项目，设计协作尚未常态；本轮是为**未来可能的合作**探索工具链，要求本地、免费、可复制。Onlook 自托管链不可复现、桌面版能力未验证；Figma Dev Mode 云端+付费+产物不可直接用。
 - 最终 UI 方案：`docs/ui-final-plan.md`；独立落地方案：`docs/runbooks/06-UI工程落地.md`；教训：`docs/lessons/2026-10-ui-tooling.md`；UI 模块说明：`apps/game/src/ui/README.md`。
-- 设计评审最终形态（ADR-009 修订）：**Storybook 本地评审唯一路径**；token 唯一事实源 `apps/game/src/ui/tokens.ts` + `设计 token/总览` 故事；Figma 免费版仅可选草稿，**Dev Mode / MCP 已排除**（云端、付费、产物不可直接用）；Onlook 排除。
+- 设计评审形态：Storybook 本地画布（`npm run storybook`，6006）+ 静态包（`storybook:build` → `storybook:serve`，7007）；token 唯一事实源 `apps/game/src/ui/tokens.ts` + `设计 token/总览` 故事；操作细节见 runbook 04。
 - 引擎教训：`docs/lessons/2026-10-engine.md`（12 条，含哈希空集、子弹反弹、门禁空转、ESM JSON、基准抖动等）。
-- 进度对照：`docs/progress-audit.md`（42 提交 / 183 文件 / 21 测试文件 / 33 门禁步骤；引擎整体约 82%）。
-- 交付型 starter：`starters/ui-storybook-kit/`（可独立复制）——React 19 + Tailwind 4 + Storybook 10；组件已中性化（按钮/状态文字/信息行）共 9 个故事 + 颜色尺寸总览。README 以 Storybook 为**唯一事实源**重写，含 30 秒理解、术语表（story/args/Controls/decorators/parameters/addon/static build）、四步新增组件、交付方式与 FAQ；四篇 docs 已去掉具体项目假设。全量门禁新增 `starter` 构建步骤。
-- 下一步：M2 拆组件（ControlBar/StatusNote/StatRow）+ 补齐 hover/disabled/空状态故事；之后补 `IAudio` 真实后端与渲染基准。
+- 进度对照：`docs/audits/engine-diff-and-progress.md`（46 提交 / 208 文件 / 21 测试文件 / 34 门禁步骤；引擎整体约 82%），刷新方法见 `docs/audits/README.md`。
+- 交付型 starter：`starters/ui-storybook-kit/`（可独立复制）——React 19 + Tailwind 4 + Storybook 10；组件已中性化（按钮/状态文字/信息行）共 9 个故事 + 颜色尺寸总览。README 以 Storybook 为**唯一事实源**重写，含 30 秒理解、术语表、四步新增组件、交付方式与 FAQ；四篇 docs 去掉了具体项目假设。已实测复制到仓库外 `npm install` + `build` 均 exit 0。
+- 下一步：M2 拆组件（ControlBar/StatusText/InfoRow）+ 补齐 hover/disabled/空状态故事；之后补 `IAudio` 真实后端与渲染基准。
 
 ## 当前缺口（2026-10-21 核对）
 
 - `IAudio`：只有静音占位，无解码/播放后端。
 - `IModHost`：只有形状，无加载器（按规格本轮不实现）。
-- Onlook：`bun`/`supabase` CLI 已装，Docker Desktop 未装；`supabase start` 报 `stripe-webhook/index.ts` 缺失（疑子模块未初始化），修法与替代见 runbook 04。
 - 渲染：无批处理/剔除/图集，渲染侧性能未度量。
 - 门禁：无覆盖率阈值；违规演练只覆盖 import 越界与文件预算两类。
-- UI：Storybook/Tailwind 已接；面板/列表/Tooltip 等组件尚未拆出。
+- UI：Storybook/Tailwind/starter 已接；主应用控制条尚未拆细，状态故事不全。
 
 ## 待人裁定
 
-- Onlook 路线三选一：① 桌面安装包 v0.2.32（推荐先试，不依赖 Bun/Docker）；② 继续源码路线并固定 release tag + 手动 supabase 2.53.6 二进制；③ 暂停 Onlook，仅用 Storybook。
+- 是否开始 M2：把主应用控制条拆成 `ControlBar`/`StatusText`/`InfoRow`，与 starter 命名对齐。
+- 是否引入 `@storybook/addon-a11y`（可访问性面板）与 `@storybook/test`（交互测试）。
 - 是否恢复 pnpm（若你会话在沙箱外跑），见 ADR-001；不影响源码结构。
-- Storybook 版本已定（10.6.3），Onlook 启动方式待你的终端验证后固化为 runbook。
 
-## 已定决策（2026-10-20）
+## 已定决策
 
 - UI 层：React + Tailwind 的 DOM 覆盖层；战场留在 Pixi canvas（ADR-002）。
-- 可视化编辑：Onlook 自托管开源版，第二批之后接入；引入 Storybook。
+- 可视化编辑：Onlook 与 Figma Dev Mode 均排除；评审用 Storybook 本地静态包（ADR-009）。
 - 排障诊断：必须给到 文件:行:列 + 规则 + 代码片段 + 规则定义位置（`findings.json`，面板「诊断明细」卡）。
 - 工具链：Vite 8 可用（rolldown，无子进程）；vitest 不可用（esbuild 子进程）——ADR-001。
 
