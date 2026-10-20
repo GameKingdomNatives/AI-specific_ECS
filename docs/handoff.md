@@ -30,7 +30,9 @@
 - 存档接进画面：`npm run dev` 页面左上角有 存档／读档／清除／导出录制 四个按钮与状态行（含隔离档计数）。实测：移动到 (515,269) 存档 → 移到 (1790,1001) → 读档精确回到 (515.47,269.03)，状态显示 `已读档 @ tick 638 · 隔离 0`。
 - 资源加载：`createAssetLoader`（成功缓存、失败返回问题、clear）已进引擎 data 导出。
 - 面板：趋势卡新增「逻辑帧 / 基线 / 容差」一行，数据来自 bench.log 与 baseline。
-- 下一步：把 assets 接进真实贴图加载（图集 + 字体占位）、存档带上世界哈希以检测「读档后确定性漂移」、把 UI 按钮扩展为可配置热键。
+- 素材改代码生成：`tools/gen-assets.mjs` 用 `zlib` + 手写 CRC32 编码 PNG（无图像库），生成 `player/box/bullet` 三张到 `apps/game/public/assets/` 与 manifest；门禁新增 `assets` 步骤校验签名与尺寸。
+- 贴图接入：端口 `RenderItem.texture?`（ADR-004，HARD 附加变更），渲染层按 URL 缓存 Texture 用 Sprite，失败退回几何图形；实测页面 65 个实体全部为 `Sprite`。
+- 下一步：把子弹贴图用于实际弹道、贴图随实体缩放（当前按 sx/sy 拉伸）、以及图集打包（素材量上来后）。
 
 ## 第三批剩余
 

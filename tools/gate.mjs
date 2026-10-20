@@ -75,6 +75,7 @@ step('build', process.execPath, [
   '--logLevel',
   'warn',
 ], join(ROOT, 'apps', 'game'));
+step('assets', process.execPath, ['tools/check-assets.mjs']);
 step('bench', process.execPath, [
   'tools/bench.mjs',
   '--entities',

@@ -1,14 +1,10 @@
 import { Application, Container, Graphics } from 'pixi.js';
 import type { IRenderer, RenderItem } from '../ports/index.js';
+import { createViewLayer } from './pixi-views.js';
 
 const LAYER_COUNT = 7;
 const LOGICAL_WIDTH = 1920;
 const LOGICAL_HEIGHT = 1080;
-
-interface View {
-  readonly node: Graphics;
-  layer: number;
-}
 
 export interface PixiRendererOptions {
   /** 截图/取像时开启：让 WebGL 保留绘制缓冲，代价是少量性能。 */
@@ -26,6 +22,10 @@ function createLayers(app: Application): Container[] {
     app.stage.addChild(layer);
   }
   return layers;
+}
+
+function layerAt(layers: Container[], index: number): Container {
+  return layers[index] ?? (layers[0] as Container);
 }
 
 function createCamera(layers: Container[]): {
@@ -47,62 +47,6 @@ function createCamera(layers: Container[]): {
       apply();
     },
     apply,
-  };
-}
-
-function shapeFor(item: RenderItem): Graphics {
-  const graphic = new Graphics();
-  if (item.shape === 'circle') {
-    graphic.circle(0, 0, 1).fill(0xffffff);
-  } else if (item.shape === 'poly') {
-    graphic.poly([-1, 1, 1, 1, 0, -1]).fill(0xffffff);
-  } else {
-    graphic.rect(-0.5, -0.5, 1, 1).fill(0xffffff);
-  }
-  return graphic;
-}
-
-function layerAt(layers: Container[], index: number): Container {
-  return layers[index] ?? (layers[0] as Container);
-}
-
-function createViewLayer(layers: Container[]): {
-  submit: (items: readonly RenderItem[]) => void;
-} {
-  const views = new Map<number, View>();
-  const sync = (item: RenderItem, seen: Set<number>): void => {
-    let view = views.get(item.id);
-    if (view === undefined) {
-      view = { node: shapeFor(item), layer: item.layer };
-      views.set(item.id, view);
-      layerAt(layers, item.layer).addChild(view.node);
-    }
-    if (view.layer !== item.layer) {
-      view.node.removeFromParent();
-      view.layer = item.layer;
-      layerAt(layers, item.layer).addChild(view.node);
-    }
-    view.node.position.set(item.x, item.y);
-    view.node.rotation = item.rot;
-    view.node.scale.set(item.sx, item.sy);
-    view.node.tint = item.tint;
-    view.node.alpha = item.alpha;
-    view.node.visible = item.visible;
-    seen.add(item.id);
-  };
-  return {
-    submit: (items) => {
-      const seen = new Set<number>();
-      for (const item of items) {
-        sync(item, seen);
-      }
-      for (const [id, view] of views) {
-        if (!seen.has(id)) {
-          view.node.destroy();
-          views.delete(id);
-        }
-      }
-    },
   };
 }
 
@@ -129,7 +73,7 @@ function createDebugDraw(layers: Container[]): (commands: readonly string[]) => 
 
 /**
  * Pixi 渲染后端：只消费渲染表，不认识实体与组件。
- * 本轮用逐图元 Graphics 做技术夹具；3000 子弹级别会换成批处理的 Sprite/纹理图集。
+ * 有 texture 用 Sprite，没有就退回几何图形；贴图加载失败同样回退。
  */
 export async function createPixiRenderer(
   canvas: HTMLCanvasElement,

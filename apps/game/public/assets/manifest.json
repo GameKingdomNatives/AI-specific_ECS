@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-20T15:32:34.173Z",
+  "assets": [
+    {
+      "name": "player",
+      "file": "player.png",
+      "width": 48,
+      "height": 48
+    },
+    {
+      "name": "box",
+      "file": "box.png",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "bullet",
+      "file": "bullet.png",
+      "width": 12,
+      "height": 12
+    }
+  ]
+}

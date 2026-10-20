@@ -192,6 +192,7 @@ function renderTable(): RenderItem[] {
       tint: entity === player ? 0xffaa66 : 0xf0f0f0,
       alpha: 0.92,
       visible: true,
+      texture: entity === player ? '/assets/player.png' : '/assets/box.png',
     });
   }
   return items;

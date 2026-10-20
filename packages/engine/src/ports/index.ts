@@ -33,6 +33,8 @@ export interface RenderItem {
   readonly tint: number;
   readonly alpha: number;
   readonly visible: boolean;
+  /** 可选贴图 URL；加载完成前退回 shape 几何图形。 */
+  readonly texture?: string;
 }
 
 export interface IRenderer {
