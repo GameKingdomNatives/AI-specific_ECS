@@ -32,6 +32,10 @@ module.exports = {
   ],
   options: {
     doNotFollow: { path: 'node_modules' },
+    /** 只检查本仓库源码：排除构建产物、门禁产物与外部副本。 */
+    exclude: {
+      path: '^(node_modules|artifacts|apps/game/dist|apps/game/dist-ts|通用资源-副本|研究文档-副本)',
+    },
     tsPreCompilationDeps: true,
     tsConfig: { fileName: 'tsconfig.base.json' },
     enhancedResolveOptions: {

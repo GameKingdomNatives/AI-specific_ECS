@@ -54,7 +54,8 @@
 - 桥的解耦证据：`bridge.contract.test.ts` 用**自定义组件**（`BridgeProbePosition/BridgeProbeBox`）验证同步，不 import demo——桥确实只认注入的组件形状。
 - Storybook 已接入并进全量门禁：`storybook 10.6.3 + @storybook/react-vite`（peer 明确支持 `vite ^8`，无需降级）；`npm run storybook`（6006）、`npm run storybook:build`（artifacts/storybook-static）；示例故事 `src/ui/App.stories.tsx` 三个状态。
 - 依赖归位完成：react/react-dom/tailwind/storybook 声明已移入 `apps/game/package.json`；清理 pnpm 遗留后 `npm install` 在根可复现（实测 changed 150 packages, exit 0）。
-- Onlook：沙箱访问 docs.onlook.com 被拦（429/安全拦截），命令与步骤写在 `docs/runbooks/04-组件画布与Onlook.md`，标注「环境变量以仓库 .env.example 为准」；需你终端执行 Docker + GitHub 授权。
+- Onlook 依赖链已查清：仓库 `packageManager: bun@1.3.1`（带 `bun.lock`/`bunfig.toml`），官方本地步骤来自 `docs/content/docs/developers/running-locally.mdx`（`bun install` → `bun backend:start` → `bun run setup:env` → `bun db:push` → `bun db:seed` → `bun dev`）。Docker compose 路线也仍需 Bun。
+- Bun 已在本机装好：`npm install -g bun --ignore-scripts=false` → 1.4.3，`where.exe bun` 命中 `%APPDATA%\npm\bun.cmd`；bun.sh 在沙箱内超时，故走 npm 方式。步骤与排错写入 runbook 04。
 - 下一步：把 UI 组件再拆细（面板/列表/Tooltip），每个都配 story；Onlook 接上后按同一门禁收改动。
 
 ## 第三批剩余

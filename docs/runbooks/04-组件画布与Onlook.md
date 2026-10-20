@@ -31,24 +31,48 @@ npm run storybook:build
 
 ## 2. Onlook 自托管（需你终端执行）
 
-以下命令按 Onlook 官方仓库的通用流程整理；**具体环境变量名以仓库根目录 `.env.example` 与 README 为准**（本次沙箱访问 docs.onlook.com 被拦，未能逐字核对）。
+**Bun 是硬依赖**：仓库 `package.json` 写死 `packageManager: bun@1.3.1`，带 `bun.lock` 与 `bunfig.toml`（hoisted linker），官方全部命令都是 `bun`。没有 Bun 就先装。
 
-官方入口：
-- 文档：<https://docs.onlook.com/self-hosting/single-machine>
-- 仓库：<https://github.com/onlook-dev/onlook>
-
-前置：Node 22+、Bun、Docker Desktop、一个 GitHub OAuth App（用于读取仓库）。
+### 2.1 安装 Bun（Windows，本机实测可用）
 
 ```powershell
-git clone https://github.com/onlook-dev/onlook
-cd onlook
-bun install
-Copy-Item .env.example .env      # 按 .env.example 填写数据库与 OAuth
-docker compose up -d             # 本地 Postgres/Supabase（若 README 指定）
-bun dev                          # 默认 http://localhost:3000
+cd $env:USERPROFILE
+npm install -g bun --ignore-scripts=false
+bun --version          # 本机实测输出 1.4.3
+where.exe bun          # 应命中 %APPDATA%\npm\bun.cmd
 ```
 
-接入本项目：
+- 若 `bun` 仍提示无法识别：重开一个终端（PATH 需要刷新）。
+- 官方脚本（bun.sh 可达时）：`powershell -c "irm bun.sh/install.ps1 | iex"`；本次沙箱访问 bun.sh 超时，所以走 npm 方式。
+- Onlook 固定 `bun@1.3.1`，1.4.x 实测可运行；若 `bun install --frozen-lockfile` 因版本报错，再装指定版本。
+
+### 2.2 Onlook 官方本地步骤
+
+来源：仓库 `docs/content/docs/developers/running-locally.mdx`（2026-10-21 克隆核对）。前置：Bun、Docker Desktop、Node ≥ 20.16。
+
+```powershell
+git clone https://github.com/onlook-dev/onlook.git
+cd onlook
+bun install
+
+# 起后端（Docker 里跑 Supabase），记下输出里的 anon key 与 service role key
+bun backend:start
+
+# 准备三把钥匙：CodeSandbox API token、OpenRouter key、Morph 或 Relace 的 Fast Apply key
+bun run setup:env        # 交互式写 .env；脚本在 packages/scripts
+
+bun db:push              # 初始化 schema（提示交互时：cd packages/db && bun run db:push）
+bun db:seed              # 测试用户与项目
+bun dev                  # http://localhost:3000
+```
+
+命令含义（取自仓库 `package.json`）：`backend:start = bun --filter @onlook/backend start`、`setup:env = cd packages/scripts && bun run start`。
+
+### 2.3 只用 Docker 部署可以吗
+
+不行，至少仍需要 Bun：`docker-compose.yml` 只起 `web-client`（3000），需要 `apps/web/client/.env`，并依赖外部网络 `supabase_network_onlook-web`；官方文档的 compose 流程同样先 `bun install` + `bun run setup:env`。
+
+### 2.4 接入本项目
 
 1. 先把本仓库推到 GitHub（Onlook 通过 GitHub 授权读取/写回）。
 2. Onlook 里连接该仓库，工作目录选仓库根。
@@ -61,7 +85,11 @@ bun dev                          # 默认 http://localhost:3000
 
 | 现象 | 处理 |
 |---|---|
-| Storybook 起不来、提示 vite 版本不匹配 | 确认 `storybook` 与 `@storybook/react-vite` 都是 10.6.x（peer 写的是 `vite ^5 || ^6 || ^7 || ^8`） |
+| `bun` 无法识别 | `npm install -g bun --ignore-scripts=false`（本机实测 1.4.3），重开终端后 `where.exe bun` 确认 |
+| `bun.sh` 安装脚本超时 | 用上面的 npm 方式；两者装的是同一个二进制 |
+| `bun install` 因锁文件版本报错 | 仓库固定 `bun@1.3.1`，装指定版本或去掉 `--frozen-lockfile` |
+| `setup:env` 交互脚本失败 | 按仓库 docs 的 appendix 手工填 `.env`（四个 `.env.example` 分别在 `apps/web/client`、`apps/backend`、`packages/db`、`packages/stripe`） |
+| Storybook 起不来、提示 vite 版本不匹配 | 确认 `storybook` 与 `@storybook/react-vite` 都是 10.6.x（peer 写的是 `vite ^5 \|\| ^6 \|\| ^7 \|\| ^8`） |
 | 改 `vite.config.ts` 后页面样式没变 | 重启 dev server（旧进程不重载配置） |
 | Onlook 连不上仓库 | 检查 GitHub OAuth 回调地址与 `.env` 里的 `NEXT_PUBLIC_*` 变量 |
 | Onlook 改完本地不生效 | 确认它写回的是你的工作区分支，然后 `git diff` 看改动、跑门禁 |
