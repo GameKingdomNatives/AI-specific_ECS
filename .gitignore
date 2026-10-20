@@ -1,0 +1,8 @@
+node_modules/
+dist/
+artifacts/
+.pnpm-store/
+.npm-cache/
+.gate/
+*.log
+.DS_Store

@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>深入战火 · 治理面板</title>
+<style>
+  :root { --bg:#f5f5f5; --card:#ffffff; --stone:#f5f2ef; --ink:#111; --soft:#4e4e4e; --muted:#777169; --accent:#8a6a4f; --line:rgba(0,0,0,.07); }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:40px 32px 56px; background:var(--bg); color:var(--ink); font:15px/1.85 "Songti SC","Times New Roman",serif; letter-spacing:.012em; }
+  .wrap { max-width:1080px; }
+  .eyebrow { font-size:12px; letter-spacing:.24em; color:var(--accent); margin-bottom:14px; }
+  h1 { font-weight:400; font-size:28px; letter-spacing:-.01em; margin:0 0 6px; }
+  .sub { color:var(--muted); margin:0 0 28px; }
+  .rule { height:1px; background:var(--line); margin:22px 0; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px 22px; box-shadow:0 1px 2px rgba(78,50,23,.04); }
+  .card h2 { font-weight:400; font-size:13px; letter-spacing:.16em; color:var(--accent); margin:0 0 12px; text-transform:uppercase; }
+  .kv { display:grid; grid-template-columns:88px 1fr; gap:4px 12px; font-size:14.5px; }
+  .kv dt { color:var(--muted); } .kv dd { margin:0; }
+  .pill { display:inline-block; padding:1px 9px; border-radius:999px; font-size:12.5px; letter-spacing:.06em; }
+  .pass { background:#eef3ec; color:#3f5b3f; } .fail { background:#f7ecea; color:#7d3d33; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th { text-align:left; color:var(--muted); font-weight:400; padding:5px 0; border-bottom:1px solid var(--line); }
+  td { padding:6px 0; border-bottom:1px solid var(--line); }
+  code { font-family:"Consolas","Courier New",monospace; font-size:13px; color:var(--soft); }
+  .cmd { display:grid; grid-template-columns:130px 1fr auto; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid var(--line); font-size:14px; }
+  button { border:1px solid var(--line); background:var(--stone); color:var(--soft); border-radius:999px; padding:4px 12px; font:13px "Songti SC",serif; cursor:pointer; }
+  button:hover { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .muted { color:var(--muted); font-size:13.5px; }
+  @media (max-width:820px) { .grid { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">GOVERNANCE PANEL · 只读视图</div>
+  <h1>深入战火 · 治理面板</h1>
+  <p class="sub">数据全部来自 Git 与门禁产物；本页不写任何状态，刷新即重读。</p>
+
+  <div class="grid">
+    <div class="card">
+      <h2>状态</h2>
+      <dl class="kv" id="status"></dl>
+    </div>
+    <div class="card">
+      <h2>门禁</h2>
+      <div id="gate"></div>
+    </div>
+    <div class="card">
+      <h2>改动与凭证</h2>
+      <div id="changes"></div>
+    </div>
+    <div class="card">
+      <h2>趋势</h2>
+      <div id="trend"></div>
+    </div>
+  </div>
+
+  <div class="rule"></div>
+  <div class="card">
+    <h2>常用命令（只复制，不执行）</h2>
+    <div id="commands"></div>
+    <p class="muted" style="margin-top:12px">复制的命令里 &lt;理由&gt; 是必填占位符；空理由会被 review 脚本拒绝。</p>
+  </div>
+
+  <div class="rule"></div>
+  <div class="card">
+    <h2>最近批阅</h2>
+    <div id="reviews"></div>
+  </div>
+</div>
+<script src="snapshot.js"></script>
+<script>
+  const data = window.PANEL_SNAPSHOT || null;
+  const el = (id) => document.getElementById(id);
+  const text = (tag, value) => { const n = document.createElement(tag); n.textContent = value; return n; };
+
+  function copy(command) {
+    const done = () => { /* 复制完成无需提示 */ };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(command).then(done, () => fallback(command));
+      return;
+    }
+    fallback(command);
+  }
+  function fallback(command) {
+    const area = document.createElement('textarea');
+    area.value = command;
+    document.body.appendChild(area);
+    area.select();
+    try { document.execCommand('copy'); } catch (error) { /* file:// 下可能被拒绝 */ }
+    document.body.removeChild(area);
+  }
+
+  if (!data) {
+    el('status').appendChild(text('dd', '未找到 snapshot.js：请先运行 node tools/panel/collect.mjs'));
+  } else {
+    const repo = data.repo;
+    const items = [
+      ['HEAD', repo.head],
+      ['分支', repo.branch],
+      ['未提交', String(repo.dirtyCount) + ' 个文件'],
+      ['采集时间', data.generatedAt],
+      ['stamp', String(data.stamps) + ' 份'],
+      ['waiver', String(data.waivers) + ' 条'],
+    ];
+    for (const [key, value] of items) {
+      el('status').appendChild(text('dt', key));
+      el('status').appendChild(text('dd', value));
+    }
+
+    if (data.gate) {
+      const head = document.createElement('p');
+      const pill = text('span', data.gate.passed ? 'PASS' : 'FAIL');
+      pill.className = 'pill ' + (data.gate.passed ? 'pass' : 'fail');
+      head.appendChild(pill);
+      head.appendChild(text('span', '  ' + data.gate.generatedAt));
+      el('gate').appendChild(head);
+      const table = document.createElement('table');
+      const thead = document.createElement('thead');
+      const row = document.createElement('tr');
+      row.appendChild(text('th', '检查'));
+      row.appendChild(text('th', '结果'));
+      thead.appendChild(row);
+      table.appendChild(thead);
+      const body = document.createElement('tbody');
+      for (const check of data.gate.checks) {
+        const tr = document.createElement('tr');
+        tr.appendChild(text('td', check.name));
+        tr.appendChild(text('td', check.code === 0 ? 'PASS' : 'FAIL'));
+        body.appendChild(tr);
+      }
+      table.appendChild(body);
+      el('gate').appendChild(table);
+    } else {
+      el('gate').appendChild(text('p', '尚无门禁报告：先运行 node tools/gate.mjs'));
+    }
+
+    const changed = document.createElement('div');
+    changed.appendChild(text('p', '未提交文件 ' + repo.dirtyCount + ' 个（受保护路径改动会在这里显形）'));
+    const list = document.createElement('div');
+    list.className = 'muted';
+    repo.changed.slice(0, 12).forEach((path) => list.appendChild(text('div', path)));
+    changed.appendChild(list);
+    el('changes').appendChild(changed);
+
+    if (data.trend.length === 0) {
+      el('trend').appendChild(text('p', '尚无批次读数：完成一批后写入 docs/quality-log.md'));
+    } else {
+      const table = document.createElement('table');
+      const head = document.createElement('tr');
+      ['批次', '测试', '契约', '逻辑帧', '门禁秒', 'waiver'].forEach((h) => head.appendChild(text('th', h)));
+      table.appendChild(head);
+      for (const row of data.trend) {
+        const tr = document.createElement('tr');
+        row.slice(0, 6).forEach((cell) => tr.appendChild(text('td', cell)));
+        table.appendChild(tr);
+      }
+      el('trend').appendChild(table);
+    }
+
+    for (const item of data.commands) {
+      const row = document.createElement('div');
+      row.className = 'cmd';
+      row.appendChild(text('span', item.label));
+      const code = text('code', item.command);
+      row.appendChild(code);
+      const button = text('button', '复制');
+      button.addEventListener('click', () => copy(item.command));
+      row.appendChild(button);
+      el('commands').appendChild(row);
+    }
+
+    if (data.reviews.length === 0) {
+      el('reviews').appendChild(text('p', '暂无批阅记录'));
+    } else {
+      for (const line of data.reviews) el('reviews').appendChild(text('div', line.replace(/\|/g, ' · ').trim()));
+    }
+  }
+</script>
+</body>
+</html>
