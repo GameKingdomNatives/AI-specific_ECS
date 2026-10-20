@@ -11,6 +11,8 @@
 - 第二批续：物理查询内核（圆／盒子／凸多边形／射线＋均匀网格哈希）与数据层（Zod 校验、失败隔离、运行时加载）已落地，测试 6 个文件 28 个用例。
 - 应用已接数据：HUD 显示 `data ok`，内容来自 `apps/game/public/content/demo.boxes.json`。
 - **物理端口 v2 已落地**（HARD，人已批准）：圆／盒／胶囊／凸多边形、层过滤、射线命中点法线、扫掠防穿透、扇形与最近查询、contacts、debugShapes、stats、帧批量同步。契约见 `docs/proposals/002-physics-port-v2.md`，决策见 `docs/adr/003-physics-port-v2.md`。
+- 相机修正：世界默认居中（`setCamera(WIDTH/2, HEIGHT/2)`），此前画面只铺满右下四分之一。
+- 批阅流程：`review.mjs` 支持 `--tag`；面板新增「批阅台」，参数可写并生成 PowerShell／CMD 脚本（复制或下载，不执行）；说明见 `docs/runbooks/02-提交审核流程.md`。
 - 工具链更正：Vite 8 可用（rolldown 无子进程），见 ADR-001「更正」节。
 
 ## 本批剩余（第二批起不在本轮）

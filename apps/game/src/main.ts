@@ -30,6 +30,7 @@ const renderer = await createPixiRenderer(canvas, {
   preserveDrawingBuffer: captureMode,
   debugGlobal: captureMode,
 });
+renderer.setCamera(WIDTH / 2, HEIGHT / 2, 1);
 
 let tick = 0;
 let last = performance.now();
