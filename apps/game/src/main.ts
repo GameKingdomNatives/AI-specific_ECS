@@ -1,4 +1,4 @@
-import { CommandBuffer, EventBus, Scheduler, World } from '@itb/engine/core';
+import { CommandBuffer, EventBus, FixedClock, Scheduler, World } from '@itb/engine/core';
 import { FALLBACK_BOXES, loadContent } from '@itb/engine/data';
 import type { RenderItem } from '@itb/engine/ports';
 import { Box, createMovementSystem, Position, spawnBoxes } from '@itb/engine/demo';
@@ -32,9 +32,8 @@ const renderer = await createPixiRenderer(canvas, {
 });
 renderer.setCamera(WIDTH / 2, HEIGHT / 2, 1);
 
-let tick = 0;
 let last = performance.now();
-let accumulator = 0;
+const clock = new FixedClock(STEP_MS);
 
 function renderTable(): RenderItem[] {
   const items: RenderItem[] = [];
@@ -63,16 +62,16 @@ function renderTable(): RenderItem[] {
 }
 
 function frame(now: number): void {
-  accumulator += Math.min(now - last, 100);
+  const delta = now - last;
   last = now;
-  while (accumulator >= STEP_MS) {
-    scheduler.run(world, bus, commands, tick);
-    tick += 1;
-    accumulator -= STEP_MS;
+  const startTick = clock.tick;
+  const steps = clock.advance(delta);
+  for (let index = 0; index < steps; index += 1) {
+    scheduler.run(world, bus, commands, startTick + index + 1);
   }
   renderer.submit(renderTable());
-  if (hud !== null && tick % 10 === 0) {
-    hud.textContent = `tick ${tick} · entities ${world.aliveCount} · ${dataStatus}`;
+  if (hud !== null && clock.tick % 10 === 0) {
+    hud.textContent = `tick ${clock.tick} · entities ${world.aliveCount} · ${dataStatus}`;
   }
   requestAnimationFrame(frame);
 }
