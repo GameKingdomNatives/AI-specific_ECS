@@ -165,6 +165,46 @@ bun backend:start
 - `supabase start -x edge-runtime` 只在容器层面排除，**不解决配置里声明的函数打包**，所以它不是可靠退路（已从首选降为备选）。
 - 仍失败时跑 `supabase start --debug`；若报 Docker 连接失败，先确认 Docker Desktop 已启动（`docker info` 能返回 ServerVersion）。
 
+#### 若迁移 0008 报 `Direct deletion from storage tables is not allowed`
+
+现象（`supabase start` 应用迁移到 `0008_preview-img-storage.sql` 时中止）：
+
+```
+ERROR: Direct deletion from storage tables is not allowed. Use the Storage API instead. (SQLSTATE 42501)
+At statement: 0
+delete from storage.objects where bucket_id = 'preview_images'
+```
+
+根因：该迁移的第一条语句就是直接删 `storage.objects`，而较新的 Storage 版本禁止对 storage 表做直接 DML。
+仓库 `bun.lock` 钉的是 **supabase `2.53.6`**，而本机全局装的是 `2.121.0` —— CLI 版本决定它拉起的 storage 镜像版本。
+
+修法 A（推荐，版本对齐）：
+
+```powershell
+cd E:\Onlook\onlook\apps\backend
+supabase stop --no-backup        # 清掉半初始化的容器/卷
+cd ..\..
+npm install -g supabase@2.53.6 --ignore-scripts=false
+supabase --version               # 期望 2.53.6
+bun backend:start
+```
+
+修法 B（版本对齐仍失败时，本地补丁 0008）：
+
+编辑 `apps/backend/supabase/migrations/0008_preview-img-storage.sql`，把开头两条 `delete` 换成幂等 upsert：
+
+```sql
+-- 本地兼容新版 Storage：不直接删对象，bucket 用 upsert
+insert into storage.buckets (id, name, public)
+values ('preview_images', 'preview_images', true)
+on conflict (id) do update set public = excluded.public;
+```
+
+后面 `create policy` 等语句保持不变；然后 `supabase db reset` 或重新 `bun backend:start`。
+注意这是本地偏离上游的补丁，升级 CLI 后可以还原。
+
+版本参考：`2.45.5`、`2.53.6`、`2.5x` 系列都可用；`3.0.0-next.*` 是预发布，不要用。
+
 #### 若 `bun install` 卡在 `free-email-domains` postinstall
 
 现象：

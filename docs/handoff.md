@@ -57,7 +57,7 @@
 - Onlook 依赖链已查清：仓库 `packageManager: bun@1.3.1`（带 `bun.lock`/`bunfig.toml`），官方本地步骤来自 `docs/content/docs/developers/running-locally.mdx`（`bun install` → `bun backend:start` → `bun run setup:env` → `bun db:push` → `bun db:seed` → `bun dev`）。Docker compose 路线也仍需 Bun。
 - Bun 已在本机装好：`npm install -g bun --ignore-scripts=false` → 1.4.3，`where.exe bun` 命中 `%APPDATA%\npm\bun.cmd`；bun.sh 在沙箱内超时，故走 npm 方式。步骤与排错写入 runbook 04。
 - Onlook 依赖链继续补齐：`supabase` CLI 已装（npm 全局 2.121.0）；`supabase start` 还需要 Docker Desktop——本机 `docker` 未安装，runbook 04 给了两条路（装 Docker / 用云端 Supabase 跳过 backend:start）。
-- `stripe-webhook` 缺失已定案（核对上游 HEAD）：`.gitmodules` 只有 `apps/admin`（私有仓库，与 backend 无关）；`apps/backend` 不是子模块，且仓库未跟踪任何 `functions/`；但 `config.toml` 声明了 `[functions.stripe-webhook]` —— 上游配置与源码不一致。修法：config 里加 `enabled = false`（推荐）或放最小桩函数；`-x edge-runtime` 不解决打包问题（仅排除容器）。
+- `stripe-webhook` 已按修法 A 处理（启动日志出现 `Skipped serving Function: stripe-webhook`，继续跑迁移）。新的阻塞是迁移 `0008_preview-img-storage.sql` 直接删 `storage.objects`，被新版 Storage 拒绝（SQLSTATE 42501）：仓库 `bun.lock` 钉 supabase **2.53.6**，本机全局是 2.121.0。修法：装回 2.53.6（推荐）或把 0008 的两条 delete 改成本地幂等 upsert。详见 runbook 04。
 - 下一步：把 UI 组件再拆细（面板/列表/Tooltip），每个都配 story；Onlook 接上后按同一门禁收改动。
 
 ## 当前缺口（2026-10-21 核对）
