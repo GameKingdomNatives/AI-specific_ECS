@@ -13,7 +13,8 @@
 | 端口契约 | `packages/engine/src/ports` | ports | 已冻结（9 个） |
 | 方块运动夹具 | `demo.movement` | demo | 已具备 |
 | 渲染表批处理 | `IRenderer.submit`（Pixi 实现） | impl | 已具备 |
-| 物理查询（圆／盒／凸多边形／射线） | `PhysicsWorld`（`IPhysics` 仅暴露圆） | impl | 已具备（端口待扩） |
+| 物理查询（圆／盒／胶囊／凸多边形／射线／扫掠／扇形／最近） | `IPhysics` v2 → `PhysicsWorld` | impl | 已具备（端口 v2） |
+| 接触对与调试形状 | `contacts()` / `debugShapes()` / `stats()` | impl | 已具备 |
 | 数据校验与失败隔离 | `parseContent` / `loadContent` | data | 已具备 |
 | 数据热加载 | — | data | 待第三批 |
 | 确定性回放 | `src/determinism` | determinism | 待第三批 |

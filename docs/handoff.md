@@ -10,7 +10,7 @@
 - 门禁新增 `build` 步骤（Vite 构建），全量 14 项 PASS。
 - 第二批续：物理查询内核（圆／盒子／凸多边形／射线＋均匀网格哈希）与数据层（Zod 校验、失败隔离、运行时加载）已落地，测试 6 个文件 28 个用例。
 - 应用已接数据：HUD 显示 `data ok`，内容来自 `apps/game/public/content/demo.boxes.json`。
-- **端口限制（待人裁定）**：`IPhysics` 冻结契约只暴露圆形刚体；盒子与多边形目前经 `PhysicsWorld` 直接使用。要扩端口（addBox/addPolygon/update）属 HARD 变更，需批准后再改契约与哈希。
+- **物理端口 v2 已落地**（HARD，人已批准）：圆／盒／胶囊／凸多边形、层过滤、射线命中点法线、扫掠防穿透、扇形与最近查询、contacts、debugShapes、stats、帧批量同步。契约见 `docs/proposals/002-physics-port-v2.md`，决策见 `docs/adr/003-physics-port-v2.md`。
 - 工具链更正：Vite 8 可用（rolldown 无子进程），见 ADR-001「更正」节。
 
 ## 本批剩余（第二批起不在本轮）
