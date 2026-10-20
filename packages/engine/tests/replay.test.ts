@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { CommandBuffer, defineComponent, EventBus, Scheduler, World } from '../src/core/index.js';
 import type { SystemDef } from '../src/core/index.js';
 import type { InputSnapshot } from '../src/ports/index.js';
-import { firstDivergence, replay, serializeInput } from '../src/determinism/index.js';
+import { firstDivergence, hashHex, replay, serializeInput } from '../src/determinism/index.js';
 import type { Recording } from '../src/determinism/index.js';
 
 const Position = defineComponent('Position', { x: 'f64', y: 'f64' });
@@ -69,4 +69,12 @@ test('偏离定位到第一个不一致的 tick', () => {
   assert.equal(firstDivergence([1, 2, 3], [1, 2, 3]), null);
   assert.equal(firstDivergence([1, 2, 3], [1, 9, 3]), 1);
   assert.equal(firstDivergence([1, 2], [1, 2, 3]), 2);
+});
+
+test('开局哈希不符会被标记（防止跨热加载录制混入回归）', () => {
+  const setup = scenario();
+  const dirty = { ...setup.recording, startHash: 'deadbeef' };
+  assert.equal(replay(dirty, setup.hooks).startHashMatches, false);
+  const clean = { ...setup.recording, startHash: hashHex(setup.hooks.hash()) };
+  assert.equal(replay(clean, setup.hooks).startHashMatches, true);
 });

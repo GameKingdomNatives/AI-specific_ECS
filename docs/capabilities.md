@@ -29,6 +29,8 @@
 | 内容热加载 | `content.ts`（JSON 模块更新 → 重新校验 → 重建实体） | app | 已具备 |
 | 录制 → 无头重演 | `__itb.recording()` + `node tools/replay.mjs --app` | app+tools | 已具备（403 tick 哈希一致） |
 | 诊断 dump（浏览器） | `__itb.dumps()`（系统名/tick/错误/栈） | app | 已具备 |
-| 逻辑帧基准 | `npm run bench`（默认 3000 实体） | tools | 已具备 |
+| 逻辑帧基准 | `npm run bench`（默认 3000 实体，含历史基线对比） | tools | 已具备 |
+| 数据迁移管线 | `applyMigrations`（逐版、缺链即失败） | data | 已具备 |
+| 录制干净开局校验 | `startHash` + `replay` 返回 `startHashMatches` | determinism | 已具备 |
 | 数据热加载 | — | data | 待第三批 |
 | 确定性回放 | `src/determinism` | determinism | 待第三批 |

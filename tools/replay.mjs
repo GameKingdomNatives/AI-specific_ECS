@@ -124,6 +124,10 @@ function replayApp(file, expectedHash) {
   const final = hashHex(result.finalHash);
   console.log(`ticks      ${result.ticks}`);
   console.log(`final      ${final}`);
+  if (result.startHashMatches === false) {
+    console.log('干净开局   不匹配（录制可能跨内容热加载或世界不同）');
+    return 1;
+  }
   if (expectedHash !== null) {
     console.log(final === expectedHash ? '哈希对比   PASS' : `哈希对比   FAIL（期望 ${expectedHash}）`);
     return final === expectedHash ? 0 : 1;

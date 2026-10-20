@@ -25,8 +25,8 @@
       "default": "./dist/src/impl/pixi-renderer.js"
     },
     "./data": {
-      "types": "./dist/src/data/content.d.ts",
-      "default": "./dist/src/data/content.js"
+      "types": "./dist/src/data/index.d.ts",
+      "default": "./dist/src/data/index.js"
     },
     "./determinism": {
       "types": "./dist/src/determinism/index.d.ts",

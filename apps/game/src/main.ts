@@ -25,7 +25,6 @@ const world = new World();
 const bus = new EventBus();
 const commands = new CommandBuffer();
 const clock = new FixedClock(STEP_MS);
-const recorder = new Recorder(20261020);
 
 const input = createBrowserInput(canvas, {
   toWorld: (x, y) => {
@@ -87,6 +86,7 @@ function spawnSpec(spec: BoxSpec): EntityId[] {
 }
 
 let boxes = spawnSpec(initial.spec);
+const recorder = new Recorder(20261020, hashHex(worldHash(world, [Position, Box])));
 
 watchContent((state) => {
   dataStatus = state.ok ? 'data ok (hot)' : `data fallback: ${state.issue ?? 'invalid'}`;

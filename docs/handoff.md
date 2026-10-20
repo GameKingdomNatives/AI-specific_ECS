@@ -23,7 +23,10 @@
 - 端到端闭环：浏览器 `__itb.recording()` 导出的 403 tick 录制，用 `node tools/replay.mjs --app … --expect-hash …` 无头重演，最终哈希 `b5ef9765` 一致。
 - 基准已入门禁：`bench` 步骤（3000 实体／200 tick，预算 4ms），实测 0.64–0.70ms。
 - 已知边界：跨内容热加载的录制不可重演（热加载会重建实体），不应参与哈希回归。
-- 下一步：把 bench 阈值与历史基线对比（不只固定 4ms）、数据 schema 版本迁移、以及把「干净开局」判定写进 replay 前置检查。
+- 基准升级：`bench` 现在同时判「绝对预算 4ms」与「历史基线 ×1.25」；基线在 `tools/bench-baseline.json`（当前 0.625ms），重录用 `node tools/bench.mjs --update`。
+- 干净开局校验：录制带 `startHash`，重演前比对；实测干净录制 `43a686dd` 重演哈希 `54677965` 一致，篡改 startHash 后 CLI 明确报「不匹配」并以 1 退出。
+- 数据迁移：`applyMigrations` 逐版迁移、缺链/跳版/版本过高都明确失败，已进测试。
+- 下一步：第四批——存档接口 `IStorage` 的本地实现与 schema 版本绑定、资源加载器，以及把迁移接入 `loadContent` 的正式路径。
 
 ## 第三批剩余
 

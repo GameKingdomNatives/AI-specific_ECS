@@ -10,6 +10,8 @@ export interface SerializedInput {
 export interface Recording {
   readonly version: 1;
   readonly seed: number;
+  /** 开局世界哈希：用于判断录制是否来自「干净开局」。 */
+  readonly startHash?: string;
   readonly ticks: readonly SerializedInput[];
 }
 
@@ -35,9 +37,11 @@ export function toSnapshot(input: SerializedInput): InputSnapshot {
 export class Recorder {
   private readonly ticks: SerializedInput[] = [];
   private readonly seed: number;
+  private readonly startHash: string | undefined;
 
-  constructor(seed: number) {
+  constructor(seed: number, startHash?: string) {
     this.seed = seed >>> 0;
+    this.startHash = startHash;
   }
 
   record(tick: number, input: InputSnapshot): void {
@@ -49,7 +53,9 @@ export class Recorder {
   }
 
   toRecording(): Recording {
-    return { version: 1, seed: this.seed, ticks: [...this.ticks] };
+    return this.startHash === undefined
+      ? { version: 1, seed: this.seed, ticks: [...this.ticks] }
+      : { version: 1, seed: this.seed, startHash: this.startHash, ticks: [...this.ticks] };
   }
 }
 
@@ -58,6 +64,7 @@ export function serialize(recording: Recording): string {
   return JSON.stringify({
     version: recording.version,
     seed: recording.seed,
+    ...(recording.startHash === undefined ? {} : { startHash: recording.startHash }),
     ticks: recording.ticks.map((tick) => ({
       tick: tick.tick,
       keys: tick.keys,
@@ -79,6 +86,7 @@ export function deserialize(text: string): Recording {
   return {
     version: 1,
     seed: record.seed >>> 0,
+    ...(typeof record.startHash === 'string' ? { startHash: record.startHash } : {}),
     ticks: record.ticks.map((tick) => ({
       tick: tick.tick,
       keys: [...tick.keys],
