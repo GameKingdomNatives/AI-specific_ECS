@@ -1,0 +1,9 @@
+{
+  "$schemaVersion": 1,
+  "boxes": {
+    "count": 64,
+    "minSize": 8,
+    "maxSize": 14,
+    "speed": 1
+  }
+}

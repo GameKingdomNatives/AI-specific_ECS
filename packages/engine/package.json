@@ -23,6 +23,10 @@
     "./impl": {
       "types": "./dist/src/impl/pixi-renderer.d.ts",
       "default": "./dist/src/impl/pixi-renderer.js"
+    },
+    "./data": {
+      "types": "./dist/src/data/content.d.ts",
+      "default": "./dist/src/data/content.js"
     }
   },
   "dependencies": {

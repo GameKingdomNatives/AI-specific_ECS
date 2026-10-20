@@ -7,7 +7,10 @@
 - 第一批已完成并提交：ECS 内核、九端口、事件总线、门禁（含诊断定位）、治理面板、AGENTS.md。
 - 第二批已落地：Pixi 渲染后端（`IRenderer` 实现，渲染表 diff、七图层、相机、逻辑分辨率 1920×1080）、浏览器入口（ESM + Vite）、固定步长循环（60Hz + 累加器）、HUD。
 - 实测证据：`?capture=1` 下 `extract` 读出 1016 个亮像素，HUD `tick 110 · entities 64`；导出图 `artifacts/panel/fixture-opaque.png`。
-- 门禁新增 `build` 步骤（Vite 构建），全量 12 项 PASS。
+- 门禁新增 `build` 步骤（Vite 构建），全量 14 项 PASS。
+- 第二批续：物理查询内核（圆／盒子／凸多边形／射线＋均匀网格哈希）与数据层（Zod 校验、失败隔离、运行时加载）已落地，测试 6 个文件 28 个用例。
+- 应用已接数据：HUD 显示 `data ok`，内容来自 `apps/game/public/content/demo.boxes.json`。
+- **端口限制（待人裁定）**：`IPhysics` 冻结契约只暴露圆形刚体；盒子与多边形目前经 `PhysicsWorld` 直接使用。要扩端口（addBox/addPolygon/update）属 HARD 变更，需批准后再改契约与哈希。
 - 工具链更正：Vite 8 可用（rolldown 无子进程），见 ADR-001「更正」节。
 
 ## 本批剩余（第二批起不在本轮）

@@ -45,14 +45,22 @@ function bounce(value: number, limit: number): number {
   return value;
 }
 
-export function spawnBoxes(world: World, count: number, width: number, height: number): void {
+export function spawnBoxes(
+  world: World,
+  count: number,
+  width: number,
+  height: number,
+  minSize = 8,
+  maxSize = 14,
+  speed = 1,
+): void {
   for (let index = 0; index < count; index += 1) {
     const entity = world.spawn();
     world.add(entity, Position, {
       x: (index * 37) % width,
       y: (index * 61) % height,
     });
-    world.add(entity, Velocity, { x: 1 + (index % 3), y: 0.5 + (index % 2) });
-    world.add(entity, Box, { size: 8 + (index % 3) * 2, tint: 0xffffff });
+    world.add(entity, Velocity, { x: (1 + (index % 3)) * speed, y: (0.5 + (index % 2)) * speed });
+    world.add(entity, Box, { size: Math.min(maxSize, minSize + (index % 3) * 2), tint: 0xffffff });
   }
 }

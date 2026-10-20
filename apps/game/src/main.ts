@@ -1,11 +1,11 @@
 import { CommandBuffer, EventBus, Scheduler, World } from '@itb/engine/core';
+import { FALLBACK_BOXES, loadContent } from '@itb/engine/data';
 import type { RenderItem } from '@itb/engine/ports';
 import { Box, createMovementSystem, Position, spawnBoxes } from '@itb/engine/demo';
 import { createPixiRenderer } from '@itb/engine/impl';
 
 const WIDTH = 1920;
 const HEIGHT = 1080;
-const BOXES = 64;
 const STEP_MS = 1000 / 60;
 
 const canvas = document.getElementById('stage');
@@ -20,7 +20,10 @@ const commands = new CommandBuffer();
 const scheduler = new Scheduler();
 scheduler.add(createMovementSystem(WIDTH, HEIGHT));
 scheduler.build();
-spawnBoxes(world, BOXES, WIDTH, HEIGHT);
+const content = await loadContent('/content/demo.boxes.json');
+const spec = content.ok && content.value !== null ? content.value.boxes : FALLBACK_BOXES;
+spawnBoxes(world, spec.count, WIDTH, HEIGHT, spec.minSize, spec.maxSize, spec.speed);
+const dataStatus = content.ok ? 'data ok' : `data fallback: ${content.issues[0]?.message ?? 'invalid'}`;
 
 const captureMode = new URLSearchParams(location.search).has('capture');
 const renderer = await createPixiRenderer(canvas, {
@@ -68,7 +71,7 @@ function frame(now: number): void {
   }
   renderer.submit(renderTable());
   if (hud !== null && tick % 10 === 0) {
-    hud.textContent = `tick ${tick} · entities ${world.aliveCount}`;
+    hud.textContent = `tick ${tick} · entities ${world.aliveCount} · ${dataStatus}`;
   }
   requestAnimationFrame(frame);
 }

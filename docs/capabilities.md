@@ -12,7 +12,8 @@
 | 事件广播（同步/延迟/录制） | `EventBus` | core | 已具备 |
 | 端口契约 | `packages/engine/src/ports` | ports | 已冻结（9 个） |
 | 方块运动夹具 | `demo.movement` | demo | 已具备 |
-| 渲染表批处理 | `IRenderer.submit` | impl | 待第二批 |
-| 物理查询 | `IPhysics` | impl | 待第二批 |
-| 数据校验与热加载 | `src/data` | data | 待第二批 |
+| 渲染表批处理 | `IRenderer.submit`（Pixi 实现） | impl | 已具备 |
+| 物理查询（圆／盒／凸多边形／射线） | `PhysicsWorld`（`IPhysics` 仅暴露圆） | impl | 已具备（端口待扩） |
+| 数据校验与失败隔离 | `parseContent` / `loadContent` | data | 已具备 |
+| 数据热加载 | — | data | 待第三批 |
 | 确定性回放 | `src/determinism` | determinism | 待第三批 |
