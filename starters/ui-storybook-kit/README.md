@@ -2,7 +2,11 @@
 
 一个**可独立复制**的 UI 起步工程：React 19 + Tailwind 4 + Storybook 10，本地运行、MIT 许可、免费商用。没有游戏引擎、没有后端、没有云服务。
 
-它的用途：让新加入的开发者（或设计协作方）在 **10 分钟内**跑起来、看懂一个组件怎么被拆成「组件 + 状态故事」，并形成一个可交付给设计的静态页面。
+> 独立性：本目录有自己的 `package.json`、`tsconfig.json`、`.storybook/` 与组件源码，不 import 主仓库的任何代码；复制到任意目录后 `npm install` 即可运行。
+>
+> 文档中的「设计方」指**未来可能的协作方**，不是当前项目已存在的角色。
+
+它的用途：让新加入的开发者（或未来的协作方）在 **10 分钟内**跑起来、看懂一个组件怎么被拆成「组件 + 状态故事」，并形成一个可交付的静态页面。
 
 ---
 
@@ -12,7 +16,7 @@
 
 ```bash
 cd starters/ui-storybook-kit
-npm install          # 在仓库内可省略：根目录已装好依赖
+npm install
 npm run storybook    # 打开 http://localhost:6006
 ```
 
@@ -112,4 +116,4 @@ Figma 是**画设计稿**的地方，Storybook 是**看真实组件**的地方�
 
 ## 许可证
 
-React、Tailwind、Storybook、Vite 均为 MIT，可免费商用；本 starter 随主仓库一起使用。
+React、Tailwind、Storybook、Vite 均为 MIT，可免费商用；本目录可独立复制、独立发布。

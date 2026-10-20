@@ -1,4 +1,4 @@
-/** 与主仓库 apps/game/src/ui/tokens.ts 保持同步；starter 可独立复制使用。 */
+/** 设计 token 的唯一事实源；本工程独立使用，可按需自行扩展。 */
 export const tokens = {
   color: {
     background: '#111111',

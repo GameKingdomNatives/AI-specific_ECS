@@ -58,7 +58,7 @@
 - Bun 已在本机装好：`npm install -g bun --ignore-scripts=false` → 1.4.3，`where.exe bun` 命中 `%APPDATA%\npm\bun.cmd`；bun.sh 在沙箱内超时，故走 npm 方式。步骤与排错写入 runbook 04。
 - Onlook 依赖链继续补齐：`supabase` CLI 已装（npm 全局 2.121.0）；`supabase start` 还需要 Docker Desktop——本机 `docker` 未安装，runbook 04 给了两条路（装 Docker / 用云端 Supabase 跳过 backend:start）。
 - `stripe-webhook` 已绕过（日志 `Skipped serving Function`）；随后迁移 `0008_preview-img-storage.sql` 直删 `storage.objects` 被新版 Storage 拒绝（SQLSTATE 42501）。仓库 `bun.lock` 钉 supabase **2.53.6**，本机全局 2.121.0；且 2.53.6 拒绝全局安装、npm 局部安装的 postinstall 下载二进制时 ECONNRESET。修法见 runbook 04（手动下二进制 2.53.6 / 迁移改幂等 upsert）。
-- Onlook 策略回退（2026-10-21，ADR-009）：**设计侧改为 Figma 优先，Onlook 已排除**。理由：使用者是设计师、习惯 Figma，不应为改几个按钮去装 Bun/Docker/Supabase；自托管链本次实测不可复现，桌面版能力未验证。
+- Onlook 策略回退（2026-10-21，ADR-009）：**设计侧改为 Figma 优先，Onlook 已排除**。背景：本项目是个人项目，设计协作尚未常态；本轮是为**未来可能的合作**探索工具链，要求本地、免费、可复制。自托管链本次实测不可复现，桌面版能力未验证。
 - 最终 UI 方案：`docs/ui-final-plan.md`；独立落地方案：`docs/runbooks/06-UI工程落地.md`；教训：`docs/lessons/2026-10-ui-tooling.md`；UI 模块说明：`apps/game/src/ui/README.md`。
 - 设计评审最终形态（ADR-009 修订）：**Storybook 本地评审唯一路径**；token 唯一事实源 `apps/game/src/ui/tokens.ts` + `设计 token/总览` 故事；Figma 免费版仅可选草稿，**Dev Mode / MCP 已排除**（云端、付费、产物不可直接用）；Onlook 排除。
 - 引擎教训：`docs/lessons/2026-10-engine.md`（12 条，含哈希空集、子弹反弹、门禁空转、ESM JSON、基准抖动等）。

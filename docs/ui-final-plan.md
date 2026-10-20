@@ -5,9 +5,11 @@
 
 ## 1. 目标与非目标
 
+> 定位说明：本项目是**个人项目**，当前没有常态的设计角色参与；本文的「设计协作」指**未来可能出现的合作场景**。本轮探索的目的，是验证一套工具链是否适合未来合作，而不是现在就拉一个设计师进来。
+
 目标：
 
-1. 设计师**零工程环境**参与：任意工具出稿/标注，评审以 Storybook 为准（不依赖云端或付费服务）；
+1. 为**未来的设计协作**预留零工程环境的参与方式：任意工具出稿/标注，评审以 Storybook 为准（不依赖云端或付费服务）；
 2. 开发者以同一套组件契约实现，Storybook 作为双方共同验收面；
 3. UI 与引擎**单向依赖**：UI 只读快照、只发意图，不能直接改世界；
 4. 组件可独立运行（Storybook 不需要游戏、不需要 Docker）。
@@ -15,7 +17,7 @@
 非目标：
 
 - 不做「在浏览器里直接拖拽写回源码」的编辑器（Onlook 已排除，原因见 `docs/lessons/2026-10-ui-tooling.md`）；
-- 不让设计师接触 Node/Bun/Docker/Supabase；
+- 不让未来的协作方接触 Node/Bun/Docker/Supabase；
 - 不在本轮重做战场渲染。
 
 ## 2. 架构
@@ -78,7 +80,7 @@ Pixi canvas（战场）          React 19 DOM 覆盖层（UI）
 | 组件源码 | `apps/game/src/ui/` | 开发 |
 | 故事 | `apps/game/src/ui/App.stories.tsx` | 设计+开发 |
 | 静态 Storybook | `npm run storybook:build` → `artifacts/storybook-static` | 设计（浏览器直接打开） |
-| 设计上手 | `docs/runbooks/05-设计师上手.md` | 设计 |
+| 设计上手 | `docs/runbooks/05-设计师上手.md` | 未来协作（可选） |
 | 工程落地 | `docs/runbooks/06-UI工程落地.md` | 开发/合作方 |
 | 交接清单 | 本文档 §4/§5 | 双方 |
 
@@ -91,7 +93,7 @@ Pixi canvas（战场）          React 19 DOM 覆盖层（UI）
 
 ## 8. 验收标准
 
-1. `npm run storybook` 起得来，设计师能打开控制条与 token 总览并对照自己的稿；
+1. `npm run storybook` 起得来，任何评审者都能打开控制条与 token 总览并对照自己的稿；
 2. `npm run storybook:build` 产出静态包，可 zip 发给设计方；
 3. `npm run gate` 全绿（含 storybook 构建步骤与 `ui/**` 依赖规则）；
-4. 设计师无需安装 Node/Docker 即可参与（静态包路径已验证）。
+4. 评审者无需安装 Node/Docker 即可参与（静态包路径已验证）。
