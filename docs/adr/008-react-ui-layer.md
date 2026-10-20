@@ -34,6 +34,10 @@
 Tailwind 4.3.3 通过 `@tailwindcss/vite` 接入，`App.tsx` 的内联样式已替换为工具类；
 实测计算样式确认生效。改 `vite.config.ts` 后必须重启 dev server。
 
+依赖归位（已解决）：清理 `packages/engine/node_modules` 里 pnpm 遗留 junction 后，
+`npm install` 在根可复现（changed 150 packages, exit 0）；react/react-dom/tailwind/storybook
+的声明已移入 `apps/game/package.json`，物理位置由 npm 正常提升到根 `node_modules`。
+
 ## 验证
 
 - 页面按钮由 React 渲染（`#ui-root`），点击「存档」→ `已存档 @ tick 113 · 隔离 0`，localStorage 出现信封。

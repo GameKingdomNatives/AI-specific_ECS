@@ -52,7 +52,10 @@
 - 注意：改 `vite.config.ts` 后**必须重启 dev server**（旧进程不会重载配置），否则页面仍是旧样式。
 - 日志端口：`createMemoryLogger`（环形 100、可选 sink），系统出错时先 `logger.error` 再写 dump；`__itb.logs()` 可读。
 - 桥的解耦证据：`bridge.contract.test.ts` 用**自定义组件**（`BridgeProbePosition/BridgeProbeBox`）验证同步，不 import demo——桥确实只认注入的组件形状。
-- 下一步：Storybook 组件画布（Vite 8 兼容性待验）→ Onlook 自托管（用户终端）；以及把 React 依赖迁回 `apps/game`。
+- Storybook 已接入并进全量门禁：`storybook 10.6.3 + @storybook/react-vite`（peer 明确支持 `vite ^8`，无需降级）；`npm run storybook`（6006）、`npm run storybook:build`（artifacts/storybook-static）；示例故事 `src/ui/App.stories.tsx` 三个状态。
+- 依赖归位完成：react/react-dom/tailwind/storybook 声明已移入 `apps/game/package.json`；清理 pnpm 遗留后 `npm install` 在根可复现（实测 changed 150 packages, exit 0）。
+- Onlook：沙箱访问 docs.onlook.com 被拦（429/安全拦截），命令与步骤写在 `docs/runbooks/04-组件画布与Onlook.md`，标注「环境变量以仓库 .env.example 为准」；需你终端执行 Docker + GitHub 授权。
+- 下一步：把 UI 组件再拆细（面板/列表/Tooltip），每个都配 story；Onlook 接上后按同一门禁收改动。
 
 ## 第三批剩余
 

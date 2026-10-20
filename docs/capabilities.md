@@ -45,7 +45,9 @@
 | 重复重演校验 | `replay --self-test --repeat 3` 已进门禁 | tools | 已具备 |
 | 违规演练 | `tools/drill.mjs`（越界 import / 超预算各一条） | tools | 已具备 |
 | UI 覆盖层 | React 19 + `UiSnapshot` 只读 + `UiIntents`（10Hz 快照） | apps/ui | 已具备 |
-| 样式 | Tailwind 4（`@tailwindcss/vite`，工具类） | apps/ui | 已具备（Storybook/Onlook 未接） |
+| 样式 | Tailwind 4（`@tailwindcss/vite`，工具类） | apps/ui | 已具备 |
+| 组件画布 | Storybook 10.6（`@storybook/react-vite`，Vite 8 兼容） | apps/ui | 已具备（进全量门禁） |
+| 可视化编辑 | Onlook 自托管 | 外部 | 待用户终端（步骤见 runbook 04） |
 | 存档 UI | 页内 存档/读档/清除/导出录制（`@itb/engine/storage`） | app | 已具备 |
 | 录制干净开局校验 | `startHash` + `replay` 返回 `startHashMatches` | determinism | 已具备 |
 | 数据热加载 | — | data | 待第三批 |
