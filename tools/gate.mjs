@@ -60,13 +60,11 @@ step('tsc', process.execPath, ['node_modules/typescript/bin/tsc', '-b']);
 step('eslint', process.execPath, ['node_modules/eslint/bin/eslint.js', '.', '-f', 'json', '-o', join(RUN, 'eslint.json')]);
 step('registry', process.execPath, ['tools/checks/registry.mjs']);
 runTests();
+step('replay', process.execPath, ['tools/replay.mjs', '--self-test', '--repeat', '3']);
 step('gitfacts', process.execPath, ['tools/checks/gitfacts.mjs', RUN]);
 if (!FAST) {
-  step('depcruise', process.execPath, [
-    'node_modules/dependency-cruiser/bin/dependency-cruiser.mjs',
-    '--output-type',
-    'json',
-  ]);
+  step('depcruise', process.execPath, ['tools/checks/depcruise.mjs', RUN]);
+  step('drill', process.execPath, ['tools/drill.mjs']);
 }
 step('findings', process.execPath, ['tools/checks/findings.mjs', RUN]);
 step('build', process.execPath, [

@@ -152,15 +152,22 @@ if (args.includes('--app')) {
 
 
 if (args.includes('--self-test')) {
+  const repeatIndex = args.indexOf('--repeat');
+  const repeat = repeatIndex >= 0 ? Number(args[repeatIndex + 1]) : 3;
   const recording = makeRecording(30);
-  const first = runRecording(recording);
-  const second = runRecording(recording);
-  const left = first.hashes.map(hashHex);
-  const right = second.hashes.map(hashHex);
-  const diverged = firstHexDivergence(left, right);
-  console.log(`ticks      ${first.ticks}`);
-  console.log(`final      ${hashHex(first.finalHash)}`);
-  console.log(diverged === null ? '重演一致   PASS' : `首个偏离   ${diverged + 1}`);
+  const runs = Array.from({ length: repeat }, () => runRecording(recording));
+  const baseline = runs[0].hashes.map(hashHex);
+  let diverged = null;
+  for (const run of runs.slice(1)) {
+    diverged = firstHexDivergence(baseline, run.hashes.map(hashHex));
+    if (diverged !== null) {
+      break;
+    }
+  }
+  console.log(`ticks      ${runs[0].ticks}`);
+  console.log(`runs       ${repeat}`);
+  console.log(`final      ${hashHex(runs[0].finalHash)}`);
+  console.log(diverged === null ? `重复 ${repeat} 次一致   PASS` : `首个偏离   ${diverged + 1}`);
   process.exit(diverged === null ? 0 : 1);
 }
 

@@ -24,6 +24,18 @@
       "types": "./dist/src/impl/pixi-renderer.d.ts",
       "default": "./dist/src/impl/pixi-renderer.js"
     },
+    "./bridge": {
+      "types": "./dist/src/bridge/physics.d.ts",
+      "default": "./dist/src/bridge/physics.js"
+    },
+    "./audio": {
+      "types": "./dist/src/impl/audio.d.ts",
+      "default": "./dist/src/impl/audio.js"
+    },
+    "./diagnostics": {
+      "types": "./dist/src/impl/diagnostics.d.ts",
+      "default": "./dist/src/impl/diagnostics.js"
+    },
     "./physics": {
       "types": "./dist/src/impl/physics.d.ts",
       "default": "./dist/src/impl/physics.js"

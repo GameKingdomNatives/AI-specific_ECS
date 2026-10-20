@@ -22,7 +22,9 @@
     "panel": "node tools/panel/collect.mjs && node tools/panel/open.mjs",
     "review": "node tools/review.mjs",
     "typecheck": "node node_modules/typescript/bin/tsc -b",
-    "test": "node tools/gate.mjs --fast"
+    "test": "node tools/gate.mjs --fast",
+    "replay": "node tools/replay.mjs",
+    "drill": "node tools/drill.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",

@@ -1,10 +1,12 @@
-﻿/// <reference types="vite/client" />
+/// <reference types="vite/client" />
 import { CommandBuffer, EventBus, FixedClock, Scheduler, World } from '@itb/engine/core';
 import type { EntityId, SystemDef } from '@itb/engine/core';
 import type { BoxSpec } from '@itb/engine/data';
 import { hashHex, Recorder, serialize, worldHashGroups } from '@itb/engine/determinism';
 import { Box, Bullet, Position, spawnBoxes } from '@itb/engine/demo';
 import { createPixiRenderer } from '@itb/engine/impl';
+import { createNullAudio } from '@itb/engine/audio';
+import { createDumpSink } from '@itb/engine/diagnostics';
 import { createPhysicsPort, PhysicsWorld } from '@itb/engine/physics';
 import { createLocalStorage, createSaveStore } from '@itb/engine/storage';
 import type { RenderItem } from '@itb/engine/ports';
@@ -27,6 +29,10 @@ const world = new World();
 const bus = new EventBus();
 const commands = new CommandBuffer();
 const clock = new FixedClock(STEP_MS);
+const storage = createLocalStorage('itb:');
+const audio = createNullAudio({ enabled: true });
+const dumpSink = createDumpSink({ storage, key: 'dumps', max: 20 });
+dumpSink.restore();
 
 const input = createBrowserInput(canvas, {
   toWorld: (x, y) => {
@@ -54,12 +60,16 @@ const dumps: Dump[] = [];
 let scheduler = createScheduler();
 
 function onSystemError(system: string, error: unknown, tick: number): void {
+  const stack = error instanceof Error ? (error.stack ?? '') : '';
   dumps.push({
     system,
     tick,
     message: String(error),
-    stack: error instanceof Error ? (error.stack ?? '') : '',
+    stack,
   });
+  dumpSink.record({ system, tick, message: String(error), stack });
+  dumpSink.persist();
+  audio.play('system-error');
 }
 
 function createScheduler(): Scheduler {
@@ -106,7 +116,6 @@ interface SavePayload {
   readonly player: { readonly x: number; readonly y: number };
 }
 
-const storage = createLocalStorage('itb:');
 const saveStore = createSaveStore<SavePayload>(storage, { key: 'save', targetVersion: 1 });
 const note = document.getElementById('note');
 
@@ -151,6 +160,11 @@ function handleExport(): void {
   setNote(`已导出录制 ${recorder.count} tick`);
 }
 
+function handleDumps(): void {
+  download('dumps.json', dumpSink.toJson());
+  setNote(`已导出诊断 ${dumpSink.list().length} 条`);
+}
+
 for (const button of document.querySelectorAll<HTMLButtonElement>('#ui button')) {
   button.addEventListener('click', () => {
     const action = button.dataset.act;
@@ -160,6 +174,7 @@ for (const button of document.querySelectorAll<HTMLButtonElement>('#ui button'))
       saveStore.clear();
       setNote('已清除存档');
     } else if (action === 'export') handleExport();
+    else if (action === 'dumps') handleDumps();
   });
 }
 
@@ -260,7 +275,8 @@ Object.assign(globalThis, {
     hash: () => hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]])),
     snapshot: () => current,
     player: () => world.get(player, Position),
-    dumps: () => dumps,
+    dumps: () => dumpSink.list(),
+    audio: () => audio.stats(),
     systems: () => scheduler.orderNames,
   },
 });

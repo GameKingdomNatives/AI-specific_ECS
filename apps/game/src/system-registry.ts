@@ -1,8 +1,7 @@
 import type { EntityId, SystemDef } from '@itb/engine/core';
 import type { InputSnapshot, IPhysics } from '@itb/engine/ports';
-import {
-  createBodySyncSystem,
-  createBulletCleanupSystem,
+import { createPhysicsBridge } from '@itb/engine/bridge';
+import { Box, createBulletCleanupSystem,
   createBulletMovementSystem,
   createHitSystem,
   createMovementSystem,
@@ -50,7 +49,7 @@ export function createSystems(deps: SystemDeps): SystemDef[] {
     createBulletMovementSystem(deps.width, deps.height, { after: ['demo.movement'] }),
     playerSystem,
     createWeaponSystem({ player: deps.player, getInput: deps.getInput, after: ['demo.player'] }),
-    createBodySyncSystem(deps.physics),
+    createPhysicsBridge(deps.physics, { position: Position, box: Box }),
     createHitSystem(deps.physics, { player: deps.player }),
     createBulletCleanupSystem(deps.width, deps.height),
   ];

@@ -38,7 +38,14 @@
 - 抓到的第二个真问题：`worldHash([Position, Box, Bullet])` 语义是「同时拥有三者」，而方块与子弹互斥 → 哈希恒为 FNV 基值 `811c9dc5`，确定性校验形同虚设。已新增 `worldHashGroups`（ADR-005，既有算法不变），浏览器与 CLI 统一为 `[[Position, Box], [Position, Bullet]]`。
 - 验证：浏览器录制 386 tick（含射击与命中，kills 1）→ `node tools/replay.mjs --app … --expect-hash e6e4938c` 得到同一哈希；而上一版录制被 startHash 正确拒绝（跨版本/非干净开局）。
 - 范围说明：`demo.*` 是**技术夹具**，用于验证系统排序、命令缓冲、刚体同步、事件与确定性；机甲／辐能／僚机／关卡仍不在范围内。
-- 下一步：音频端口占位与静音回退、输入重映射（键位配置走数据）、面板加「基准趋势」。 
+- 规格修正：端口冻结数改为 **10**（ADR-006，`IModHost` 保留占位）；`docs/00-最终指令.md` §6 与 `AGENTS.md` 已同步。
+- 物理桥上移：`packages/engine/src/bridge/physics.ts` 的 `createPhysicsBridge(physics, {position, box})`，组件由调用方注入，桥不再依赖 demo；`demo.bodySync` 删除。
+- 音频端口：`createNullAudio`（默认静音、计数、音量 0..1 夹取），已接进主循环（系统出错时 `play('system-error')`），真实解码/播放仍未做。
+- 故障 dump 落盘：`createDumpSink`（环形 20 条、localStorage 持久化、`导出诊断` 下载 JSON），系统错误时自动 record+persist。
+- 确定性：门禁新增 `replay` 步骤（`--self-test --repeat 3`，三次全哈希序列比对）。
+- 违规演练：`tools/drill.mjs` 制造「core→impl 越界 import」「312 行超预算文件」两种现场，确认门禁都会红；清理在 finally。
+- **门禁自身的洞（已修）**：depcruise 用 `--output-type json` 时即使有违规也退出 0，且无参数运行只打印 Usage——之前 `depcruise PASS` 是空转。改为 `tools/checks/depcruise.mjs` 解析 `summary.violations`，解析失败即失败；现在 237 模块 0 违规是真检查出来的。
+- 下一步：UI 层骨架（React + Tailwind + `UiSnapshot` 只读 + 意图命令），Onlook 接入需在你的终端起 Vite（ADR-001）。
 
 ## 第三批剩余
 

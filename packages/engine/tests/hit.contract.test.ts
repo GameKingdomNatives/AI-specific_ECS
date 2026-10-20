@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { CommandBuffer, EventBus, Scheduler, World } from '../src/core/index.js';
 import { createPhysicsPort, PhysicsWorld } from '../src/impl/physics.js';
+import { createPhysicsBridge } from '../src/bridge/physics.js';
 import {
   Bullet,
   Box,
-  createBodySyncSystem,
   createHitSystem,
   Position,
 } from '../src/demo/index.js';
@@ -22,7 +22,7 @@ function setup(): {
   const commands = new CommandBuffer();
   const physics = createPhysicsPort(new PhysicsWorld());
   const scheduler = new Scheduler();
-  scheduler.add(createBodySyncSystem(physics));
+  scheduler.add(createPhysicsBridge(physics, { position: Position, box: Box }));
   return { world, bus, commands, physics, scheduler };
 }
 
