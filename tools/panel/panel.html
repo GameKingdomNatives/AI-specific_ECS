@@ -149,11 +149,11 @@
     } else {
       const table = document.createElement('table');
       const head = document.createElement('tr');
-      ['批次', '测试', '契约', '逻辑帧', '门禁秒', 'waiver'].forEach((h) => head.appendChild(text('th', h)));
+      ['批次', '测试文件', '用例', '契约', '逻辑帧', '门禁秒', 'waiver', '源文件'].forEach((h) => head.appendChild(text('th', h)));
       table.appendChild(head);
       for (const row of data.trend) {
         const tr = document.createElement('tr');
-        row.slice(0, 6).forEach((cell) => tr.appendChild(text('td', cell)));
+        row.slice(0, 8).forEach((cell) => tr.appendChild(text('td', cell)));
         table.appendChild(tr);
       }
       el('trend').appendChild(table);
