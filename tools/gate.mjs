@@ -19,10 +19,10 @@ function execute(cmd, args) {
   return { code: result.status ?? 1, text: readFileSync(logPath, 'utf8') };
 }
 
-function step(name, cmd, args) {
+function step(name, cmd, args, cwd = ROOT) {
   const logPath = join(ROOT, RUN, `${name}.log`);
   const fd = openSync(logPath, 'w');
-  const result = spawnSync(cmd, args, { cwd: ROOT, stdio: ['ignore', fd, fd], windowsHide: true });
+  const result = spawnSync(cmd, args, { cwd, stdio: ['ignore', fd, fd], windowsHide: true });
   closeSync(fd);
   const code = result.status ?? 1;
   codes.push({ name, code });
@@ -69,6 +69,12 @@ if (!FAST) {
   ]);
 }
 step('findings', process.execPath, ['tools/checks/findings.mjs', RUN]);
+step('build', process.execPath, [
+  join(ROOT, 'node_modules/vite/bin/vite.js'),
+  'build',
+  '--logLevel',
+  'warn',
+], join(ROOT, 'apps', 'game'));
 
 writeFileSync(join(ROOT, RUN, 'codes.txt'), `${codes.map((c) => `${c.name} ${c.code}`).join('\n')}\n`);
 const report = execute(process.execPath, ['tools/report.mjs', RUN]);

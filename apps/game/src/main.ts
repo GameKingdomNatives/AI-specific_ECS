@@ -1,34 +1,76 @@
 import { CommandBuffer, EventBus, Scheduler, World } from '@itb/engine/core';
-import { createMovementSystem, spawnBoxes, Position, Velocity, Box } from '@itb/engine/demo';
+import type { RenderItem } from '@itb/engine/ports';
+import { Box, createMovementSystem, Position, spawnBoxes } from '@itb/engine/demo';
+import { createPixiRenderer } from '@itb/engine/impl';
 
-/**
- * 组合根：唯一知道「谁实现谁」的地方。
- * 本轮只做 headless 技术夹具；渲染接入在第二批，Pixi 实现将挂到 IRenderer 端口上。
- */
 const WIDTH = 1920;
 const HEIGHT = 1080;
 const BOXES = 64;
-const TICKS = 120;
+const STEP_MS = 1000 / 60;
+
+const canvas = document.getElementById('stage');
+if (!(canvas instanceof HTMLCanvasElement)) {
+  throw new Error('缺少 #stage 画布');
+}
+const hud = document.getElementById('hud');
 
 const world = new World();
 const bus = new EventBus();
 const commands = new CommandBuffer();
 const scheduler = new Scheduler();
-
 scheduler.add(createMovementSystem(WIDTH, HEIGHT));
 scheduler.build();
 spawnBoxes(world, BOXES, WIDTH, HEIGHT);
 
-for (let tick = 1; tick <= TICKS; tick += 1) {
-  scheduler.run(world, bus, commands, tick);
+const captureMode = new URLSearchParams(location.search).has('capture');
+const renderer = await createPixiRenderer(canvas, {
+  preserveDrawingBuffer: captureMode,
+  debugGlobal: captureMode,
+});
+
+let tick = 0;
+let last = performance.now();
+let accumulator = 0;
+
+function renderTable(): RenderItem[] {
+  const items: RenderItem[] = [];
+  for (const entity of world.query(Position, Box)) {
+    const position = world.get(entity, Position);
+    const box = world.get(entity, Box);
+    if (position === undefined || box === undefined) {
+      continue;
+    }
+    const hue = box.tint & 0xffffff;
+    items.push({
+      id: entity,
+      x: position.x,
+      y: position.y,
+      rot: 0,
+      sx: box.size,
+      sy: box.size,
+      layer: 4,
+      shape: 'rect',
+      tint: 0xffffff - (hue % 0x333333),
+      alpha: 0.9,
+      visible: true,
+    });
+  }
+  return items;
 }
 
-const sample = world.query(Position, Velocity, Box).slice(0, 3);
-const summary = {
-  ticks: TICKS,
-  entities: world.aliveCount,
-  sample: sample.map((entity) => world.get(entity, Position)),
-};
+function frame(now: number): void {
+  accumulator += Math.min(now - last, 100);
+  last = now;
+  while (accumulator >= STEP_MS) {
+    scheduler.run(world, bus, commands, tick);
+    tick += 1;
+    accumulator -= STEP_MS;
+  }
+  renderer.submit(renderTable());
+  if (hud !== null && tick % 10 === 0) {
+    hud.textContent = `tick ${tick} · entities ${world.aliveCount}`;
+  }
+  requestAnimationFrame(frame);
+}
 
-// eslint-disable-next-line no-console
-console.log(JSON.stringify(summary, null, 2));
+requestAnimationFrame(frame);

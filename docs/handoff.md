@@ -2,14 +2,13 @@
 
 > 每轮收尾更新。新会话先读本节，再读 `docs/00-最终指令.md`。
 
-## 当前状态（2026-10-20 · 第一批进行中）
+## 当前状态（2026-10-20 · 第二批进行中）
 
-- 仓库已初始化（`main`，本地无远端），钩子路径指向 `.githooks/`。
-- 门禁已可跑通：`node tools/gate.mjs` → tsc、eslint、自定义校验、4 个测试文件、git 事实、依赖边界全部 PASS。
-- 引擎内核已具备：实体（generation 防悬挂）、SparseSet + 列式组件存储、查询、命令缓冲（阶段末 flush）、依赖图调度（环检测 + 同阶段写冲突拒绝）、事件总线（同步/延迟/录制）、九个端口接口。
-- 技术夹具：`demo.movement` 让方块在边界内反弹；4 个测试文件 17 个用例。
-- 治理面板：`node tools/panel/collect.mjs` 生成 `artifacts/panel/snapshot.js`，双击 `tools/panel/panel.html` 查看；复制命令但不在网页执行。
-- 工具链已按环境更正，见 `docs/adr/001-toolchain.md`。
+- 第一批已完成并提交：ECS 内核、九端口、事件总线、门禁（含诊断定位）、治理面板、AGENTS.md。
+- 第二批已落地：Pixi 渲染后端（`IRenderer` 实现，渲染表 diff、七图层、相机、逻辑分辨率 1920×1080）、浏览器入口（ESM + Vite）、固定步长循环（60Hz + 累加器）、HUD。
+- 实测证据：`?capture=1` 下 `extract` 读出 1016 个亮像素，HUD `tick 110 · entities 64`；导出图 `artifacts/panel/fixture-opaque.png`。
+- 门禁新增 `build` 步骤（Vite 构建），全量 12 项 PASS。
+- 工具链更正：Vite 8 可用（rolldown 无子进程），见 ADR-001「更正」节。
 
 ## 本批剩余（第二批起不在本轮）
 
@@ -34,10 +33,12 @@
 ## 常用命令
 
 ```bash
-node tools/status.mjs          # 状态
-node tools/gate.mjs            # 全量门禁
-node tools/gate.mjs --fast     # 快速门禁
-node tools/panel/collect.mjs   # 刷新面板数据
+node tools/status.mjs                     # 状态
+node tools/gate.mjs                       # 全量门禁（含 tsc/eslint/测试/边界/构建）
+node tools/gate.mjs --fast                # 快速门禁
+node tools/panel/collect.mjs              # 刷新面板数据
+npx vite --port 5173                      # 应用开发服务器（apps/game）
+npx vite preview --port 4173              # 预览构建产物
 node tools/review.mjs accept --note "<理由>"
 ```
 

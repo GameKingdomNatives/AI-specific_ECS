@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>深入战火 · 引擎技术夹具</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #111; overflow: hidden; }
+      #stage { display: block; width: 100vw; height: 100vh; }
+      #hud { position: fixed; left: 16px; bottom: 14px; color: #d8d2c8; font: 13px/1.6 Consolas, monospace; }
+    </style>
+  </head>
+  <body>
+    <canvas id="stage"></canvas>
+    <div id="hud">tick 0 · entities 0</div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

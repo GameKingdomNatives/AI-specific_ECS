@@ -31,3 +31,12 @@
 ## 验证
 
 `node tools/gate.mjs` 全绿（含 tsc、eslint、自定义校验、4 个测试文件、git 事实、依赖边界）。
+
+## 更正（2026-10-20 晚）
+
+Vite **8.3.4 在本机可用**：它已从 esbuild 换成 rolldown（原生绑定，进程内），`vite build` 与 `vite preview` 均实测通过（3.3s 完成一次构建）。因此：
+
+- 应用层恢复 **Vite** 作为开发与构建工具（`apps/game`），产物为 ESM。
+- 门禁新增 `build` 步骤（`vite build`），构建失败同样拦住提交。
+- `vitest` 仍不可用：它依赖 Vite 7 侧的 esbuild 子进程；测试继续用 `node:test`。
+- 浏览器加载方式：**原生 ESM**，不使用任何自制静态服务器；开发用 `vite`，预览用 `vite preview`。
