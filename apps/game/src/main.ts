@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+import './ui/app.css';
 import { CommandBuffer, EventBus, FixedClock, Scheduler, World } from '@itb/engine/core';
 import type { EntityId, SystemDef } from '@itb/engine/core';
 import type { BoxSpec } from '@itb/engine/data';

@@ -48,7 +48,9 @@
 - UI 层骨架：`apps/game/src/ui/{snapshot.ts,App.tsx,mount.tsx}` + `controls.ts`；React 19 覆盖层替换原生 DOM 按钮，`UiSnapshot` 10Hz 只读推送，意图走 `UiIntents`。实测点击「存档」→ `已存档 @ tick 113 · 隔离 0`，快照行 `tick 390 · 实体 65 · 刚体 65`。
 - 依赖现状（ADR-008）：React/ReactDOM 暂装仓库根（npm 工作区识别报 `no workspace folder present`，清理 pnpm 遗留 junction 后仍复现）；Tailwind、Storybook、Onlook 未接。
 - 门禁：新增 `apps/game/src/ui/**` 不得依赖引擎/控制器的 depcruise 规则；eslint 忽略 `dist-ts/**`。
-- 下一步：Tailwind 引入（依赖恢复后迁回 apps/game）→ Storybook 组件画布 → Onlook 自托管（用户终端）。
+- Tailwind 已接入（4.3.3，`@tailwindcss/vite`）：`apps/game/vite.config.ts` 注册插件，`src/ui/app.css` 引 `@import "tailwindcss"`，按钮与快照行改用工具类。实测计算样式 `border-radius: 6px`、`bg: oklch(0.216 …)`、`cursor: pointer`、等宽字体——不是「类名写了但没生效」。
+- 注意：改 `vite.config.ts` 后**必须重启 dev server**（旧进程不会重载配置），否则页面仍是旧样式。
+- 下一步：Storybook 组件画布 → Onlook 自托管（用户终端）；并把 React 依赖从根迁回 `apps/game`（等 npm 工作区识别恢复）。
 
 ## 第三批剩余
 

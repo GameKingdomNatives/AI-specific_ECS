@@ -43,7 +43,8 @@
 | 故障 dump | `createDumpSink`（环形、持久化、可导出 JSON） | impl | 已具备 |
 | 重复重演校验 | `replay --self-test --repeat 3` 已进门禁 | tools | 已具备 |
 | 违规演练 | `tools/drill.mjs`（越界 import / 超预算各一条） | tools | 已具备 |
-| UI 覆盖层 | React 19 + `UiSnapshot` 只读 + `UiIntents`（10Hz 快照） | apps/ui | 已具备（Tailwind/Storybook/Onlook 未接） |
+| UI 覆盖层 | React 19 + `UiSnapshot` 只读 + `UiIntents`（10Hz 快照） | apps/ui | 已具备 |
+| 样式 | Tailwind 4（`@tailwindcss/vite`，工具类） | apps/ui | 已具备（Storybook/Onlook 未接） |
 | 存档 UI | 页内 存档/读档/清除/导出录制（`@itb/engine/storage`） | app | 已具备 |
 | 录制干净开局校验 | `startHash` + `replay` 返回 `startHashMatches` | determinism | 已具备 |
 | 数据热加载 | — | data | 待第三批 |

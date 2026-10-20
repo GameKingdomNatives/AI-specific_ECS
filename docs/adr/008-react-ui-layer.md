@@ -26,8 +26,13 @@
 
 ## 不做
 
-- 本轮不引入 Tailwind 与 Storybook：先让覆盖层跑通、规则落地；样式先内联。
+- 本轮不引入 Storybook：先让覆盖层跑通、规则落地。
 - 不做 Onlook 接入（需要用户终端）。
+
+## 增补（同日）
+
+Tailwind 4.3.3 通过 `@tailwindcss/vite` 接入，`App.tsx` 的内联样式已替换为工具类；
+实测计算样式确认生效。改 `vite.config.ts` 后必须重启 dev server。
 
 ## 验证
 
