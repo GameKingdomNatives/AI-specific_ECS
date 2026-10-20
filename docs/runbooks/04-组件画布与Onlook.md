@@ -184,9 +184,51 @@ delete from storage.objects where bucket_id = 'preview_images'
 cd E:\Onlook\onlook\apps\backend
 supabase stop --no-backup        # 清掉半初始化的容器/卷
 cd ..\..
-npm install -g supabase@2.53.6 --ignore-scripts=false
+```
+
+**注意：`npm install -g supabase@2.53.6` 不可行**——该版本的 postinstall 明确拒绝全局安装：
+
+```
+Installing Supabase CLI as a global module is not supported.
+```
+
+改用下面任一种方式拿到 2.53.6：
+
+方式 1（推荐，官方二进制，版本精确）：
+
+```powershell
+$dir = "$env:USERPROFILE\tools\supabase"
+New-Item -ItemType Directory -Force $dir | Out-Null
+$zip = "$dir\supabase.tar.gz"
+Invoke-WebRequest -Uri "https://github.com/supabase/cli/releases/download/v2.53.6/supabase_windows_amd64.tar.gz" -OutFile $zip
+# 校验（期望 2D4C36C2A80748EA3BBEFAA4A31976FB02169885E9C34068E5FA485789CBABBB）
+(Get-FileHash $zip -Algorithm SHA256).Hash
+tar -xzf $zip -C $dir
+# 让新版本优先：把 $dir 加到用户 PATH（或把 supabase.exe 放进已在 PATH 的目录）
+[Environment]::SetEnvironmentVariable("Path", "$env:Path;$dir", "User")
+# 重开终端后
 supabase --version               # 期望 2.53.6
-bun backend:start
+```
+
+若之前全局装的 2.121.0 仍在 PATH 里抢先，重开终端后调整 PATH 顺序，或删掉
+`%APPDATA%\npm\supabase.cmd` 与 `%APPDATA%\npm\node_modules\supabase`（EPERM 时先关掉占用终端的进程）。
+
+方式 2（装在项目里，官方支持的方式）：
+
+```powershell
+cd E:\Onlook\onlook\apps\backend
+npm install --save-dev --ignore-scripts=false supabase@2.53.6
+cd ..\..
+bun backend:start                # apps/backend 的 node_modules/.bin 会优先于全局
+```
+
+装好 2.53.6 后再执行：
+
+```powershell
+cd E:\Onlook\onlook\apps\backend
+supabase --version
+supabase start
+cd ..\..
 ```
 
 修法 B（版本对齐仍失败时，本地补丁 0008）：
