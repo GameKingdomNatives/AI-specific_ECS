@@ -14,7 +14,8 @@ function gitToFile(args, file) {
   return existsSync(full) ? readFileSync(full, 'utf8') : '';
 }
 
-const head = gitToFile(['rev-parse', '--short', 'HEAD'], 'head.txt').trim();
+const headRaw = gitToFile(['rev-parse', '--short', '--verify', 'HEAD'], 'head.txt').trim();
+const head = /^[0-9a-f]{7,40}$/.test(headRaw) ? headRaw : '';
 const branch = gitToFile(['branch', '--show-current'], 'branch.txt').trim();
 const statusRaw = gitToFile(['status', '--porcelain'], 'status.txt');
 const changed = statusRaw.split('\n').filter((line) => line.trim().length > 0);
