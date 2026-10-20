@@ -17,7 +17,9 @@
 - 第三批续：`FixedClock`（固定步长、单帧上限、暂停/变速/单步）已接进应用主循环；`replay()` + `tools/replay.mjs` 打通无头回放（`--self-test`、`--write`、`--expect`）。回放自测输出 `final 5a66a27c / 重演一致 PASS`，写录制后重放同哈希。用法见 `docs/runbooks/03-回放与偏离定位.md`。
 - 第三批续：真实输入已接入主循环——`createBrowserInput` 每 tick 采样（键排序、指针换算到世界坐标），`Recorder` 同步录制；页面 HUD 显示 `tick · entities · keys · rec · hash`，`window.__itb` 可导出录制与哈希。实测：指针移到 (102.4, 66.8)，玩家实体移动到 (101.7, 66.4) 并停住，`rec 570` 与 tick 同步。
 - 单系统崩溃隔离：`Scheduler` 支持连续失败阈值（默认 3）熔断、`disabledSystems` 与 `onSystemError` 回调，其余系统照跑；集成测试覆盖 60Hz 与 30Hz 帧率下 tick 序列一致、录制重演哈希一致。
-- 下一步：系统探针页 `?probe=<system>`、HMR 系统热替换与诊断 dump、3000 实体基准。
+- 探针与热替换：`?probe=<system>` 只跑单系统（8 个方块 + 玩家），HUD 显示 `probe <name>`；`system-registry.ts` 走 Vite HMR accept，实测 tick 从 510 连续跑到 1400、系统列表不变、URL 未变——**替换系统而世界状态保留**。崩溃 dump 落在内存，`__itb.dumps()` 可取。
+- 基准：`npm run bench`（3000 实体／200 tick）实测 **0.703 ms/帧**，预算 4ms，PASS。
+- 下一步：把 bench 接入门禁（阈值回归）、数据热加载、以及把录制导出接回 `tools/replay.mjs` 做「同一局重演」。
 
 ## 第三批剩余
 

@@ -24,6 +24,9 @@
 | 无头回放 CLI | `node tools/replay.mjs`（自测/写录制/对比） | tools | 已具备 |
 | 输入快照接入主循环 | `createBrowserInput`（app）＋ 每 tick 采样/录制 | app | 已具备 |
 | 单系统崩溃隔离 | `SchedulerOptions.maxConsecutiveFailures` / `disabledSystems` / `onSystemError` | core | 已具备 |
-| HMR 热替换与熔断 | — | hotreload | 待第三批 |
+| 系统探针页 | `?probe=<system>`（只跑单系统 + 最小世界） | app | 已具备 |
+| 系统热替换（HMR） | `system-registry.ts` accept，保留世界状态 | app | 已具备 |
+| 诊断 dump（浏览器） | `__itb.dumps()`（系统名/tick/错误/栈） | app | 已具备 |
+| 逻辑帧基准 | `npm run bench`（默认 3000 实体） | tools | 已具备 |
 | 数据热加载 | — | data | 待第三批 |
 | 确定性回放 | `src/determinism` | determinism | 待第三批 |

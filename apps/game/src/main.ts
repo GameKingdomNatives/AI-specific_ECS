@@ -1,26 +1,28 @@
+/// <reference types="vite/client" />
 import { CommandBuffer, EventBus, FixedClock, Scheduler, World } from '@itb/engine/core';
+import type { SystemDef } from '@itb/engine/core';
 import { FALLBACK_BOXES, loadContent } from '@itb/engine/data';
 import { hashHex, Recorder, serialize, worldHash } from '@itb/engine/determinism';
-import { Box, createMovementSystem, Position, spawnBoxes } from '@itb/engine/demo';
+import { Box, Position, spawnBoxes } from '@itb/engine/demo';
 import { createPixiRenderer } from '@itb/engine/impl';
 import type { RenderItem } from '@itb/engine/ports';
 import { createBrowserInput } from './input.js';
+import { createSystems } from './system-registry.js';
 
 const WIDTH = 1920;
 const HEIGHT = 1080;
 const STEP_MS = 1000 / 60;
-const PLAYER_SPEED = 10;
 
 const canvas = document.getElementById('stage');
 if (!(canvas instanceof HTMLCanvasElement)) {
   throw new Error('缺少 #stage 画布');
 }
 const hud = document.getElementById('hud');
+const probe = new URLSearchParams(location.search).get('probe');
 
 const world = new World();
 const bus = new EventBus();
 const commands = new CommandBuffer();
-const scheduler = new Scheduler();
 const clock = new FixedClock(STEP_MS);
 const recorder = new Recorder(20261020);
 
@@ -39,34 +41,46 @@ world.add(player, Position, { x: WIDTH / 2, y: HEIGHT / 2 });
 world.add(player, Box, { size: 22, tint: 0xff8844 });
 let current = input.sample(0);
 
-scheduler.add(createMovementSystem(WIDTH, HEIGHT));
-scheduler.add({
-  name: 'demo.player',
-  phase: 'ai',
-  reads: [Position],
-  writes: [Position],
-  update: (ctx) => {
-    const position = ctx.world.get(player, Position);
-    if (position === undefined) {
-      return;
+interface Dump {
+  readonly system: string;
+  readonly tick: number;
+  readonly message: string;
+  readonly stack: string;
+}
+
+const dumps: Dump[] = [];
+let scheduler = createScheduler();
+
+function onSystemError(system: string, error: unknown, tick: number): void {
+  dumps.push({
+    system,
+    tick,
+    message: String(error),
+    stack: error instanceof Error ? (error.stack ?? '') : '',
+  });
+}
+
+function createScheduler(): Scheduler {
+  return new Scheduler({ maxConsecutiveFailures: 3, onSystemError });
+}
+
+function applySystems(list: readonly SystemDef[]): void {
+  scheduler = createScheduler();
+  for (const system of list) {
+    if (probe === null || system.name === probe) {
+      scheduler.add(system);
     }
-    const dx = current.pointer.x - position.x;
-    const dy = current.pointer.y - position.y;
-    const distance = Math.hypot(dx, dy);
-    if (distance < 4) {
-      return;
-    }
-    ctx.world.set(player, Position, {
-      x: position.x + (dx / distance) * PLAYER_SPEED,
-      y: position.y + (dy / distance) * PLAYER_SPEED,
-    });
-  },
-});
-scheduler.build();
+  }
+  scheduler.build();
+}
+
+const deps = { width: WIDTH, height: HEIGHT, player, getInput: (): typeof current => current };
+applySystems(createSystems(deps));
 
 const content = await loadContent('/content/demo.boxes.json');
 const spec = content.ok && content.value !== null ? content.value.boxes : FALLBACK_BOXES;
-spawnBoxes(world, spec.count, WIDTH, HEIGHT, spec.minSize, spec.maxSize, spec.speed);
+const spawnCount = probe === null ? spec.count : Math.min(8, spec.count);
+spawnBoxes(world, spawnCount, WIDTH, HEIGHT, spec.minSize, spec.maxSize, spec.speed);
 const dataStatus = content.ok ? 'data ok' : `data fallback: ${content.issues[0]?.message ?? 'invalid'}`;
 
 const captureMode = new URLSearchParams(location.search).has('capture');
@@ -87,7 +101,6 @@ function renderTable(): RenderItem[] {
     if (position === undefined || box === undefined) {
       continue;
     }
-    const hue = box.tint & 0xffffff;
     items.push({
       id: entity,
       x: position.x,
@@ -97,7 +110,7 @@ function renderTable(): RenderItem[] {
       sy: box.size,
       layer: 4,
       shape: 'rect',
-      tint: 0xffffff - (hue % 0x333333),
+      tint: entity === player ? 0xffaa66 : 0xf0f0f0,
       alpha: 0.92,
       visible: true,
     });
@@ -121,7 +134,8 @@ function frame(now: number): void {
   }
   renderer.submit(renderTable());
   if (hud !== null && clock.tick % 10 === 0) {
-    hud.textContent = `tick ${clock.tick} · entities ${world.aliveCount} · keys ${current.keys.size} · rec ${recorder.count} · ${lastHash} · ${dataStatus}`;
+    const mode = probe === null ? 'run' : `probe ${probe}`;
+    hud.textContent = `${mode} · tick ${clock.tick} · entities ${world.aliveCount} · rec ${recorder.count} · err ${dumps.length} · ${lastHash} · ${dataStatus}`;
   }
   requestAnimationFrame(frame);
 }
@@ -132,7 +146,17 @@ Object.assign(globalThis, {
     hash: () => hashHex(worldHash(world, [Position, Box])),
     snapshot: () => current,
     player: () => world.get(player, Position),
+    dumps: () => dumps,
+    systems: () => scheduler.orderNames,
   },
 });
+
+if (import.meta.hot !== undefined) {
+  import.meta.hot.accept('./system-registry.ts', (module) => {
+    if (module !== undefined) {
+      applySystems(module.createSystems(deps));
+    }
+  });
+}
 
 requestAnimationFrame(frame);
