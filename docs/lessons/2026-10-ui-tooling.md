@@ -35,8 +35,14 @@ Onlook 类工具的产物是源码改动，必须与人工改动同等对待（P
 
 Storybook 与 Onlook 不是替代关系：前者是验收面，后者是写在验收面上的编辑器。先落地 Storybook 的收益确定、成本低；编辑器只在其上增量评估。**先做确定收益，再赌不确定能力。**
 
+## 9. 云服务与付费席位不进关键路径
+
+Figma Dev Mode 是云端能力、需付费席位，且产物不能直接使用；把它放进评审链路等于给项目加了一个持续付费的外部依赖。最终改为 **Storybook 本地静态评审**（MIT、离线、零费用）。**能本地复现的，就不要外包给云。**
+
 ## 结论
 
 - Onlook：**排除**（自托管与桌面版均不作为交付依赖）。
-- 设计主路径：Figma（含 Dev Mode）；开发验收面：Storybook；代码契约：`UiSnapshot` + `UiIntents`。
+- Figma Dev Mode / MCP：**排除**（云端、付费、产物不可直接用）。
+- 设计评审：**Storybook 本地静态包**（`storybook:build` + `serve`），token 以 `tokens.ts` 为唯一事实源；Figma 免费版仅作可选草稿工具。
+- 代码契约：`UiSnapshot` + `UiIntents`。
 - 相关记录：ADR-009、提案 003、`docs/ui-final-plan.md`、runbook 05/06。

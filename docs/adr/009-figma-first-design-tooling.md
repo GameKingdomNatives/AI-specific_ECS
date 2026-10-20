@@ -1,42 +1,46 @@
-# ADR 009 · 设计侧工具链改为 Figma 优先，Onlook 降为可选
+# ADR 009 · 本地零成本设计评审：Storybook 为唯一验收面
 
-- 日期：2026-10-21
-- 状态：已接受（用户指出：工具要给设计方用，需贴合其 Figma 习惯）
-- 影响：ADR-002 的「Onlook 自托管」结论降级；不改引擎代码
+- 日期：2026-10-21（同日修订：移除 Figma Dev Mode）
+- 状态：已接受
+- 影响：替代 ADR-002 的 Onlook 结论；不改引擎代码
 
 ## 背景
 
-ADR-002 曾把 Onlook 自托管定为 UI 可视化编辑方案。实际推进中发现：
+ADR-002 曾把 Onlook 自托管定为 UI 可视化编辑方案，实际推进失败：安装链（Bun → Supabase CLI → Docker → 迁移 0008）在 Windows 上不可复现，稳定产物只有 2025-07 的桌面版，且上游配置与源码不一致。
 
-1. Onlook 源码安装链在 Windows + 国内网络下连续失败（Bun → Supabase CLI → Docker → 迁移 0008 的 Storage 限制），且上游仓库存在配置与源码不一致（`[functions.stripe-webhook]` 指向未跟踪的文件）；
-2. 稳定产物只有 GitHub Releases 的桌面安装包（最新 v0.2.32，2025-07），是否支持打开本地项目未验证；
-3. 真正的使用者是**设计师**，其习惯是 Figma。让设计师为了改几个按钮去装 Bun/Docker/Supabase，是把工程成本转嫁给了错误的人。
+随后考虑过 Figma Dev Mode（含 MCP），但用户指出：**它是云端工具、需要付费席位，产物不能直接使用**。项目要求是**本地、免费、可商用**。
 
 ## 决定
 
-- **设计源仍是 Figma**：设计师不需要离开 Figma，也不需要安装任何工程工具。
-- 代码侧接收设计的三条通道（按优先级）：
-  1. **Figma Dev Mode**（含 Dev Mode MCP，若设计方有 Dev/Full seat）：AI/开发直接读取设计上下文，生成 `apps/game/src/ui/**` 的 React + Tailwind 组件；
-  2. **手工/半自动转换**：设计给标注与切图，开发按现有 `UiSnapshot` + `UiIntents` 契约实现，Storybook 作为验收面；
-  3. **Figma 插件导出**（Locofy / Anima 等，商业）作为补充，不进入关键路径。
-- **Storybook 是设计-开发的共同验收面**：设计师看组件状态，开发看 props 契约；`npm run storybook` 无需 Docker。
-- **Onlook 排除（2026-10-21 最终决定）**：自托管与桌面版都不作为交付依赖；原因与证据见 `docs/lessons/2026-10-ui-tooling.md`。若未来重新评估，必须先验证「能打开本项目本地项目」且上游安装链可复现。
-- 设计交付：Storybook 静态包（`npm run storybook:build` → `artifacts/storybook-static`，`npm run storybook:serve` 起静态服务），设计方浏览器直接打开。
-- 许可证：Storybook / React / Tailwind / Vite 均为 **MIT**，可免费商用（本地已安装版本已核对）。
+- **唯一设计评审面 = Storybook**：本地构建、MIT 许可、离线可用。
+- **Figma 仅作可选参考**：设计师可用免费版 Figma 或任何工具画草图/标注，**不接 Dev Mode、不接 MCP、不依赖付费席位**。
+- **代码是唯一事实源**：组件在 `apps/game/src/ui/**`，token 在 `apps/game/src/ui/tokens.ts`，评审以真实渲染为准。
+- **交付方式**：`npm run storybook:build` 产出静态包（`artifacts/storybook-static`），`npm run storybook:serve` 起本地静态服务；zip 发给设计方即可打开。
+- **Onlook 排除**：自托管与桌面版都不作为交付依赖（证据见 `docs/lessons/2026-10-ui-tooling.md`）。
 
-## 设计师上手路径（目标：零工程环境）
+## 设计-开发流程（全离线、零费用）
 
-1. 打开 Figma 里的本项目设计稿；组件命名与 `src/ui` 组件一一对应（按钮/状态行/面板）。
-2. 用 Figma Dev Mode 查看间距、颜色、字号 token；改稿后通知开发。
-3. 打开 Storybook（`http://localhost:6006`，由开发起）对照真实渲染，提交差异清单。
-4. 不需要 Bun / Docker / Supabase / Node。
+1. 设计方用任意工具出稿/标注（Figma 免费版、截图、手绘均可），给「组件名 + 状态 + 期望」；
+2. 开发在 `src/ui` 实现并补 story；
+3. 双方打开 Storybook（本地或静态包）对照，按「哪里、期望、为什么」提差异；
+4. 差异走同一门禁（`node tools/gate.mjs`）后提交，重新构建静态包。
+
+## 许可证与成本
+
+| 工具 | 许可证 | 费用 |
+|---|---|---|
+| Storybook / React / Tailwind / Vite | MIT | 0 |
+| Figma（可选参考） | 商业（免费版可用） | 0（不接 Dev Mode） |
+| Onlook | 已排除 | — |
 
 ## 不做
 
-- 不再把 Onlook 自托管作为交付前提。
-- 不让设计方接触包管理器、数据库或迁移。
+- 不引入任何云服务作为设计评审的必要环节；
+- 不让设计方接触包管理器、数据库或迁移；
+- 不把「可视化写回代码」作为里程碑。
 
 ## 验证
 
-- `npm run storybook` 在无 Docker 环境可用（本机已验证，三个故事）。
-- 引擎门禁不依赖 Onlook（全量 gate 通过）。
+- 静态 Storybook 构建成功（6.56 MB，`index.html`/`iframe.html` 均 200）；
+- `npm run storybook` 无需 Docker/数据库；
+- 全量门禁 PASS。

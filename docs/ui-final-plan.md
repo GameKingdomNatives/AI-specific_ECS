@@ -7,7 +7,7 @@
 
 目标：
 
-1. 设计师**不离开 Figma**、不安装任何工程工具即可参与 UI 设计与验收；
+1. 设计师**零工程环境**参与：任意工具出稿/标注，评审以 Storybook 为准（不依赖云端或付费服务）；
 2. 开发者以同一套组件契约实现，Storybook 作为双方共同验收面；
 3. UI 与引擎**单向依赖**：UI 只读快照、只发意图，不能直接改世界；
 4. 组件可独立运行（Storybook 不需要游戏、不需要 Docker）。
@@ -86,12 +86,12 @@ Pixi canvas（战场）          React 19 DOM 覆盖层（UI）
 
 - **M1（已完成）**：React 覆盖层 + Tailwind + Storybook 三故事 + 静态包可构建。
 - **M2**：控制条拆成 `ControlBar`/`StatusNote`/`StatRow`，补齐 hover/disabled/空状态故事。
-- **M3**：Figma Dev Mode（含 MCP）接入：设计稿上下文 → 组件实现；设计方需 Dev/Full seat。
+- **M3（已完成基础）**：本地设计评审闭环——`tokens.ts` + `设计 token/总览` 故事 + 静态包 + 差异清单流程；不引入任何云端服务或付费席位。
 - **M4（可选）**：视觉回归（截图基线比对），仅在组件数量上来后做。
 
 ## 8. 验收标准
 
-1. `npm run storybook` 起得来，设计师能并排比对 Figma；
+1. `npm run storybook` 起得来，设计师能打开控制条与 token 总览并对照自己的稿；
 2. `npm run storybook:build` 产出静态包，可 zip 发给设计方；
 3. `npm run gate` 全绿（含 storybook 构建步骤与 `ui/**` 依赖规则）；
 4. 设计师无需安装 Node/Docker 即可参与（静态包路径已验证）。

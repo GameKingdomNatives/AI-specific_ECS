@@ -60,8 +60,10 @@
 - `stripe-webhook` 已绕过（日志 `Skipped serving Function`）；随后迁移 `0008_preview-img-storage.sql` 直删 `storage.objects` 被新版 Storage 拒绝（SQLSTATE 42501）。仓库 `bun.lock` 钉 supabase **2.53.6**，本机全局 2.121.0；且 2.53.6 拒绝全局安装、npm 局部安装的 postinstall 下载二进制时 ECONNRESET。修法见 runbook 04（手动下二进制 2.53.6 / 迁移改幂等 upsert）。
 - Onlook 策略回退（2026-10-21，ADR-009）：**设计侧改为 Figma 优先，Onlook 已排除**。理由：使用者是设计师、习惯 Figma，不应为改几个按钮去装 Bun/Docker/Supabase；自托管链本次实测不可复现，桌面版能力未验证。
 - 最终 UI 方案：`docs/ui-final-plan.md`；独立落地方案：`docs/runbooks/06-UI工程落地.md`；教训：`docs/lessons/2026-10-ui-tooling.md`；UI 模块说明：`apps/game/src/ui/README.md`。
-- 设计交付：Storybook 静态包 `npm run storybook:build`（6.56 MB，index.html 已验证）+ `npm run storybook:serve`（零依赖静态服务器，`tools/serve-static.mjs`）。许可证：Storybook/React/Tailwind/Vite 均 MIT，可免费商用。
-- 下一步：M2 拆组件（ControlBar/StatusNote/StatRow）+ 补齐 hover/disabled/空状态故事；M3 Figma Dev Mode（需设计方 seat）。
+- 设计评审最终形态（ADR-009 修订）：**Storybook 本地评审唯一路径**；token 唯一事实源 `apps/game/src/ui/tokens.ts` + `设计 token/总览` 故事；Figma 免费版仅可选草稿，**Dev Mode / MCP 已排除**（云端、付费、产物不可直接用）；Onlook 排除。
+- 引擎教训：`docs/lessons/2026-10-engine.md`（12 条，含哈希空集、子弹反弹、门禁空转、ESM JSON、基准抖动等）。
+- 进度对照：`docs/progress-audit.md`（42 提交 / 183 文件 / 21 测试文件 / 33 门禁步骤；引擎整体约 82%）。
+- 下一步：M2 拆组件（ControlBar/StatusNote/StatRow）+ 补齐 hover/disabled/空状态故事；之后补 `IAudio` 真实后端与渲染基准。
 
 ## 当前缺口（2026-10-21 核对）
 

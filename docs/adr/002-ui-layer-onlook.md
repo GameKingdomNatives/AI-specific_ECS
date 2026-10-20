@@ -1,6 +1,6 @@
 # ADR 002 · UI 层与 Onlook 可视化编辑
 
-> **状态更新（2026-10-21）**：设计侧工具链改为 **Figma 优先**（ADR-009）；「Onlook 自托管」降级为可选，不再作为交付前提。其余结论（React + Tailwind 的 DOM 覆盖层、Pixi 留在 canvas、Storybook 作组件画布）继续有效。
+> **状态更新（2026-10-21）**：设计侧工具链改为 **Storybook 本地评审**（ADR-009，零成本、离线）；Onlook 与 Figma Dev Mode 均排除。其余结论（React + Tailwind 的 DOM 覆盖层、Pixi 留在 canvas、Storybook 作组件画布）继续有效。
 
 - 日期：2026-10-20
 - 状态：已接受（部分由 ADR-009 修订）
