@@ -13,27 +13,28 @@
 - **物理端口 v2 已落地**（HARD，人已批准）：圆／盒／胶囊／凸多边形、层过滤、射线命中点法线、扫掠防穿透、扇形与最近查询、contacts、debugShapes、stats、帧批量同步。契约见 `docs/proposals/002-physics-port-v2.md`，决策见 `docs/adr/003-physics-port-v2.md`。
 - 相机修正：世界默认居中（`setCamera(WIDTH/2, HEIGHT/2)`），此前画面只铺满右下四分之一。
 - 批阅流程：`review.mjs` 支持 `--tag`；面板新增「批阅台」，参数可写并生成 PowerShell／CMD 脚本（复制或下载，不执行）；说明见 `docs/runbooks/02-提交审核流程.md`。
-- 工具链更正：Vite 8 可用（rolldown 无子进程），见 ADR-001「更正」节。
+- 第三批起步：确定性原语已落地——`Random`（按流名派生，与调用次数无关）、`worldHash`（实体升序 + 字段位级哈希）、`Recorder` 与录制文件序列化。测试 8 个文件 38 例，其中「同输入重跑逐 tick 哈希一致」「改一个输入即改最终哈希」已是可执行的回归。
+- 下一步：输入快照接入 60Hz 时钟、无头回放运行器（`node tools/replay.mjs <录制文件>`）、HMR 系统热替换与熔断、系统探针页。
 
-## 本批剩余（第二批起不在本轮）
+## 第三批剩余
 
-- 渲染：`IRenderer` 的 Pixi 实现 + SoA 渲染表 + 批处理 + 图层/相机。
-- 物理：圆／AABB／凸多边形／线段射线 + 网格哈希，接触对回灌。
-- 数据层：Zod schema + 加载器 + 热加载 + 失败隔离。
-- 确定性：固定步长、输入快照、随机流分流、世界哈希、录制回放、无头运行器。
-- 热重载：HMR 边界、dispose/init 契约、熔断、诊断 dump。
-- 系统探针页。
+- 输入快照接入 60Hz 时钟（`IInput` 实现 + 每 tick 采样，录制器接入主循环）。
+- 无头回放运行器：`node tools/replay.mjs <录制文件>`，逐 tick 比对哈希并输出首个偏离点。
+- 热重载：系统模块 HMR 边界、`dispose/init` 契约、单系统熔断、诊断 dump。
+- 系统探针页：`?probe=<system>`，只跑该系统 + 最小世界。
+- 性能基准：3000 实体场景与逻辑帧 ≤ 4ms 的读数进入 quality-log。
 
 ## 待人裁定
 
-- 渲染产物如何加载：浏览器直接加载 ESM（需 import map 或构建产物），还是接受一个极简静态服务器？——第二批开工前定。
-- 是否恢复 pnpm／Vite（若你会话在沙箱外跑），见 ADR-001。
+- 是否恢复 pnpm（若你会话在沙箱外跑），见 ADR-001；不影响源码结构。
+- Onlook 自托管的具体启动方式与 Storybook 版本，接入时再定（ADR-002）。
 
 ## 已定决策（2026-10-20）
 
 - UI 层：React + Tailwind 的 DOM 覆盖层；战场留在 Pixi canvas（ADR-002）。
 - 可视化编辑：Onlook 自托管开源版，第二批之后接入；引入 Storybook。
-- 门禁诊断：必须给到 文件:行:列 + 规则 + 代码片段 + 规则定义位置（`findings.json`，面板「诊断明细」卡）。
+- 排障诊断：必须给到 文件:行:列 + 规则 + 代码片段 + 规则定义位置（`findings.json`，面板「诊断明细」卡）。
+- 工具链：Vite 8 可用（rolldown，无子进程）；vitest 不可用（esbuild 子进程）——ADR-001。
 
 ## 常用命令
 
@@ -42,8 +43,8 @@ node tools/status.mjs                     # 状态
 node tools/gate.mjs                       # 全量门禁（含 tsc/eslint/测试/边界/构建）
 node tools/gate.mjs --fast                # 快速门禁
 node tools/panel/collect.mjs              # 刷新面板数据
-npx vite --port 5173                      # 应用开发服务器（apps/game）
-npx vite preview --port 4173              # 预览构建产物
+npm run dev                               # 应用开发服务器（http://localhost:5173）
+npm run preview                           # 预览构建产物（http://localhost:4173）
 node tools/review.mjs accept --note "<理由>"
 ```
 

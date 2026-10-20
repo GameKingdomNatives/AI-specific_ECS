@@ -27,6 +27,10 @@
     "./data": {
       "types": "./dist/src/data/content.d.ts",
       "default": "./dist/src/data/content.js"
+    },
+    "./determinism": {
+      "types": "./dist/src/determinism/index.d.ts",
+      "default": "./dist/src/determinism/index.js"
     }
   },
   "dependencies": {

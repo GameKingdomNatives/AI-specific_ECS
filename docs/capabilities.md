@@ -16,5 +16,10 @@
 | 物理查询（圆／盒／胶囊／凸多边形／射线／扫掠／扇形／最近） | `IPhysics` v2 → `PhysicsWorld` | impl | 已具备（端口 v2） |
 | 接触对与调试形状 | `contacts()` / `debugShapes()` / `stats()` | impl | 已具备 |
 | 数据校验与失败隔离 | `parseContent` / `loadContent` | data | 已具备 |
+| 种子随机流（按名派生） | `Random` / `stream(seed, name)` | core | 已具备 |
+| 世界哈希 | `worldHash(world, defs)` / `hashHex` | determinism | 已具备 |
+| 录制与序列化 | `Recorder` / `serialize` / `deserialize` | determinism | 已具备 |
+| 输入快照接入时钟 | — | app | 待第三批 |
+| 无头回放运行器 | — | determinism | 待第三批 |
 | 数据热加载 | — | data | 待第三批 |
 | 确定性回放 | `src/determinism` | determinism | 待第三批 |
