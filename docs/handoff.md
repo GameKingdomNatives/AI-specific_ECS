@@ -50,7 +50,9 @@
 - 门禁：新增 `apps/game/src/ui/**` 不得依赖引擎/控制器的 depcruise 规则；eslint 忽略 `dist-ts/**`。
 - Tailwind 已接入（4.3.3，`@tailwindcss/vite`）：`apps/game/vite.config.ts` 注册插件，`src/ui/app.css` 引 `@import "tailwindcss"`，按钮与快照行改用工具类。实测计算样式 `border-radius: 6px`、`bg: oklch(0.216 …)`、`cursor: pointer`、等宽字体——不是「类名写了但没生效」。
 - 注意：改 `vite.config.ts` 后**必须重启 dev server**（旧进程不会重载配置），否则页面仍是旧样式。
-- 下一步：Storybook 组件画布 → Onlook 自托管（用户终端）；并把 React 依赖从根迁回 `apps/game`（等 npm 工作区识别恢复）。
+- 日志端口：`createMemoryLogger`（环形 100、可选 sink），系统出错时先 `logger.error` 再写 dump；`__itb.logs()` 可读。
+- 桥的解耦证据：`bridge.contract.test.ts` 用**自定义组件**（`BridgeProbePosition/BridgeProbeBox`）验证同步，不 import demo——桥确实只认注入的组件形状。
+- 下一步：Storybook 组件画布（Vite 8 兼容性待验）→ Onlook 自托管（用户终端）；以及把 React 依赖迁回 `apps/game`。
 
 ## 第三批剩余
 

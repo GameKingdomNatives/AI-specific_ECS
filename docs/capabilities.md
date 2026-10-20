@@ -40,6 +40,7 @@
 | 分组世界哈希 | `worldHashGroups`（互斥组件组合也能参与确定性校验，ADR-005） | determinism | 已具备 |
 | 物理桥（正式层） | `createPhysicsBridge`（组件注入，不依赖夹具） | bridge | 已具备 |
 | 音频端口占位 | `createNullAudio`（默认静音 + 计数 + 夹音量） | impl | 已具备（无解码/播放） |
+| 日志端口 | `createMemoryLogger`（环形 + 可选 sink） | impl | 已具备（无控制台输出） |
 | 故障 dump | `createDumpSink`（环形、持久化、可导出 JSON） | impl | 已具备 |
 | 重复重演校验 | `replay --self-test --repeat 3` 已进门禁 | tools | 已具备 |
 | 违规演练 | `tools/drill.mjs`（越界 import / 超预算各一条） | tools | 已具备 |

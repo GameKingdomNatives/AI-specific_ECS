@@ -28,6 +28,10 @@
       "types": "./dist/src/bridge/physics.d.ts",
       "default": "./dist/src/bridge/physics.js"
     },
+    "./logger": {
+      "types": "./dist/src/impl/logger.d.ts",
+      "default": "./dist/src/impl/logger.js"
+    },
     "./audio": {
       "types": "./dist/src/impl/audio.d.ts",
       "default": "./dist/src/impl/audio.js"

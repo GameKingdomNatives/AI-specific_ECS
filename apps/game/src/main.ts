@@ -8,6 +8,7 @@ import { Box, Bullet, Position, spawnBoxes } from '@itb/engine/demo';
 import { createPixiRenderer } from '@itb/engine/impl';
 import { createNullAudio } from '@itb/engine/audio';
 import { createDumpSink } from '@itb/engine/diagnostics';
+import { createMemoryLogger } from '@itb/engine/logger';
 import { createPhysicsPort, PhysicsWorld } from '@itb/engine/physics';
 import { createLocalStorage, createSaveStore } from '@itb/engine/storage';
 import type { RenderItem } from '@itb/engine/ports';
@@ -37,6 +38,7 @@ const storage = createLocalStorage('itb:');
 const audio = createNullAudio({ enabled: true });
 const dumpSink = createDumpSink({ storage, key: 'dumps', max: 20 });
 dumpSink.restore();
+const logger = createMemoryLogger({ max: 50 });
 
 const input = createBrowserInput(canvas, {
   toWorld: (x, y) => {
@@ -57,6 +59,7 @@ let scheduler = createScheduler();
 
 function onSystemError(system: string, error: unknown, tick: number): void {
   const stack = error instanceof Error ? (error.stack ?? '') : '';
+  logger.error('system failed', { system, tick, message: String(error) });
   dumpSink.record({ system, tick, message: String(error), stack });
   dumpSink.persist();
   audio.play('system-error');
@@ -252,6 +255,7 @@ Object.assign(globalThis, {
     snapshot: () => current,
     player: () => world.get(player, Position),
     dumps: () => dumpSink.list(),
+    logs: () => logger.entries(),
     audio: () => audio.stats(),
     systems: () => scheduler.orderNames,
   },
