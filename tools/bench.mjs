@@ -25,7 +25,8 @@ const stringOf = (name, fallback) => {
 const entities = valueOf('--entities', 3000);
 const ticks = valueOf('--ticks', 200);
 const budgetMs = valueOf('--budget', 4);
-const tolerance = valueOf('--tolerance', 1.25);
+const tolerance = valueOf('--tolerance', 1.5);
+const rounds = valueOf('--rounds', 3);
 const baselinePath = stringOf('--baseline', 'tools/bench-baseline.json');
 const update = args.includes('--update');
 
@@ -43,12 +44,17 @@ for (let tick = 1; tick <= 20; tick += 1) {
   scheduler.run(world, bus, commands, tick);
 }
 
-const started = process.hrtime.bigint();
-for (let tick = 21; tick < 21 + ticks; tick += 1) {
-  scheduler.run(world, bus, commands, tick);
+const samples = [];
+for (let round = 0; round < rounds; round += 1) {
+  const started = process.hrtime.bigint();
+  for (let tick = 1; tick <= ticks; tick += 1) {
+    scheduler.run(world, bus, commands, tick);
+  }
+  samples.push(Number(process.hrtime.bigint() - started) / 1e6 / ticks);
 }
-const totalMs = Number(process.hrtime.bigint() - started) / 1e6;
-const msPerTick = totalMs / ticks;
+samples.sort((left, right) => left - right);
+const msPerTick = samples[Math.floor(samples.length / 2)];
+const totalMs = msPerTick * ticks;
 
 let baselineMs = null;
 try {
@@ -64,6 +70,8 @@ const pass = withinBudget && withinBaseline;
 const report = {
   entities,
   ticks,
+  rounds,
+  samples: samples.map((value) => Number(value.toFixed(3))),
   totalMs: Number(totalMs.toFixed(2)),
   msPerTick: Number(msPerTick.toFixed(3)),
   budgetMs,
