@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 export type StatusTone = 'info' | 'muted' | 'error';
 
-export interface StatusNoteProps {
+export interface StatusTextProps {
   readonly tone?: StatusTone;
   readonly children: ReactNode;
 }
@@ -13,7 +13,10 @@ const tones: Record<StatusTone, string> = {
   error: 'text-red-300',
 };
 
-/** 状态行：info / muted / error 三种语气，对应设计稿里的三种文案状态。 */
-export function StatusNote({ tone = 'info', children }: StatusNoteProps) {
+/**
+ * 一行状态文字（例如「已保存」「保存失败」）。
+ * tone 决定语气：info 普通、muted 弱化、error 报错。
+ */
+export function StatusText({ tone = 'info', children }: StatusTextProps) {
   return <span className={`font-mono text-[13px] ${tones[tone]}`}>{children}</span>;
 }

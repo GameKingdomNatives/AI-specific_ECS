@@ -1,14 +1,17 @@
-export interface StatItem {
+export interface InfoItem {
   readonly label: string;
   readonly value: string | number;
 }
 
-export interface StatRowProps {
-  readonly items: readonly StatItem[];
+export interface InfoRowProps {
+  readonly items: readonly InfoItem[];
 }
 
-/** 数值行：空数组时给出空状态，避免设计稿只画有数据的样子。 */
-export function StatRow({ items }: StatRowProps) {
+/**
+ * 一行「名称 + 数值」的信息（例如「项目 12 · 成员 4」）。
+ * items 为空时显示空状态，避免只画有数据的样子。
+ */
+export function InfoRow({ items }: InfoRowProps) {
   if (items.length === 0) {
     return <span className="font-mono text-xs text-stone-500">暂无数据</span>;
   }

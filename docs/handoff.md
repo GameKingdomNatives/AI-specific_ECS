@@ -63,7 +63,7 @@
 - 设计评审最终形态（ADR-009 修订）：**Storybook 本地评审唯一路径**；token 唯一事实源 `apps/game/src/ui/tokens.ts` + `设计 token/总览` 故事；Figma 免费版仅可选草稿，**Dev Mode / MCP 已排除**（云端、付费、产物不可直接用）；Onlook 排除。
 - 引擎教训：`docs/lessons/2026-10-engine.md`（12 条，含哈希空集、子弹反弹、门禁空转、ESM JSON、基准抖动等）。
 - 进度对照：`docs/progress-audit.md`（42 提交 / 183 文件 / 21 测试文件 / 33 门禁步骤；引擎整体约 82%）。
-- 交付型 starter：`starters/ui-storybook-kit/`（可独立复制）——React 19 + Tailwind 4 + Storybook 10，3 个组件共 9 个故事 + token 总览；含 README（10 分钟起步）、CHECKLIST、四篇文档（为什么不用 Onlook / Storybook 与 Figma 对照 / 四天学习路径 / Figma 迁移七步）。全量门禁新增 `starter` 构建步骤（artifacts/starter-storybook，已验证 9 故事）。
+- 交付型 starter：`starters/ui-storybook-kit/`（可独立复制）——React 19 + Tailwind 4 + Storybook 10；组件已中性化（按钮/状态文字/信息行）共 9 个故事 + 颜色尺寸总览。README 以 Storybook 为**唯一事实源**重写，含 30 秒理解、术语表（story/args/Controls/decorators/parameters/addon/static build）、四步新增组件、交付方式与 FAQ；四篇 docs 已去掉具体项目假设。全量门禁新增 `starter` 构建步骤。
 - 下一步：M2 拆组件（ControlBar/StatusNote/StatRow）+ 补齐 hover/disabled/空状态故事；之后补 `IAudio` 真实后端与渲染基准。
 
 ## 当前缺口（2026-10-21 核对）

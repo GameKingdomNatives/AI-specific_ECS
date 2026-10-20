@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { tokens } from '../tokens.js';
 
-/** 设计 token 的活文档：改 tokens.ts，这里自动跟着变。 */
+/** 颜色、字号、间距的「活文档」：改 tokens.ts，这里自动跟着变。 */
 function TokensPage() {
   return (
     <div style={{ background: tokens.color.background, color: tokens.color.text, padding: 24, fontFamily: tokens.font.mono }}>
@@ -17,8 +17,8 @@ function TokensPage() {
       </div>
       <h2 style={{ fontSize: 16, marginBottom: 8 }}>字号 / 间距 / 圆角</h2>
       <div style={{ fontSize: 12, color: tokens.color.textMuted }}>
-        <div>控制条 {tokens.font.sizeControl}px · 统计行 {tokens.font.sizeStat}px</div>
-        <div>grid {tokens.space.grid}px · gap {tokens.space.gap}px · 内边距 {tokens.space.paddingX}×{tokens.space.paddingY}px</div>
+        <div>控制条 {tokens.font.sizeControl}px · 信息行 {tokens.font.sizeStat}px</div>
+        <div>网格 {tokens.space.grid}px · 间距 {tokens.space.gap}px · 内边距 {tokens.space.paddingX}×{tokens.space.paddingY}px</div>
         <div>按钮圆角 {tokens.radius.button}px</div>
       </div>
     </div>
@@ -26,7 +26,7 @@ function TokensPage() {
 }
 
 const meta = {
-  title: '设计/Token 总览',
+  title: '设计/颜色与尺寸',
   component: TokensPage,
 } satisfies Meta<typeof TokensPage>;
 
