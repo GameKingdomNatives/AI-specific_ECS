@@ -80,6 +80,13 @@ step('storybook', process.execPath, [
   join(ROOT, 'artifacts/storybook-static'),
   '--quiet',
 ], join(ROOT, 'apps', 'game'));
+step('starter', process.execPath, [
+  join(ROOT, 'node_modules/storybook/dist/bin/dispatcher.js'),
+  'build',
+  '-o',
+  join(ROOT, 'artifacts/starter-storybook'),
+  '--quiet',
+], join(ROOT, 'starters', 'ui-storybook-kit'));
 step('assets', process.execPath, ['tools/check-assets.mjs']);
 step('bench', process.execPath, [
   'tools/bench.mjs',

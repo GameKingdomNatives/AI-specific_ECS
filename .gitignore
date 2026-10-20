@@ -1,6 +1,7 @@
 node_modules/
 dist/
 dist-ts/
+starters/*/storybook-static/
 artifacts/
 .pnpm-store/
 .npm-cache/
