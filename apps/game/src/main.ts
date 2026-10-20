@@ -5,6 +5,7 @@ import type { BoxSpec } from '@itb/engine/data';
 import { hashHex, Recorder, serialize, worldHash } from '@itb/engine/determinism';
 import { Box, Position, spawnBoxes } from '@itb/engine/demo';
 import { createPixiRenderer } from '@itb/engine/impl';
+import { createLocalStorage, createSaveStore } from '@itb/engine/storage';
 import type { RenderItem } from '@itb/engine/ports';
 import { initialContent, watchContent } from './content.js';
 import { createBrowserInput } from './input.js';
@@ -87,6 +88,68 @@ function spawnSpec(spec: BoxSpec): EntityId[] {
 
 let boxes = spawnSpec(initial.spec);
 const recorder = new Recorder(20261020, hashHex(worldHash(world, [Position, Box])));
+
+interface SavePayload {
+  readonly tick: number;
+  readonly player: { readonly x: number; readonly y: number };
+}
+
+const storage = createLocalStorage('itb:');
+const saveStore = createSaveStore<SavePayload>(storage, { key: 'save', targetVersion: 1 });
+const note = document.getElementById('note');
+
+function quarantinedCount(): number {
+  return storage.keys().filter((key) => key.startsWith('save:quarantine:')).length;
+}
+
+function setNote(message: string): void {
+  if (note !== null) {
+    note.textContent = `${message} · 隔离 ${quarantinedCount()}`;
+  }
+}
+
+function download(name: string, content: string): void {
+  const blob = new Blob([content], { type: 'application/json' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = name;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}
+
+function handleSave(): void {
+  const position = world.get(player, Position) ?? { x: 0, y: 0 };
+  saveStore.save({ tick: clock.tick, player: { x: position.x, y: position.y } });
+  setNote(`已存档 @ tick ${clock.tick}`);
+}
+
+function handleLoad(): void {
+  const outcome = saveStore.load();
+  if (!outcome.ok || outcome.payload === null) {
+    setNote(`读档失败：${outcome.issue ?? '未知'}`);
+    return;
+  }
+  world.set(player, Position, { x: outcome.payload.player.x, y: outcome.payload.player.y });
+  setNote(`已读档 @ tick ${outcome.payload.tick}`);
+}
+
+function handleExport(): void {
+  download('app-recording.json', serialize(recorder.toRecording()));
+  setNote(`已导出录制 ${recorder.count} tick`);
+}
+
+for (const button of document.querySelectorAll<HTMLButtonElement>('#ui button')) {
+  button.addEventListener('click', () => {
+    const action = button.dataset.act;
+    if (action === 'save') handleSave();
+    else if (action === 'load') handleLoad();
+    else if (action === 'clear') {
+      saveStore.clear();
+      setNote('已清除存档');
+    } else if (action === 'export') handleExport();
+  });
+}
 
 watchContent((state) => {
   dataStatus = state.ok ? 'data ok (hot)' : `data fallback: ${state.issue ?? 'invalid'}`;

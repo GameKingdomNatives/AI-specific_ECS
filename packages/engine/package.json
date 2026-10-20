@@ -28,6 +28,10 @@
       "types": "./dist/src/data/index.d.ts",
       "default": "./dist/src/data/index.js"
     },
+    "./storage": {
+      "types": "./dist/src/impl/storage.d.ts",
+      "default": "./dist/src/impl/storage.js"
+    },
     "./determinism": {
       "types": "./dist/src/determinism/index.d.ts",
       "default": "./dist/src/determinism/index.js"

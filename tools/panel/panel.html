@@ -258,6 +258,14 @@
       el('trend').appendChild(table);
     }
 
+    if (data.bench && data.bench.baseline) {
+      const line = document.createElement('p');
+      line.className = 'muted';
+      const current = data.bench.report ? data.bench.report.msPerTick : '—';
+      line.textContent = `逻辑帧 ${current}ms · 基线 ${data.bench.baseline.msPerTick}ms · 容差 ${data.bench.report ? data.bench.report.tolerance : '—'}`;
+      el('trend').appendChild(line);
+    }
+
     if (!data.findings || data.findings.length === 0) {
       el('findings').appendChild(text('p', '没有诊断条目——当前没有违规。'));
     } else {

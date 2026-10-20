@@ -8,10 +8,21 @@
       html, body { margin: 0; height: 100%; background: #111; overflow: hidden; }
       #stage { display: block; width: 100vw; height: 100vh; }
       #hud { position: fixed; left: 16px; bottom: 14px; color: #d8d2c8; font: 13px/1.6 Consolas, monospace; }
+      #ui { position: fixed; left: 16px; top: 14px; display: flex; gap: 8px; align-items: center; font: 13px/1.4 Consolas, monospace; }
+      #ui button { background: #1c1a18; color: #e8e2d8; border: 1px solid #3a352f; border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+      #ui button:hover { background: #2a2622; }
+      #note { color: #b7a992; margin-left: 6px; }
     </style>
   </head>
   <body>
     <canvas id="stage"></canvas>
+    <div id="ui">
+      <button data-act="save">存档</button>
+      <button data-act="load">读档</button>
+      <button data-act="clear">清除</button>
+      <button data-act="export">导出录制</button>
+      <span id="note">就绪</span>
+    </div>
     <div id="hud">tick 0 · entities 0</div>
     <script type="module" src="/src/main.ts"></script>
   </body>

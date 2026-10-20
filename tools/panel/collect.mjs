@@ -36,6 +36,20 @@ const findings =
     ? JSON.parse(readFileSync(join(ROOT, lastReport.run, 'findings.json'), 'utf8'))
     : [];
 
+const baselineFile = join(ROOT, 'tools', 'bench-baseline.json');
+const benchBaseline = existsSync(baselineFile) ? JSON.parse(readFileSync(baselineFile, 'utf8')) : null;
+let benchReport = null;
+if (lastReport !== null) {
+  const benchLog = join(ROOT, lastReport.run, 'bench.log');
+  if (existsSync(benchLog)) {
+    try {
+      benchReport = JSON.parse(readFileSync(benchLog, 'utf8'));
+    } catch {
+      benchReport = null;
+    }
+  }
+}
+
 const stamps = existsSync('.gate/stamps') ? readdirSync('.gate/stamps') : [];
 const waivers = existsSync('tools/waivers.json') ? JSON.parse(readFileSync('tools/waivers.json', 'utf8')) : [];
 
@@ -60,6 +74,7 @@ const snapshot = {
     changed: changed.slice(0, 40),
   },
   gate: lastReport,
+  bench: { report: benchReport, baseline: benchBaseline },
   findings,
   stamps: stamps.length,
   waivers: waivers.length,

@@ -32,7 +32,8 @@
 | 逻辑帧基准 | `npm run bench`（默认 3000 实体，含历史基线对比） | tools | 已具备 |
 | 数据迁移管线 | `applyMigrations`（逐版、缺链即失败） | data | 已具备 |
 | 内容迁移接线 | `parseContentMigrated`（迁移后再 Zod 校验） | data | 已具备 |
-| 存储与存档 | `createMemoryStorage` / `createLocalStorage` / `createSaveStore`（版本绑定、损坏隔离） | impl | 已具备 |
+| 资源加载器 | `createAssetLoader`（缓存、失败隔离、clear） | data | 已具备 |
+| 存档 UI | 页内 存档/读档/清除/导出录制（`@itb/engine/storage`） | app | 已具备 |
 | 录制干净开局校验 | `startHash` + `replay` 返回 `startHashMatches` | determinism | 已具备 |
 | 数据热加载 | — | data | 待第三批 |
 | 确定性回放 | `src/determinism` | determinism | 待第三批 |
