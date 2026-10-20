@@ -4,6 +4,7 @@ export default ts.config(
   {
     ignores: [
       '**/dist/**',
+      '**/dist-ts/**',
       '**/node_modules/**',
       'artifacts/**',
       'tools/panel/**',
@@ -13,7 +14,7 @@ export default ts.config(
   },
   ...ts.configs.recommended,
   {
-    files: ['**/*.ts'],
+    files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',

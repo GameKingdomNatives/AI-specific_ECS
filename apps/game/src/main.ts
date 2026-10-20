@@ -11,8 +11,11 @@ import { createPhysicsPort, PhysicsWorld } from '@itb/engine/physics';
 import { createLocalStorage, createSaveStore } from '@itb/engine/storage';
 import type { RenderItem } from '@itb/engine/ports';
 import { initialContent, watchContent } from './content.js';
+import { createControls } from './controls.js';
 import { createBrowserInput } from './input.js';
 import { createSystems } from './system-registry.js';
+import { mountUi } from './ui/mount.js';
+import { createUiStore } from './ui/snapshot.js';
 
 const WIDTH = 1920;
 const HEIGHT = 1080;
@@ -49,24 +52,10 @@ world.add(player, Position, { x: WIDTH / 2, y: HEIGHT / 2 });
 world.add(player, Box, { size: 22, tint: 0xff8844 });
 let current = input.sample(0);
 
-interface Dump {
-  readonly system: string;
-  readonly tick: number;
-  readonly message: string;
-  readonly stack: string;
-}
-
-const dumps: Dump[] = [];
 let scheduler = createScheduler();
 
 function onSystemError(system: string, error: unknown, tick: number): void {
   const stack = error instanceof Error ? (error.stack ?? '') : '';
-  dumps.push({
-    system,
-    tick,
-    message: String(error),
-    stack,
-  });
   dumpSink.record({ system, tick, message: String(error), stack });
   dumpSink.persist();
   audio.play('system-error');
@@ -117,66 +106,40 @@ interface SavePayload {
 }
 
 const saveStore = createSaveStore<SavePayload>(storage, { key: 'save', targetVersion: 1 });
-const note = document.getElementById('note');
+
+const uiStore = createUiStore({
+  tick: 0,
+  entities: world.aliveCount,
+  bullets: 0,
+  kills: 0,
+  bodies: 0,
+  recordingTicks: 0,
+  dumps: dumpSink.list().length,
+  audioPlays: 0,
+  hash: '',
+  dataStatus,
+  mode: probe === null ? 'run' : `probe ${probe}`,
+  note: '就绪 · 按住左键射击',
+});
 
 function quarantinedCount(): number {
   return storage.keys().filter((key) => key.startsWith('save:quarantine:')).length;
 }
 
 function setNote(message: string): void {
-  if (note !== null) {
-    note.textContent = `${message} · 隔离 ${quarantinedCount()}`;
-  }
+  uiStore.update({ note: `${message} · 隔离 ${quarantinedCount()}` });
 }
 
-function download(name: string, content: string): void {
-  const blob = new Blob([content], { type: 'application/json' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = name;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-}
-
-function handleSave(): void {
-  const position = world.get(player, Position) ?? { x: 0, y: 0 };
-  saveStore.save({ tick: clock.tick, player: { x: position.x, y: position.y } });
-  setNote(`已存档 @ tick ${clock.tick}`);
-}
-
-function handleLoad(): void {
-  const outcome = saveStore.load();
-  if (!outcome.ok || outcome.payload === null) {
-    setNote(`读档失败：${outcome.issue ?? '未知'}`);
-    return;
-  }
-  world.set(player, Position, { x: outcome.payload.player.x, y: outcome.payload.player.y });
-  setNote(`已读档 @ tick ${outcome.payload.tick}`);
-}
-
-function handleExport(): void {
-  download('app-recording.json', serialize(recorder.toRecording()));
-  setNote(`已导出录制 ${recorder.count} tick`);
-}
-
-function handleDumps(): void {
-  download('dumps.json', dumpSink.toJson());
-  setNote(`已导出诊断 ${dumpSink.list().length} 条`);
-}
-
-for (const button of document.querySelectorAll<HTMLButtonElement>('#ui button')) {
-  button.addEventListener('click', () => {
-    const action = button.dataset.act;
-    if (action === 'save') handleSave();
-    else if (action === 'load') handleLoad();
-    else if (action === 'clear') {
-      saveStore.clear();
-      setNote('已清除存档');
-    } else if (action === 'export') handleExport();
-    else if (action === 'dumps') handleDumps();
-  });
-}
+const controls = createControls({
+  world,
+  player,
+  clock,
+  recorder,
+  saveStore,
+  dumpSink,
+  setNote,
+});
+mountUi(uiStore, controls);
 
 watchContent((state) => {
   dataStatus = state.ok ? 'data ok (hot)' : `data fallback: ${state.issue ?? 'invalid'}`;
@@ -264,7 +227,19 @@ function frame(now: number): void {
     const mode = probe === null ? 'run' : `probe ${probe}`;
     const bullets = world.query(Position, Bullet).length;
     const bodies = deps.physics.stats().bodies;
-    hud.textContent = `${mode} · tick ${clock.tick} · entities ${world.aliveCount} · bullets ${bullets} · kills ${kills} · bodies ${bodies} · rec ${recorder.count} · err ${dumps.length} · ${lastHash} · ${dataStatus}`;
+    hud.textContent = `${mode} · tick ${clock.tick} · entities ${world.aliveCount} · bullets ${bullets} · kills ${kills} · bodies ${bodies} · rec ${recorder.count} · err ${dumpSink.list().length} · ${lastHash} · ${dataStatus}`;
+    uiStore.update({
+      tick: clock.tick,
+      entities: world.aliveCount,
+      bullets,
+      kills,
+      bodies,
+      recordingTicks: recorder.count,
+      dumps: dumpSink.list().length,
+      audioPlays: audio.stats().plays,
+      hash: lastHash,
+      dataStatus,
+    });
   }
   requestAnimationFrame(frame);
 }

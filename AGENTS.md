@@ -28,6 +28,7 @@ node tools/panel/collect.mjs  # 刷新治理面板数据
 ```
 
 - 通过 = 退出码 0；**没有「警告通过」**。
+- **退出码 ≠ 检查通过**：解析型检查（depcruise、eslint JSON、registry findings）必须解析结果本身；命令没产出可解析结果时判失败，不许当通过。depcruise 的 JSON 模式有违规也退出 0，必须走 `tools/checks/depcruise.mjs` 包装器（ADR-007）。
 - 门禁失败时不许提交、不许推送、不许声称完成。
 - 没跑过门禁就说「完成」，视为未交付。
 - 每次会话结束：跑全量门禁，把 `artifacts/gate/<run>/report.md` 摘要贴进回复，并更新 `docs/handoff.md`。

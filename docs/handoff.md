@@ -45,7 +45,10 @@
 - 确定性：门禁新增 `replay` 步骤（`--self-test --repeat 3`，三次全哈希序列比对）。
 - 违规演练：`tools/drill.mjs` 制造「core→impl 越界 import」「312 行超预算文件」两种现场，确认门禁都会红；清理在 finally。
 - **门禁自身的洞（已修）**：depcruise 用 `--output-type json` 时即使有违规也退出 0，且无参数运行只打印 Usage——之前 `depcruise PASS` 是空转。改为 `tools/checks/depcruise.mjs` 解析 `summary.violations`，解析失败即失败；现在 237 模块 0 违规是真检查出来的。
-- 下一步：UI 层骨架（React + Tailwind + `UiSnapshot` 只读 + 意图命令），Onlook 接入需在你的终端起 Vite（ADR-001）。
+- UI 层骨架：`apps/game/src/ui/{snapshot.ts,App.tsx,mount.tsx}` + `controls.ts`；React 19 覆盖层替换原生 DOM 按钮，`UiSnapshot` 10Hz 只读推送，意图走 `UiIntents`。实测点击「存档」→ `已存档 @ tick 113 · 隔离 0`，快照行 `tick 390 · 实体 65 · 刚体 65`。
+- 依赖现状（ADR-008）：React/ReactDOM 暂装仓库根（npm 工作区识别报 `no workspace folder present`，清理 pnpm 遗留 junction 后仍复现）；Tailwind、Storybook、Onlook 未接。
+- 门禁：新增 `apps/game/src/ui/**` 不得依赖引擎/控制器的 depcruise 规则；eslint 忽略 `dist-ts/**`。
+- 下一步：Tailwind 引入（依赖恢复后迁回 apps/game）→ Storybook 组件画布 → Onlook 自托管（用户终端）。
 
 ## 第三批剩余
 

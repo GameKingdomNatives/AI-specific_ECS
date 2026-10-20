@@ -22,6 +22,13 @@ module.exports = {
       from: { path: '^packages/engine' },
       to: { path: '^apps' },
     },
+    {
+      name: 'ui-no-engine-internals',
+      severity: 'error',
+      comment: 'UI 层只允许快照类型与 React，不得依赖引擎内核/实现/应用控制器',
+      from: { path: '^apps/game/src/ui' },
+      to: { path: '^(packages/|apps/game/src/(?!ui))' },
+    },
   ],
   options: {
     doNotFollow: { path: 'node_modules' },
