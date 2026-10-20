@@ -35,6 +35,7 @@
 | 资源加载器 | `createAssetLoader`（缓存、失败隔离、clear） | data | 已具备 |
 | 程序化贴图 | `node tools/gen-assets.mjs`（自带 PNG 编码，确定性形状） | tools | 已具备 |
 | 贴图渲染 | `RenderItem.texture` → `pixi-views` Sprite（失败回退几何） | impl | 已具备 |
+| 鼠标射击（临时） | 按住左键朝指针连射；`demo.weapon`＋`demo.bulletMovement`＋回收 | demo/app | 已具备（临时方案） |
 | 存档 UI | 页内 存档/读档/清除/导出录制（`@itb/engine/storage`） | app | 已具备 |
 | 录制干净开局校验 | `startHash` + `replay` 返回 `startHashMatches` | determinism | 已具备 |
 | 数据热加载 | — | data | 待第三批 |

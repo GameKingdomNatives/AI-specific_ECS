@@ -1,6 +1,12 @@
 import type { EntityId, SystemDef } from '@itb/engine/core';
 import type { InputSnapshot } from '@itb/engine/ports';
-import { createMovementSystem, Position } from '@itb/engine/demo';
+import {
+  createBulletCleanupSystem,
+  createBulletMovementSystem,
+  createMovementSystem,
+  createWeaponSystem,
+  Position,
+} from '@itb/engine/demo';
 
 export interface SystemDeps {
   readonly width: number;
@@ -36,5 +42,11 @@ export function createSystems(deps: SystemDeps): SystemDef[] {
       });
     },
   };
-  return [createMovementSystem(deps.width, deps.height), playerSystem];
+  return [
+    createMovementSystem(deps.width, deps.height),
+    createBulletMovementSystem(deps.width, deps.height, { after: ['demo.movement'] }),
+    playerSystem,
+    createWeaponSystem({ player: deps.player, getInput: deps.getInput, after: ['demo.player'] }),
+    createBulletCleanupSystem(deps.width, deps.height),
+  ];
 }

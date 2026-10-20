@@ -3,7 +3,7 @@ import { CommandBuffer, EventBus, FixedClock, Scheduler, World } from '@itb/engi
 import type { EntityId, SystemDef } from '@itb/engine/core';
 import type { BoxSpec } from '@itb/engine/data';
 import { hashHex, Recorder, serialize, worldHash } from '@itb/engine/determinism';
-import { Box, Position, spawnBoxes } from '@itb/engine/demo';
+import { Box, Bullet, Position, spawnBoxes } from '@itb/engine/demo';
 import { createPixiRenderer } from '@itb/engine/impl';
 import { createLocalStorage, createSaveStore } from '@itb/engine/storage';
 import type { RenderItem } from '@itb/engine/ports';
@@ -195,6 +195,26 @@ function renderTable(): RenderItem[] {
       texture: entity === player ? '/assets/player.png' : '/assets/box.png',
     });
   }
+  for (const entity of world.query(Position, Bullet)) {
+    const position = world.get(entity, Position);
+    if (position === undefined) {
+      continue;
+    }
+    items.push({
+      id: entity,
+      x: position.x,
+      y: position.y,
+      rot: 0,
+      sx: 14,
+      sy: 14,
+      layer: 3,
+      shape: 'circle',
+      tint: 0xffffff,
+      alpha: 1,
+      visible: true,
+      texture: '/assets/bullet.png',
+    });
+  }
   return items;
 }
 
@@ -215,7 +235,8 @@ function frame(now: number): void {
   renderer.submit(renderTable());
   if (hud !== null && clock.tick % 10 === 0) {
     const mode = probe === null ? 'run' : `probe ${probe}`;
-    hud.textContent = `${mode} · tick ${clock.tick} · entities ${world.aliveCount} · rec ${recorder.count} · err ${dumps.length} · ${lastHash} · ${dataStatus}`;
+    const bullets = world.query(Position, Bullet).length;
+    hud.textContent = `${mode} · tick ${clock.tick} · entities ${world.aliveCount} · bullets ${bullets} · rec ${recorder.count} · err ${dumps.length} · ${lastHash} · ${dataStatus}`;
   }
   requestAnimationFrame(frame);
 }

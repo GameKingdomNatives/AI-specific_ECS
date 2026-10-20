@@ -32,7 +32,9 @@
 - 面板：趋势卡新增「逻辑帧 / 基线 / 容差」一行，数据来自 bench.log 与 baseline。
 - 素材改代码生成：`tools/gen-assets.mjs` 用 `zlib` + 手写 CRC32 编码 PNG（无图像库），生成 `player/box/bullet` 三张到 `apps/game/public/assets/` 与 manifest；门禁新增 `assets` 步骤校验签名与尺寸。
 - 贴图接入：端口 `RenderItem.texture?`（ADR-004，HARD 附加变更），渲染层按 URL 缓存 Texture 用 Sprite，失败退回几何图形；实测页面 65 个实体全部为 `Sprite`。
-- 下一步：把子弹贴图用于实际弹道、贴图随实体缩放（当前按 sx/sy 拉伸）、以及图集打包（素材量上来后）。
+- 临时鼠标交互：按住左键朝指针连射（冷却 6 tick、速度 14），子弹用 `bullet.png`；实测按住 0.9s 场上 4 发、松开 1.8s 后归零。
+- 顺手修的真问题：子弹原来走的是「会反弹」的方块移动系统，永远不出界也不回收；已拆成 `demo.bulletMovement`（直线、出界即 despawn），方块移动改用 `query(Position, Velocity, Box)`。
+- 下一步：命中检测（子弹 × 方块，走物理查询端口）、射击音效占位、弹道拖尾。
 
 ## 第三批剩余
 
