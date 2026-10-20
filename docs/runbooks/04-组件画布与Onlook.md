@@ -133,14 +133,21 @@ cd E:\Onlook\onlook
 # 1) 仓库有 .gitmodules：普通 clone 不会拉子模块
 git submodule status
 # 行首是 '-' = 未初始化
-git submodule update --init --recursive
 
-# 2) 确认文件是否真的在树里
+# 2) 直接 --init --recursive 可能被私有子模块挡住（实测：apps/admin → onlook-dev/admin.git 报 Repository not found，
+#    整条命令中止，后面的子模块根本没轮到）。跳过它、继续初始化其余：
+git -c submodule.apps/admin.update=none submodule update --init --recursive
+
+# 如需持久忽略 admin（企业版后台，编辑器不需要）：
+# git config submodule.apps/admin.update none
+
+# 3) 再确认子模块与目标文件
+git submodule status
 Test-Path apps\backend\supabase\functions\stripe-webhook\index.ts
 git ls-files apps/backend/supabase/functions | Select-String stripe-webhook
 ```
 
-文件补上后重新 `bun backend:start`。
+文件补上后重新 `bun backend:start`（若子模块带来了新 workspace，先 `bun install --ignore-scripts` 一次）。
 
 如果**仓库本身没有跟踪这个文件**（`git ls-files` 无输出），二选一：
 
