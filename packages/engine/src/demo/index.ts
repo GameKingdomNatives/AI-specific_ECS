@@ -1,5 +1,6 @@
 import { defineComponent } from '../core/types.js';
 import type { SystemDef } from '../core/scheduler.js';
+import type { EntityId } from '../core/types.js';
 import type { World } from '../core/world.js';
 
 /** 技术夹具用组件：不是游戏内容，只用来证明管线通。 */
@@ -53,9 +54,11 @@ export function spawnBoxes(
   minSize = 8,
   maxSize = 14,
   speed = 1,
-): void {
+): EntityId[] {
+  const spawned: EntityId[] = [];
   for (let index = 0; index < count; index += 1) {
     const entity = world.spawn();
+    spawned.push(entity);
     world.add(entity, Position, {
       x: (index * 37) % width,
       y: (index * 61) % height,
@@ -63,4 +66,5 @@ export function spawnBoxes(
     world.add(entity, Velocity, { x: (1 + (index % 3)) * speed, y: (0.5 + (index % 2)) * speed });
     world.add(entity, Box, { size: Math.min(maxSize, minSize + (index % 3) * 2), tint: 0xffffff });
   }
+  return spawned;
 }

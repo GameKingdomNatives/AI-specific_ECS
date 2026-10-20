@@ -1,11 +1,13 @@
 import { readFileSync, writeFileSync } from 'node:fs';
+import { createSystems } from '../apps/game/dist-ts/src/system-registry.js';
 import {
   CommandBuffer,
-  defineComponent,
   EventBus,
   Scheduler,
   World,
 } from '../packages/engine/dist/src/core/index.js';
+import { parseContent } from '../packages/engine/dist/src/data/content.js';
+import { Box, Position, spawnBoxes } from '../packages/engine/dist/src/demo/index.js';
 import {
   deserialize,
   hashHex,
@@ -22,8 +24,6 @@ import {
  *   node tools/replay.mjs --write demo.rec.json --ticks 30
  *   node tools/replay.mjs demo.rec.json [--expect expected.json]
  */
-
-const Position = defineComponent('Position', { x: 'f64', y: 'f64' });
 
 function createScenario() {
   const world = new World();
@@ -89,6 +89,60 @@ function firstHexDivergence(actual, expected) {
 }
 
 const args = process.argv.slice(2);
+
+/** 与浏览器同一套世界与系统：玩家先创建，方块后创建，顺序必须一致。 */
+function replayApp(file, expectedHash) {
+  const width = 1920;
+  const height = 1080;
+  const recording = deserialize(readFileSync(file, 'utf8'));
+  const rawSpec = JSON.parse(readFileSync('apps/game/src/data/demo.boxes.json', 'utf8'));
+  const parsed = parseContent(rawSpec);
+  const spec = parsed.ok && parsed.value !== null
+    ? parsed.value.boxes
+    : { count: 64, minSize: 8, maxSize: 14, speed: 1 };
+  const world = new World();
+  const player = world.spawn();
+  world.add(player, Position, { x: width / 2, y: height / 2 });
+  world.add(player, Box, { size: 22, tint: 0xff8844 });
+  let current = { tick: 0, keys: new Set(), buttons: new Set(), pointer: { x: 0, y: 0 } };
+  const systems = createSystems({ width, height, player, getInput: () => current });
+  const scheduler = new Scheduler();
+  for (const system of systems) {
+    scheduler.add(system);
+  }
+  scheduler.build();
+  spawnBoxes(world, spec.count, width, height, spec.minSize, spec.maxSize, spec.speed);
+  const bus = new EventBus();
+  const commands = new CommandBuffer();
+  const result = replay(recording, {
+    step: (tick, snapshot) => {
+      current = snapshot;
+      scheduler.run(world, bus, commands, tick);
+    },
+    hash: () => worldHash(world, [Position, Box]),
+  });
+  const final = hashHex(result.finalHash);
+  console.log(`ticks      ${result.ticks}`);
+  console.log(`final      ${final}`);
+  if (expectedHash !== null) {
+    console.log(final === expectedHash ? '哈希对比   PASS' : `哈希对比   FAIL（期望 ${expectedHash}）`);
+    return final === expectedHash ? 0 : 1;
+  }
+  return 0;
+}
+
+if (args.includes('--app')) {
+  const index = args.indexOf('--app');
+  const file = args[index + 1];
+  const expectIndex = args.indexOf('--expect-hash');
+  const expected = expectIndex >= 0 ? args[expectIndex + 1] : null;
+  if (file === undefined) {
+    console.error('用法：node tools/replay.mjs --app <录制文件> [--expect-hash <hex>]');
+    process.exit(2);
+  }
+  process.exit(replayApp(file, expected ?? null));
+}
+
 
 if (args.includes('--self-test')) {
   const recording = makeRecording(30);

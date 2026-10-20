@@ -75,6 +75,7 @@ step('build', process.execPath, [
   '--logLevel',
   'warn',
 ], join(ROOT, 'apps', 'game'));
+step('bench', process.execPath, ['tools/bench.mjs', '--entities', '3000', '--ticks', '200']);
 
 writeFileSync(join(ROOT, RUN, 'codes.txt'), `${codes.map((c) => `${c.name} ${c.code}`).join('\n')}\n`);
 const report = execute(process.execPath, ['tools/report.mjs', RUN]);

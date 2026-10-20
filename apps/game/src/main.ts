@@ -1,11 +1,12 @@
 /// <reference types="vite/client" />
 import { CommandBuffer, EventBus, FixedClock, Scheduler, World } from '@itb/engine/core';
-import type { SystemDef } from '@itb/engine/core';
-import { FALLBACK_BOXES, loadContent } from '@itb/engine/data';
+import type { EntityId, SystemDef } from '@itb/engine/core';
+import type { BoxSpec } from '@itb/engine/data';
 import { hashHex, Recorder, serialize, worldHash } from '@itb/engine/determinism';
 import { Box, Position, spawnBoxes } from '@itb/engine/demo';
 import { createPixiRenderer } from '@itb/engine/impl';
 import type { RenderItem } from '@itb/engine/ports';
+import { initialContent, watchContent } from './content.js';
 import { createBrowserInput } from './input.js';
 import { createSystems } from './system-registry.js';
 
@@ -77,11 +78,26 @@ function applySystems(list: readonly SystemDef[]): void {
 const deps = { width: WIDTH, height: HEIGHT, player, getInput: (): typeof current => current };
 applySystems(createSystems(deps));
 
-const content = await loadContent('/content/demo.boxes.json');
-const spec = content.ok && content.value !== null ? content.value.boxes : FALLBACK_BOXES;
-const spawnCount = probe === null ? spec.count : Math.min(8, spec.count);
-spawnBoxes(world, spawnCount, WIDTH, HEIGHT, spec.minSize, spec.maxSize, spec.speed);
-const dataStatus = content.ok ? 'data ok' : `data fallback: ${content.issues[0]?.message ?? 'invalid'}`;
+const initial = initialContent();
+let dataStatus = initial.ok ? 'data ok' : `data fallback: ${initial.issue ?? 'invalid'}`;
+
+function spawnSpec(spec: BoxSpec): EntityId[] {
+  const count = probe === null ? spec.count : Math.min(8, spec.count);
+  return spawnBoxes(world, count, WIDTH, HEIGHT, spec.minSize, spec.maxSize, spec.speed);
+}
+
+let boxes = spawnSpec(initial.spec);
+
+watchContent((state) => {
+  dataStatus = state.ok ? 'data ok (hot)' : `data fallback: ${state.issue ?? 'invalid'}`;
+  if (!state.ok) {
+    return;
+  }
+  for (const entity of boxes) {
+    world.despawn(entity);
+  }
+  boxes = spawnSpec(state.spec);
+});
 
 const captureMode = new URLSearchParams(location.search).has('capture');
 const renderer = await createPixiRenderer(canvas, {

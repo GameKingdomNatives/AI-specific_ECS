@@ -26,6 +26,8 @@
 | 单系统崩溃隔离 | `SchedulerOptions.maxConsecutiveFailures` / `disabledSystems` / `onSystemError` | core | 已具备 |
 | 系统探针页 | `?probe=<system>`（只跑单系统 + 最小世界） | app | 已具备 |
 | 系统热替换（HMR） | `system-registry.ts` accept，保留世界状态 | app | 已具备 |
+| 内容热加载 | `content.ts`（JSON 模块更新 → 重新校验 → 重建实体） | app | 已具备 |
+| 录制 → 无头重演 | `__itb.recording()` + `node tools/replay.mjs --app` | app+tools | 已具备（403 tick 哈希一致） |
 | 诊断 dump（浏览器） | `__itb.dumps()`（系统名/tick/错误/栈） | app | 已具备 |
 | 逻辑帧基准 | `npm run bench`（默认 3000 实体） | tools | 已具备 |
 | 数据热加载 | — | data | 待第三批 |

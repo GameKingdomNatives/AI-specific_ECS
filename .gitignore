@@ -1,5 +1,6 @@
 node_modules/
 dist/
+dist-ts/
 artifacts/
 .pnpm-store/
 .npm-cache/

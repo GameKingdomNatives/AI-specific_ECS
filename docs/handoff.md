@@ -19,7 +19,11 @@
 - 单系统崩溃隔离：`Scheduler` 支持连续失败阈值（默认 3）熔断、`disabledSystems` 与 `onSystemError` 回调，其余系统照跑；集成测试覆盖 60Hz 与 30Hz 帧率下 tick 序列一致、录制重演哈希一致。
 - 探针与热替换：`?probe=<system>` 只跑单系统（8 个方块 + 玩家），HUD 显示 `probe <name>`；`system-registry.ts` 走 Vite HMR accept，实测 tick 从 510 连续跑到 1400、系统列表不变、URL 未变——**替换系统而世界状态保留**。崩溃 dump 落在内存，`__itb.dumps()` 可取。
 - 基准：`npm run bench`（3000 实体／200 tick）实测 **0.703 ms/帧**，预算 4ms，PASS。
-- 下一步：把 bench 接入门禁（阈值回归）、数据热加载、以及把录制导出接回 `tools/replay.mjs` 做「同一局重演」。
+- 内容热加载：`apps/game/src/data/demo.boxes.json` 为唯一内容源；改 count 64→20，页面无需刷新，实体数变 21 且 HUD 显示 `data ok (hot)`；校验失败不应用新值。
+- 端到端闭环：浏览器 `__itb.recording()` 导出的 403 tick 录制，用 `node tools/replay.mjs --app … --expect-hash …` 无头重演，最终哈希 `b5ef9765` 一致。
+- 基准已入门禁：`bench` 步骤（3000 实体／200 tick，预算 4ms），实测 0.64–0.70ms。
+- 已知边界：跨内容热加载的录制不可重演（热加载会重建实体），不应参与哈希回归。
+- 下一步：把 bench 阈值与历史基线对比（不只固定 4ms）、数据 schema 版本迁移、以及把「干净开局」判定写进 replay 前置检查。
 
 ## 第三批剩余
 
