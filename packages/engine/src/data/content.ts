@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { applyMigrations } from './migrate.js';
+import type { ContentMigration } from './migrate.js';
 
 export const boxSpecSchema = z.object({
   count: z.number().int().min(0).max(2000),
@@ -63,3 +65,16 @@ export async function loadContent(url: string, fetcher: Fetcher = (input) => fet
 }
 
 export const FALLBACK_BOXES: BoxSpec = { count: 64, minSize: 8, maxSize: 14, speed: 1 };
+
+/** 迁移后再校验：迁移失败不算「内容非法」，而是明确的版本问题。 */
+export function parseContentMigrated(
+  raw: unknown,
+  migrations: readonly ContentMigration[],
+  targetVersion: number,
+): ContentResult {
+  const migrated = applyMigrations(raw, migrations, targetVersion);
+  if (!migrated.ok) {
+    return { ok: false, value: null, issues: [{ path: '$', message: migrated.issue ?? '迁移失败' }] };
+  }
+  return parseContent(migrated.raw);
+}

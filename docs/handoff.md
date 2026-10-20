@@ -26,7 +26,8 @@
 - 基准升级：`bench` 现在同时判「绝对预算 4ms」与「历史基线 ×1.25」；基线在 `tools/bench-baseline.json`（当前 0.625ms），重录用 `node tools/bench.mjs --update`。
 - 干净开局校验：录制带 `startHash`，重演前比对；实测干净录制 `43a686dd` 重演哈希 `54677965` 一致，篡改 startHash 后 CLI 明确报「不匹配」并以 1 退出。
 - 数据迁移：`applyMigrations` 逐版迁移、缺链/跳版/版本过高都明确失败，已进测试。
-- 下一步：第四批——存档接口 `IStorage` 的本地实现与 schema 版本绑定、资源加载器，以及把迁移接入 `loadContent` 的正式路径。
+- 第四批起步：存储与存档已落地——`createMemoryStorage` / `createLocalStorage` / `createSaveStore`；存档信封带 `$schemaVersion`，旧档逐版迁移、新档拒绝、损坏档搬到 `<key>:quarantine:<时间戳>` 后返回问题（不抛异常）。迁移已接进内容路径（`parseContentMigrated`）。
+- 下一步：存档接入 UI（手动存/读/清）、资源加载器（图集与字体占位）、以及把 bench 基线纳入 panel 趋势图。
 
 ## 第三批剩余
 

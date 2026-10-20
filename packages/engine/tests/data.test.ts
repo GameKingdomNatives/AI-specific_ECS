@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { FALLBACK_BOXES, loadContent, parseContent } from '../src/data/content.js';
+import { FALLBACK_BOXES, loadContent, parseContent, parseContentMigrated } from '../src/data/content.js';
+import type { ContentMigration } from '../src/data/migrate.js';
 
 const valid = {
   $schemaVersion: 1,
@@ -55,4 +56,21 @@ test('成功后返回解析后的内容，回退值合法', async () => {
   assert.equal(loaded.ok, true);
   assert.equal(loaded.value?.boxes.speed, 1);
   assert.equal(FALLBACK_BOXES.count, 64);
+});
+
+test('旧版内容先迁移再校验', () => {
+  const migrations: ContentMigration[] = [
+    {
+      from: 0,
+      to: 1,
+      migrate: (raw) => ({ ...raw, $schemaVersion: 1 }),
+    },
+  ];
+  const migrated = parseContentMigrated({ $schemaVersion: 0, boxes: valid.boxes }, migrations, 1);
+  assert.equal(migrated.ok, true);
+  assert.equal(migrated.value?.boxes.count, 64);
+
+  const broken = parseContentMigrated({ $schemaVersion: 0, boxes: valid.boxes }, [], 1);
+  assert.equal(broken.ok, false);
+  assert.match(broken.issues[0]?.message ?? '', /缺少 v0 → v1/);
 });
