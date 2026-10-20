@@ -28,6 +28,14 @@
   button { border:1px solid var(--line); background:var(--stone); color:var(--soft); border-radius:999px; padding:4px 12px; font:13px "Songti SC",serif; cursor:pointer; }
   button:hover { background:var(--ink); color:#fff; border-color:var(--ink); }
   .muted { color:var(--muted); font-size:13.5px; }
+  .finding { border-top:1px solid var(--line); padding:12px 0 8px; }
+  .finding:first-child { border-top:none; }
+  .where { font-family:"Consolas","Courier New",monospace; font-size:13px; }
+  .badge { display:inline-block; margin-left:8px; padding:1px 8px; border-radius:999px; font-size:12px; letter-spacing:.06em; background:#f7ecea; color:#7d3d33; }
+  .msg { font-size:14px; color:var(--soft); margin:4px 0 6px; }
+  .finding pre { margin:6px 0; padding:10px 12px; background:var(--stone); border-radius:10px; font-size:12.5px; line-height:1.7; overflow-x:auto; white-space:pre; }
+  .src { font-size:13px; color:var(--muted); }
+  .src a { color:var(--accent); text-decoration:none; }
   @media (max-width:820px) { .grid { grid-template-columns:1fr; } }
 </style>
 </head>
@@ -54,6 +62,12 @@
       <h2>趋势</h2>
       <div id="trend"></div>
     </div>
+  </div>
+
+  <div class="rule"></div>
+  <div class="card">
+    <h2>诊断明细（文件:行:列 · 规则 · 片段 · 规则定义位置）</h2>
+    <div id="findings"></div>
   </div>
 
   <div class="rule"></div>
@@ -157,6 +171,41 @@
         table.appendChild(tr);
       }
       el('trend').appendChild(table);
+    }
+
+    if (!data.findings || data.findings.length === 0) {
+      el('findings').appendChild(text('p', '没有诊断条目——当前没有违规。'));
+    } else {
+      for (const finding of data.findings) {
+        const box = document.createElement('div');
+        box.className = 'finding';
+        const where = document.createElement('div');
+        const path = `${finding.file}:${finding.line}:${finding.column}`;
+        const code = text('code', path);
+        code.className = 'where';
+        where.appendChild(code);
+        const badge = text('span', finding.ruleId);
+        badge.className = 'badge';
+        where.appendChild(badge);
+        const copyButton = text('button', '复制定位');
+        copyButton.style.marginLeft = '8px';
+        copyButton.addEventListener('click', () => copy(path));
+        where.appendChild(copyButton);
+        box.appendChild(where);
+        box.appendChild(text('div', finding.message)).className = 'msg';
+        if (finding.snippet) {
+          const pre = document.createElement('pre');
+          pre.textContent = finding.snippet;
+          box.appendChild(pre);
+        }
+        const src = document.createElement('div');
+        src.className = 'src';
+        src.appendChild(text('span', '规则定义：'));
+        src.appendChild(text('code', `${finding.ruleSource.file}:${finding.ruleSource.line}`));
+        src.appendChild(text('span', `（${finding.ruleSource.kind}）`));
+        box.appendChild(src);
+        el('findings').appendChild(box);
+      }
     }
 
     for (const item of data.commands) {

@@ -7,6 +7,7 @@ const FAST = process.argv.includes('--fast');
 const RUN = join('artifacts', 'gate', new Date().toISOString().replace(/[-:]/g, '').replace(/\..+/, 'Z'));
 mkdirSync(join(ROOT, RUN), { recursive: true });
 mkdirSync(join(ROOT, '.gate', 'stamps'), { recursive: true });
+process.env.GATE_RUN = RUN;
 
 const codes = [];
 
@@ -56,13 +57,18 @@ function runTests() {
 }
 
 step('tsc', process.execPath, ['node_modules/typescript/bin/tsc', '-b']);
-step('eslint', process.execPath, ['node_modules/eslint/bin/eslint.js', '.']);
+step('eslint', process.execPath, ['node_modules/eslint/bin/eslint.js', '.', '-f', 'json', '-o', join(RUN, 'eslint.json')]);
 step('registry', process.execPath, ['tools/checks/registry.mjs']);
 runTests();
 step('gitfacts', process.execPath, ['tools/checks/gitfacts.mjs', RUN]);
 if (!FAST) {
-  step('depcruise', process.execPath, ['node_modules/dependency-cruiser/bin/dependency-cruiser.mjs']);
+  step('depcruise', process.execPath, [
+    'node_modules/dependency-cruiser/bin/dependency-cruiser.mjs',
+    '--output-type',
+    'json',
+  ]);
 }
+step('findings', process.execPath, ['tools/checks/findings.mjs', RUN]);
 
 writeFileSync(join(ROOT, RUN, 'codes.txt'), `${codes.map((c) => `${c.name} ${c.code}`).join('\n')}\n`);
 const report = execute(process.execPath, ['tools/report.mjs', RUN]);

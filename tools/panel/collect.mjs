@@ -31,6 +31,11 @@ for (const run of runs) {
   }
 }
 
+const findings =
+  lastReport !== null && existsSync(join(ROOT, lastReport.run, 'findings.json'))
+    ? JSON.parse(readFileSync(join(ROOT, lastReport.run, 'findings.json'), 'utf8'))
+    : [];
+
 const stamps = existsSync('.gate/stamps') ? readdirSync('.gate/stamps') : [];
 const waivers = existsSync('tools/waivers.json') ? JSON.parse(readFileSync('tools/waivers.json', 'utf8')) : [];
 
@@ -55,6 +60,7 @@ const snapshot = {
     changed: changed.slice(0, 40),
   },
   gate: lastReport,
+  findings,
   stamps: stamps.length,
   waivers: waivers.length,
   trend,
