@@ -15,7 +15,9 @@
 - 批阅流程：`review.mjs` 支持 `--tag`；面板新增「批阅台」，参数可写并生成 PowerShell／CMD 脚本（复制或下载，不执行）；说明见 `docs/runbooks/02-提交审核流程.md`。
 - 第三批起步：确定性原语已落地——`Random`（按流名派生，与调用次数无关）、`worldHash`（实体升序 + 字段位级哈希）、`Recorder` 与录制文件序列化。测试 8 个文件 38 例，其中「同输入重跑逐 tick 哈希一致」「改一个输入即改最终哈希」已是可执行的回归。
 - 第三批续：`FixedClock`（固定步长、单帧上限、暂停/变速/单步）已接进应用主循环；`replay()` + `tools/replay.mjs` 打通无头回放（`--self-test`、`--write`、`--expect`）。回放自测输出 `final 5a66a27c / 重演一致 PASS`，写录制后重放同哈希。用法见 `docs/runbooks/03-回放与偏离定位.md`。
-- 下一步：真实 `IInput` 采样接入主循环、HMR 系统热替换与熔断、系统探针页、3000 实体基准。
+- 第三批续：真实输入已接入主循环——`createBrowserInput` 每 tick 采样（键排序、指针换算到世界坐标），`Recorder` 同步录制；页面 HUD 显示 `tick · entities · keys · rec · hash`，`window.__itb` 可导出录制与哈希。实测：指针移到 (102.4, 66.8)，玩家实体移动到 (101.7, 66.4) 并停住，`rec 570` 与 tick 同步。
+- 单系统崩溃隔离：`Scheduler` 支持连续失败阈值（默认 3）熔断、`disabledSystems` 与 `onSystemError` 回调，其余系统照跑；集成测试覆盖 60Hz 与 30Hz 帧率下 tick 序列一致、录制重演哈希一致。
+- 下一步：系统探针页 `?probe=<system>`、HMR 系统热替换与诊断 dump、3000 实体基准。
 
 ## 第三批剩余
 

@@ -8,3 +8,4 @@ export { EventBus } from './events.js';
 export type { EventPayload, EventRecord } from './events.js';
 export { PHASES, Scheduler } from './scheduler.js';
 export type { Phase, SystemContext, SystemDef } from './scheduler.js';
+export type { SchedulerOptions, SystemFailure } from './scheduler-types.js';

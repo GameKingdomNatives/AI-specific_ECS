@@ -2,6 +2,7 @@ import type { ComponentDef } from './types.js';
 import type { World } from './world.js';
 import type { CommandBuffer } from './commands.js';
 import type { EventBus } from './events.js';
+import type { SchedulerOptions } from './scheduler-types.js';
 
 export const PHASES = ['input', 'ai', 'movement', 'collision', 'damage', 'cleanup', 'renderSync'] as const;
 
@@ -32,6 +33,24 @@ export class Scheduler {
   private readonly systems = new Map<string, SystemDef>();
   private ordered: SystemDef[] = [];
   private ready = false;
+  private readonly failures = new Map<string, number>();
+  private readonly disabled = new Set<string>();
+  private readonly maxFailures: number;
+  private readonly onError: SchedulerOptions['onSystemError'];
+
+  constructor(options: SchedulerOptions = {}) {
+    this.maxFailures = options.maxConsecutiveFailures ?? 3;
+    this.onError = options.onSystemError;
+  }
+
+  /** 已熔断的系统名：隔离发生在系统边界，其余系统照常运行。 */
+  get disabledSystems(): readonly string[] {
+    return [...this.disabled];
+  }
+
+  failureCount(systemName: string): number {
+    return this.failures.get(systemName) ?? 0;
+  }
 
   add(system: SystemDef): this {
     if (this.systems.has(system.name)) {
@@ -61,13 +80,27 @@ export class Scheduler {
     const ctx: SystemContext = { world, commands, bus, tick };
     for (const phase of PHASES) {
       for (const system of this.ordered) {
-        if (system.phase !== phase) {
+        if (system.phase !== phase || this.disabled.has(system.name)) {
           continue;
         }
-        system.update(ctx);
+        try {
+          system.update(ctx);
+          this.failures.set(system.name, 0);
+        } catch (error) {
+          this.registerFailure(system, error, tick);
+        }
       }
       commands.flush(world);
       bus.flushDeferred();
+    }
+  }
+
+  private registerFailure(system: SystemDef, error: unknown, tick: number): void {
+    const count = (this.failures.get(system.name) ?? 0) + 1;
+    this.failures.set(system.name, count);
+    this.onError?.(system.name, error, tick);
+    if (count >= this.maxFailures) {
+      this.disabled.add(system.name);
     }
   }
 

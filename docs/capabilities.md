@@ -22,7 +22,8 @@
 | 固定步长时钟 | `FixedClock`（上限防死亡螺旋、暂停/变速/单步） | core | 已具备 |
 | 回放执行器 | `replay(recording, hooks)` / `firstDivergence` | determinism | 已具备 |
 | 无头回放 CLI | `node tools/replay.mjs`（自测/写录制/对比） | tools | 已具备 |
-| 输入快照接入主循环 | — | app | 待第三批 |
+| 输入快照接入主循环 | `createBrowserInput`（app）＋ 每 tick 采样/录制 | app | 已具备 |
+| 单系统崩溃隔离 | `SchedulerOptions.maxConsecutiveFailures` / `disabledSystems` / `onSystemError` | core | 已具备 |
 | HMR 热替换与熔断 | — | hotreload | 待第三批 |
 | 数据热加载 | — | data | 待第三批 |
 | 确定性回放 | `src/determinism` | determinism | 待第三批 |
