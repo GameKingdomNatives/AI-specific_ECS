@@ -6,3 +6,4 @@ artifacts/
 .gate/
 *.log
 .DS_Store
+.dsh-code-index/
