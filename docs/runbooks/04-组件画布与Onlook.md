@@ -217,18 +217,30 @@ Installing Supabase CLI as a global module is not supported.
 
 方式 1（推荐，官方二进制，版本精确）：
 
+> 用**单行**命令，别用行尾反引号 `` ` `` 续行——从聊天里复制时反引号常丢失，
+> 会让 `-OutFile` 变成独立命令、文件根本没下载，随后 `tar` 报
+> `Unrecognized archive format`。
+
+下载并校验（一行）：
+
 ```powershell
-$dir = "$env:USERPROFILE\tools\supabase"
-New-Item -ItemType Directory -Force $dir | Out-Null
-$zip = "$dir\supabase.tar.gz"
-Invoke-WebRequest -Uri "https://github.com/supabase/cli/releases/download/v2.53.6/supabase_windows_amd64.tar.gz" -OutFile $zip
-# 校验（期望 2D4C36C2A80748EA3BBEFAA4A31976FB02169885E9C34068E5FA485789CBABBB）
-(Get-FileHash $zip -Algorithm SHA256).Hash
-tar -xzf $zip -C $dir
-# 让新版本优先：把 $dir 加到用户 PATH（或把 supabase.exe 放进已在 PATH 的目录）
-[Environment]::SetEnvironmentVariable("Path", "$env:Path;$dir", "User")
-# 重开终端后
-supabase --version               # 期望 2.53.6
+$dir = "$env:USERPROFILE\tools\supabase"; New-Item -ItemType Directory -Force $dir | Out-Null; $zip = "$dir\supabase.tar.gz"; Invoke-WebRequest -Uri "https://github.com/supabase/cli/releases/download/v2.53.6/supabase_windows_amd64.tar.gz" -OutFile $zip; (Get-Item $zip).Length; (Get-FileHash $zip -Algorithm SHA256).Hash
+```
+
+期望：长度 `15682433`，哈希 `2D4C36C2A80748EA3BBEFAA4A31976FB02169885E9C34068E5FA485789CBABBB`。
+若长度不是这个数，说明没下全（或下载的是错误页面），删掉重下。
+
+解压并验证（一行）：
+
+```powershell
+tar -xzf "$env:USERPROFILE\tools\supabase\supabase.tar.gz" -C "$env:USERPROFILE\tools\supabase"; Get-ChildItem "$env:USERPROFILE\tools\supabase"; & "$env:USERPROFILE\tools\supabase\supabase.exe" --version
+```
+
+期望版本 `2.53.6`。再把该目录加入用户 PATH（或直接用绝对路径调用）：
+
+```powershell
+[Environment]::SetEnvironmentVariable("Path", "$env:Path;$env:USERPROFILE\tools\supabase", "User")
+```
 ```
 
 若之前全局装的 2.121.0 仍在 PATH 里抢先，重开终端后调整 PATH 顺序，或删掉
