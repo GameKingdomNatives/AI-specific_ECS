@@ -125,45 +125,45 @@ failed to read file: open apps/backend/supabase/functions/stripe-webhook/index.t
 no such file or directory
 ```
 
-按顺序排查（前两条最可能）：
+**根因（2026-10-21 核对上游仓库 HEAD）**：
+
+- `.gitmodules` 只有 `apps/admin`（私有仓库，`onlook-dev/admin.git`，与 backend 无关）；
+- `apps/backend` 不是子模块，但仓库里**没有跟踪任何 `functions/` 目录**；
+- 而 `apps/backend/supabase/config.toml` 声明了 `[functions.stripe-webhook]`。
+
+也就是说：**配置引用了仓库里不存在的函数源码**，这是上游自身的不一致，不是你的克隆方式问题。`git submodule update` 帮不上忙。
+
+修法（任选其一，推荐 A）：
 
 ```powershell
 cd E:\Onlook\onlook
 
-# 1) 仓库有 .gitmodules：普通 clone 不会拉子模块
-git submodule status
-# 行首是 '-' = 未初始化
+# A. 在 config.toml 里把该函数禁用（Stripe webhook 与可视化编辑无关）
+#    打开 apps/backend/supabase/config.toml，把
+#      [functions.stripe-webhook]
+#      verify_jwt = false
+#    改成
+#      [functions.stripe-webhook]
+#      enabled = false
+#      verify_jwt = false
+#    或直接删掉这两行。
+bun backend:start
 
-# 2) 直接 --init --recursive 可能被私有子模块挡住（实测：apps/admin → onlook-dev/admin.git 报 Repository not found，
-#    整条命令中止，后面的子模块根本没轮到）。跳过它、继续初始化其余：
-git -c submodule.apps/admin.update=none submodule update --init --recursive
-
-# 如需持久忽略 admin（企业版后台，编辑器不需要）：
-# git config submodule.apps/admin.update none
-
-# 3) 再确认子模块与目标文件
-git submodule status
-Test-Path apps\backend\supabase\functions\stripe-webhook\index.ts
-git ls-files apps/backend/supabase/functions | Select-String stripe-webhook
-```
-
-文件补上后重新 `bun backend:start`（若子模块带来了新 workspace，先 `bun install --ignore-scripts` 一次）。
-
-如果**仓库本身没有跟踪这个文件**（`git ls-files` 无输出），二选一：
-
-```powershell
-# A. 不启用 edge-runtime（CLI 2.121 的 --exclude 列表含 edge-runtime，已核对 help）
-cd apps\backend
-supabase start -x edge-runtime
-cd ..\..
-
-# B. 放一个桩函数（Stripe webhook 与可视化编辑无关）
+# B. 仍然保留配置时，放一个最小桩函数（路径必须一字不差）
 New-Item -ItemType Directory -Force apps\backend\supabase\functions\stripe-webhook | Out-Null
-Set-Content apps\backend\supabase\functions\stripe-webhook\index.ts "Deno.serve(() => new Response('stub'))"
+@'
+Deno.serve(() => new Response(JSON.stringify({ ok: true }), {
+  headers: { 'content-type': 'application/json' },
+}))
+'@ | Set-Content -Encoding UTF8 apps\backend\supabase\functions\stripe-webhook\index.ts
 bun backend:start
 ```
 
-仍失败时用 `supabase start --debug` 拿完整上下文。
+补充：
+
+- 官方 README（`apps/backend/README.md`）的本地顺序是：Docker 就绪 → `bun install` → 在 `apps/backend` 里 `bun run start` → `bun run reset`。
+- `supabase start -x edge-runtime` 只在容器层面排除，**不解决配置里声明的函数打包**，所以它不是可靠退路（已从首选降为备选）。
+- 仍失败时跑 `supabase start --debug`；若报 Docker 连接失败，先确认 Docker Desktop 已启动（`docker info` 能返回 ServerVersion）。
 
 #### 若 `bun install` 卡在 `free-email-domains` postinstall
 

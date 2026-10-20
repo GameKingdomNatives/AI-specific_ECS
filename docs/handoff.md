@@ -57,7 +57,7 @@
 - Onlook 依赖链已查清：仓库 `packageManager: bun@1.3.1`（带 `bun.lock`/`bunfig.toml`），官方本地步骤来自 `docs/content/docs/developers/running-locally.mdx`（`bun install` → `bun backend:start` → `bun run setup:env` → `bun db:push` → `bun db:seed` → `bun dev`）。Docker compose 路线也仍需 Bun。
 - Bun 已在本机装好：`npm install -g bun --ignore-scripts=false` → 1.4.3，`where.exe bun` 命中 `%APPDATA%\npm\bun.cmd`；bun.sh 在沙箱内超时，故走 npm 方式。步骤与排错写入 runbook 04。
 - Onlook 依赖链继续补齐：`supabase` CLI 已装（npm 全局 2.121.0）；`supabase start` 还需要 Docker Desktop——本机 `docker` 未安装，runbook 04 给了两条路（装 Docker / 用云端 Supabase 跳过 backend:start）。
-- `supabase start` 新报错：`stripe-webhook/index.ts` 缺失。用户已确认是子模块未初始化；但 `git submodule update --init --recursive` 被 `apps/admin`（`onlook-dev/admin.git`，Repository not found）挡住并中止。修法已写入 runbook 04：`git -c submodule.apps/admin.update=none submodule update --init --recursive`，跳过私有 admin、初始化其余子模块。
+- `stripe-webhook` 缺失已定案（核对上游 HEAD）：`.gitmodules` 只有 `apps/admin`（私有仓库，与 backend 无关）；`apps/backend` 不是子模块，且仓库未跟踪任何 `functions/`；但 `config.toml` 声明了 `[functions.stripe-webhook]` —— 上游配置与源码不一致。修法：config 里加 `enabled = false`（推荐）或放最小桩函数；`-x edge-runtime` 不解决打包问题（仅排除容器）。
 - 下一步：把 UI 组件再拆细（面板/列表/Tooltip），每个都配 story；Onlook 接上后按同一门禁收改动。
 
 ## 当前缺口（2026-10-21 核对）
