@@ -46,6 +46,28 @@ where.exe bun          # 应命中 %APPDATA%\npm\bun.cmd
 - 官方脚本（bun.sh 可达时）：`powershell -c "irm bun.sh/install.ps1 | iex"`；本次沙箱访问 bun.sh 超时，所以走 npm 方式。
 - Onlook 固定 `bun@1.3.1`，1.4.x 实测可运行；若 `bun install --frozen-lockfile` 因版本报错，再装指定版本。
 
+### 2.1.5 稳定版回退：桌面安装包（推荐先试这条）
+
+源码安装（Bun → Supabase CLI → Docker → 迁移）这条链在 Windows + 国内网络下反复失败，若目标只是「用可视化编辑器改 React 组件」，直接用**官方发布的桌面安装包**，不需要 Bun/Docker/Supabase：
+
+- 最新稳定标签：**`v0.2.32`**（2025-07-17，GitHub Releases 里没有更新的稳定版）
+- Windows 安装包：`Onlook-setup.exe`（175.9 MB）
+- 下载：<https://github.com/onlook-dev/onlook/releases/download/v0.2.32/Onlook-setup.exe>
+- SHA-256：`88CE6B5EC85FB971C65B2403F984CF20D1647C3A6F3501C31B125FD9D1753656`
+
+```powershell
+$p = "$env:USERPROFILE\Downloads\Onlook-setup.exe"
+Invoke-WebRequest -Uri "https://github.com/onlook-dev/onlook/releases/download/v0.2.32/Onlook-setup.exe" -OutFile $p
+(Get-FileHash $p -Algorithm SHA256).Hash   # 应等于上面的值
+Start-Process $p
+```
+
+注意：
+
+- npm 上没有这个应用（`@onlook/web`、`@onlook/backend` 均 404；`onlook@0.0.8` 是无关包），**npm 不是稳定安装源**。
+- 桌面版是 2025-07 的产物；仓库 HEAD 已经是 Web 版产品，两者功能不同，桌面版是否支持打开本地项目需实测。
+- 若桌面版不满足需求，再回到 2.2 的源码路线；源码路线建议固定在某个 release tag，而不是 `main`。
+
 ### 2.2 Onlook 官方本地步骤
 
 来源：仓库 `docs/content/docs/developers/running-locally.mdx`（2026-10-21 克隆核对）。前置：Bun、Docker Desktop、Node ≥ 20.16。
@@ -108,8 +130,7 @@ docker info --format '{{.ServerVersion}}'
    或按仓库 `apps/web/client/.env.example`、`apps/backend/.env.example`、`packages/db/.env.example` 手工填。
 3. 继续：
 
-```powershell
-bun db:push      # 把 schema 推到云端数据库
+```powershellbun db:push      # 把 schema 推到云端数据库
 bun db:seed      # 可选：测试数据
 bun dev
 ```

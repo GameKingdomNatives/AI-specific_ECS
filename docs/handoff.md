@@ -57,7 +57,8 @@
 - Onlook 依赖链已查清：仓库 `packageManager: bun@1.3.1`（带 `bun.lock`/`bunfig.toml`），官方本地步骤来自 `docs/content/docs/developers/running-locally.mdx`（`bun install` → `bun backend:start` → `bun run setup:env` → `bun db:push` → `bun db:seed` → `bun dev`）。Docker compose 路线也仍需 Bun。
 - Bun 已在本机装好：`npm install -g bun --ignore-scripts=false` → 1.4.3，`where.exe bun` 命中 `%APPDATA%\npm\bun.cmd`；bun.sh 在沙箱内超时，故走 npm 方式。步骤与排错写入 runbook 04。
 - Onlook 依赖链继续补齐：`supabase` CLI 已装（npm 全局 2.121.0）；`supabase start` 还需要 Docker Desktop——本机 `docker` 未安装，runbook 04 给了两条路（装 Docker / 用云端 Supabase 跳过 backend:start）。
-- `stripe-webhook` 已按修法 A 处理（启动日志出现 `Skipped serving Function: stripe-webhook`，继续跑迁移）。新的阻塞是迁移 `0008_preview-img-storage.sql` 直接删 `storage.objects`，被新版 Storage 拒绝（SQLSTATE 42501）：仓库 `bun.lock` 钉 supabase **2.53.6**，本机全局是 2.121.0。修法：装回 2.53.6（推荐）或把 0008 的两条 delete 改成本地幂等 upsert。详见 runbook 04。
+- `stripe-webhook` 已绕过（日志 `Skipped serving Function`）；随后迁移 `0008_preview-img-storage.sql` 直删 `storage.objects` 被新版 Storage 拒绝（SQLSTATE 42501）。仓库 `bun.lock` 钉 supabase **2.53.6**，本机全局 2.121.0；且 2.53.6 拒绝全局安装、npm 局部安装的 postinstall 下载二进制时 ECONNRESET。修法见 runbook 04（手动下二进制 2.53.6 / 迁移改幂等 upsert）。
+- Onlook 策略回退（2026-10-21）：源码安装链（Bun → Supabase CLI → Docker → 迁移 0008）在 Windows 上连续失败。事实核查：Onlook 无可用的 npm 包（@onlook/web、@onlook/backend 均 404），稳定产物只有 GitHub Releases 的桌面安装包（最新 v0.2.32，Onlook-setup.exe，sha256 88CE6B5E…）。建议把 Onlook 从关键路径降级为可选工具，先用桌面安装包；Storybook 已覆盖组件可视化。
 - 下一步：把 UI 组件再拆细（面板/列表/Tooltip），每个都配 story；Onlook 接上后按同一门禁收改动。
 
 ## 当前缺口（2026-10-21 核对）
@@ -71,7 +72,7 @@
 
 ## 待人裁定
 
-- Onlook 路线：装 Docker Desktop（本地 Supabase）还是用云端 Supabase 跳过 `backend:start`。
+- Onlook 路线三选一：① 桌面安装包 v0.2.32（推荐先试，不依赖 Bun/Docker）；② 继续源码路线并固定 release tag + 手动 supabase 2.53.6 二进制；③ 暂停 Onlook，仅用 Storybook。
 - 是否恢复 pnpm（若你会话在沙箱外跑），见 ADR-001；不影响源码结构。
 - Storybook 版本已定（10.6.3），Onlook 启动方式待你的终端验证后固化为 runbook。
 
