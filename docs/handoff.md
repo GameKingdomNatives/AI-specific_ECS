@@ -46,7 +46,7 @@
 - 违规演练：`tools/drill.mjs` 制造「core→impl 越界 import」「312 行超预算文件」两种现场，确认门禁都会红；清理在 finally。
 - **门禁自身的洞（已修）**：depcruise 用 `--output-type json` 时即使有违规也退出 0，且无参数运行只打印 Usage——之前 `depcruise PASS` 是空转。改为 `tools/checks/depcruise.mjs` 解析 `summary.violations`，解析失败即失败；现在 237 模块 0 违规是真检查出来的。
 - UI 层骨架：`apps/game/src/ui/{snapshot.ts,App.tsx,mount.tsx}` + `controls.ts`；React 19 覆盖层替换原生 DOM 按钮，`UiSnapshot` 10Hz 只读推送，意图走 `UiIntents`。实测点击「存档」→ `已存档 @ tick 113 · 隔离 0`，快照行 `tick 390 · 实体 65 · 刚体 65`。
-- 依赖现状（ADR-008）：React/ReactDOM 暂装仓库根（npm 工作区识别报 `no workspace folder present`，清理 pnpm 遗留 junction 后仍复现）；Tailwind、Storybook、Onlook 未接。
+- 依赖归位：React/ReactDOM/Tailwind/Storybook 的声明在 `apps/game/package.json`，`npm install` 在根可复现（清理 pnpm 遗留 junction 后，changed 150 packages, exit 0）；物理位置由 npm 正常提升到根 `node_modules`。
 - 门禁：新增 `apps/game/src/ui/**` 不得依赖引擎/控制器的 depcruise 规则；eslint 忽略 `dist-ts/**`。
 - Tailwind 已接入（4.3.3，`@tailwindcss/vite`）：`apps/game/vite.config.ts` 注册插件，`src/ui/app.css` 引 `@import "tailwindcss"`，按钮与快照行改用工具类。实测计算样式 `border-radius: 6px`、`bg: oklch(0.216 …)`、`cursor: pointer`、等宽字体——不是「类名写了但没生效」。
 - 注意：改 `vite.config.ts` 后**必须重启 dev server**（旧进程不会重载配置），否则页面仍是旧样式。
@@ -57,20 +57,23 @@
 - Onlook 依赖链已查清：仓库 `packageManager: bun@1.3.1`（带 `bun.lock`/`bunfig.toml`），官方本地步骤来自 `docs/content/docs/developers/running-locally.mdx`（`bun install` → `bun backend:start` → `bun run setup:env` → `bun db:push` → `bun db:seed` → `bun dev`）。Docker compose 路线也仍需 Bun。
 - Bun 已在本机装好：`npm install -g bun --ignore-scripts=false` → 1.4.3，`where.exe bun` 命中 `%APPDATA%\npm\bun.cmd`；bun.sh 在沙箱内超时，故走 npm 方式。步骤与排错写入 runbook 04。
 - Onlook 依赖链继续补齐：`supabase` CLI 已装（npm 全局 2.121.0）；`supabase start` 还需要 Docker Desktop——本机 `docker` 未安装，runbook 04 给了两条路（装 Docker / 用云端 Supabase 跳过 backend:start）。
+- `supabase start` 新报错：`stripe-webhook/index.ts` 缺失。仓库带 `.gitmodules`，普通 clone 不初始化子模块是最可能原因；runbook 04 给了 `git submodule update --init --recursive`、`supabase start -x edge-runtime`、桩函数三条修法（本机 GitHub 当时不可达，未能在沙箱内验证其中哪条命中）。
 - 下一步：把 UI 组件再拆细（面板/列表/Tooltip），每个都配 story；Onlook 接上后按同一门禁收改动。
 
-## 第三批剩余
+## 当前缺口（2026-10-21 核对）
 
-- 输入快照接入 60Hz 时钟（`IInput` 实现 + 每 tick 采样，录制器接入主循环）。
-- 无头回放运行器：`node tools/replay.mjs <录制文件>`，逐 tick 比对哈希并输出首个偏离点。
-- 热重载：系统模块 HMR 边界、`dispose/init` 契约、单系统熔断、诊断 dump。
-- 系统探针页：`?probe=<system>`，只跑该系统 + 最小世界。
-- 性能基准：3000 实体场景与逻辑帧 ≤ 4ms 的读数进入 quality-log。
+- `IAudio`：只有静音占位，无解码/播放后端。
+- `IModHost`：只有形状，无加载器（按规格本轮不实现）。
+- Onlook：`bun`/`supabase` CLI 已装，Docker Desktop 未装；`supabase start` 报 `stripe-webhook/index.ts` 缺失（疑子模块未初始化），修法与替代见 runbook 04。
+- 渲染：无批处理/剔除/图集，渲染侧性能未度量。
+- 门禁：无覆盖率阈值；违规演练只覆盖 import 越界与文件预算两类。
+- UI：Storybook/Tailwind 已接；面板/列表/Tooltip 等组件尚未拆出。
 
 ## 待人裁定
 
+- Onlook 路线：装 Docker Desktop（本地 Supabase）还是用云端 Supabase 跳过 `backend:start`。
 - 是否恢复 pnpm（若你会话在沙箱外跑），见 ADR-001；不影响源码结构。
-- Onlook 自托管的具体启动方式与 Storybook 版本，接入时再定（ADR-002）。
+- Storybook 版本已定（10.6.3），Onlook 启动方式待你的终端验证后固化为 runbook。
 
 ## 已定决策（2026-10-20）
 

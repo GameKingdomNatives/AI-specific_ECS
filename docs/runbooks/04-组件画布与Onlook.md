@@ -116,6 +116,48 @@ bun dev
 
 注意：云端模式下 Storage/Auth 的 URL 要指向云端项目，不要残留 `http://127.0.0.1:54321` 之类的本地地址。
 
+#### 若 `supabase start` 报 `stripe-webhook/index.ts` 不存在
+
+现象：
+
+```
+failed to read file: open apps/backend/supabase/functions/stripe-webhook/index.ts:
+no such file or directory
+```
+
+按顺序排查（前两条最可能）：
+
+```powershell
+cd E:\Onlook\onlook
+
+# 1) 仓库有 .gitmodules：普通 clone 不会拉子模块
+git submodule status
+# 行首是 '-' = 未初始化
+git submodule update --init --recursive
+
+# 2) 确认文件是否真的在树里
+Test-Path apps\backend\supabase\functions\stripe-webhook\index.ts
+git ls-files apps/backend/supabase/functions | Select-String stripe-webhook
+```
+
+文件补上后重新 `bun backend:start`。
+
+如果**仓库本身没有跟踪这个文件**（`git ls-files` 无输出），二选一：
+
+```powershell
+# A. 不启用 edge-runtime（CLI 2.121 的 --exclude 列表含 edge-runtime，已核对 help）
+cd apps\backend
+supabase start -x edge-runtime
+cd ..\..
+
+# B. 放一个桩函数（Stripe webhook 与可视化编辑无关）
+New-Item -ItemType Directory -Force apps\backend\supabase\functions\stripe-webhook | Out-Null
+Set-Content apps\backend\supabase\functions\stripe-webhook\index.ts "Deno.serve(() => new Response('stub'))"
+bun backend:start
+```
+
+仍失败时用 `supabase start --debug` 拿完整上下文。
+
 #### 若 `bun install` 卡在 `free-email-domains` postinstall
 
 现象：
