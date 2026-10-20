@@ -66,7 +66,55 @@ bun db:seed              # 测试用户与项目
 bun dev                  # http://localhost:3000
 ```
 
-命令含义（取自仓库 `package.json`）：`backend:start = bun --filter @onlook/backend start`、`setup:env = cd packages/scripts && bun run start`。
+命令含义（取自仓库 `package.json`）：`backend:start = bun --filter @onlook/backend start`（内部是 `supabase start`）、`setup:env = cd packages/scripts && bun run start`。
+
+#### 前置二：Supabase CLI（`supabase` 不在 Bun 里）
+
+```powershell
+cd $env:USERPROFILE
+npm install -g supabase --ignore-scripts=false
+supabase --version        # 本机实测 2.121.0
+where.exe supabase        # %APPDATA%\npm\supabase.cmd
+```
+
+#### 前置三：Docker Desktop（`supabase start` 必须有）
+
+`supabase start` 会在 Docker 里拉起 Postgres/Auth/Storage/Studio 等容器。没有 Docker 时的报错就是 `bun: command not found: supabase` 之后的下一条。
+
+```powershell
+winget install -e --id Docker.DockerDesktop
+# 或手动下载：https://www.docker.com/products/docker-desktop/
+```
+
+安装后：重开终端 → 启动 Docker Desktop → 等到 Engine running → 验证：
+
+```powershell
+docker --version
+docker info --format '{{.ServerVersion}}'
+```
+
+首次 `supabase start` 要拉约 2–3 GB 镜像，耗时取决于网络；仓库文档建议 8 GB+ 内存。
+
+#### 没有 Docker 的替代：用云端 Supabase
+
+`supabase start` 只是本地后端。若不想装 Docker，可以跳过 `bun backend:start`：
+
+1. 在 <https://supabase.com> 新建项目（免费档即可），拿到：
+   - Project URL
+   - `anon` key
+   - `service_role` key
+   - 数据库连接串（Project Settings → Database → Connection string）
+2. 跑 `bun run setup:env`，选择「使用已有 Supabase」/按提示填入上面的值；
+   或按仓库 `apps/web/client/.env.example`、`apps/backend/.env.example`、`packages/db/.env.example` 手工填。
+3. 继续：
+
+```powershell
+bun db:push      # 把 schema 推到云端数据库
+bun db:seed      # 可选：测试数据
+bun dev
+```
+
+注意：云端模式下 Storage/Auth 的 URL 要指向云端项目，不要残留 `http://127.0.0.1:54321` 之类的本地地址。
 
 #### 若 `bun install` 卡在 `free-email-domains` postinstall
 
@@ -118,6 +166,9 @@ bun install          # 或给代理：$env:HTTPS_PROXY="http://127.0.0.1:端口"
 | 现象 | 处理 |
 |---|---|
 | `bun` 无法识别 | `npm install -g bun --ignore-scripts=false`（本机实测 1.4.3），重开终端后 `where.exe bun` 确认 |
+| `bun: command not found: supabase` | `npm install -g supabase --ignore-scripts=false`（实测 2.121.0），重开终端 |
+| `docker` 无法识别 / `supabase start` 起不来 | 装 Docker Desktop 并先启动它；`docker info` 能返回 ServerVersion 再跑 `supabase start` |
+| 不想装 Docker | 用云端 Supabase（见 2.2「没有 Docker 的替代」），跳过 `bun backend:start` |
 | `bun.sh` 安装脚本超时 | 用上面的 npm 方式；两者装的是同一个二进制 |
 | `bun install` 因锁文件版本报错 | 仓库固定 `bun@1.3.1`，装指定版本或去掉 `--frozen-lockfile` |
 | `setup:env` 交互脚本失败 | 按仓库 docs 的 appendix 手工填 `.env`（四个 `.env.example` 分别在 `apps/web/client`、`apps/backend`、`packages/db`、`packages/stripe`） |
