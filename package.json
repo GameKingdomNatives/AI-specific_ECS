@@ -21,6 +21,7 @@
     "gen:assets": "node tools/gen-assets.mjs",
     "storybook": "cd apps/game && storybook dev -p 6006",
     "storybook:build": "cd apps/game && storybook build -o ../../artifacts/storybook-static",
+    "storybook:serve": "node tools/serve-static.mjs artifacts/storybook-static 7007",
     "panel": "node tools/panel/collect.mjs && node tools/panel/open.mjs",
     "review": "node tools/review.mjs",
     "typecheck": "node node_modules/typescript/bin/tsc -b",

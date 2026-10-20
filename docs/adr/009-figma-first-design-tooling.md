@@ -20,8 +20,9 @@ ADR-002 曾把 Onlook 自托管定为 UI 可视化编辑方案。实际推进中
   2. **手工/半自动转换**：设计给标注与切图，开发按现有 `UiSnapshot` + `UiIntents` 契约实现，Storybook 作为验收面；
   3. **Figma 插件导出**（Locofy / Anima 等，商业）作为补充，不进入关键路径。
 - **Storybook 是设计-开发的共同验收面**：设计师看组件状态，开发看 props 契约；`npm run storybook` 无需 Docker。
-- **Onlook 降为可选**：仅在「需要实时在真实组件上拖拽」时试用桌面安装包（v0.2.32）；不进里程碑，不阻塞引擎。
-- 若未来重启 Onlook：固定 release tag（禁止 main）、固定 supabase 2.53.6 二进制（本机已验证 `%USERPROFILE%\tools\supabase\supabase.exe`，sha256 `2D4C36C2…`），并接受 0008 迁移的本地补丁。
+- **Onlook 排除（2026-10-21 最终决定）**：自托管与桌面版都不作为交付依赖；原因与证据见 `docs/lessons/2026-10-ui-tooling.md`。若未来重新评估，必须先验证「能打开本项目本地项目」且上游安装链可复现。
+- 设计交付：Storybook 静态包（`npm run storybook:build` → `artifacts/storybook-static`，`npm run storybook:serve` 起静态服务），设计方浏览器直接打开。
+- 许可证：Storybook / React / Tailwind / Vite 均为 **MIT**，可免费商用（本地已安装版本已核对）。
 
 ## 设计师上手路径（目标：零工程环境）
 

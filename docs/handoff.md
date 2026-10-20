@@ -58,9 +58,10 @@
 - Bun 已在本机装好：`npm install -g bun --ignore-scripts=false` → 1.4.3，`where.exe bun` 命中 `%APPDATA%\npm\bun.cmd`；bun.sh 在沙箱内超时，故走 npm 方式。步骤与排错写入 runbook 04。
 - Onlook 依赖链继续补齐：`supabase` CLI 已装（npm 全局 2.121.0）；`supabase start` 还需要 Docker Desktop——本机 `docker` 未安装，runbook 04 给了两条路（装 Docker / 用云端 Supabase 跳过 backend:start）。
 - `stripe-webhook` 已绕过（日志 `Skipped serving Function`）；随后迁移 `0008_preview-img-storage.sql` 直删 `storage.objects` 被新版 Storage 拒绝（SQLSTATE 42501）。仓库 `bun.lock` 钉 supabase **2.53.6**，本机全局 2.121.0；且 2.53.6 拒绝全局安装、npm 局部安装的 postinstall 下载二进制时 ECONNRESET。修法见 runbook 04（手动下二进制 2.53.6 / 迁移改幂等 upsert）。
-- Onlook 策略回退（2026-10-21，ADR-009）：**设计侧改为 Figma 优先**，Onlook 降为可选。理由：使用者是设计师、习惯 Figma，不应为改几个按钮去装 Bun/Docker/Supabase。设计→代码走 Figma Dev Mode（含 Dev Mode MCP）或手工转换，Storybook 作为设计-开发共同验收面。Onlook 桌面版 v0.2.32 仅作可选试用。
-- supabase 2.53.6 二进制已就位并校验：`%USERPROFILE%\tools\supabase\supabase.exe`（size 15682433，sha256 2D4C36C2…，version 2.53.6）。若重启 Onlook 源码路线可直接用绝对路径调用。
-- 下一步：把 UI 组件再拆细（面板/列表/Tooltip），每个都配 story；Onlook 接上后按同一门禁收改动。
+- Onlook 策略回退（2026-10-21，ADR-009）：**设计侧改为 Figma 优先，Onlook 已排除**。理由：使用者是设计师、习惯 Figma，不应为改几个按钮去装 Bun/Docker/Supabase；自托管链本次实测不可复现，桌面版能力未验证。
+- 最终 UI 方案：`docs/ui-final-plan.md`；独立落地方案：`docs/runbooks/06-UI工程落地.md`；教训：`docs/lessons/2026-10-ui-tooling.md`；UI 模块说明：`apps/game/src/ui/README.md`。
+- 设计交付：Storybook 静态包 `npm run storybook:build`（6.56 MB，index.html 已验证）+ `npm run storybook:serve`（零依赖静态服务器，`tools/serve-static.mjs`）。许可证：Storybook/React/Tailwind/Vite 均 MIT，可免费商用。
+- 下一步：M2 拆组件（ControlBar/StatusNote/StatRow）+ 补齐 hover/disabled/空状态故事；M3 Figma Dev Mode（需设计方 seat）。
 
 ## 当前缺口（2026-10-21 核对）
 

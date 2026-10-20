@@ -1,0 +1,42 @@
+# 经验教训 · 2026-10 UI 工具链（Onlook 排除）
+
+记录本次从「引入 Onlook 可视化编辑」到「Figma 优先 + Storybook」的 8 条教训，供后续选型复用。
+
+## 1. 不要把自己的工程环境成本转嫁给使用者
+
+Onlook 自托管要求 Bun + Supabase CLI + Docker + 后端迁移；使用者是设计师。即使技术上身，也是把成本转嫁给不承担它的人。**先问「谁用、他有什么」，再问「技术能否实现」。**
+
+## 2. 上游「配置与源码不一致」要在投入前验证
+
+`apps/backend/supabase/config.toml` 声明 `[functions.stripe-webhook]`，但仓库从未跟踪该函数源码；`apps/backend` 不是子模块，`apps/admin` 才是（且私有）。这类问题只有在克隆后读文件才能发现，不能只看 README。
+
+## 3. 版本必须钉死并记录来源
+
+- 仓库 `bun.lock` 钉 `supabase@2.53.6`，而机器上是 2.121.0 → 迁移 0008 直删 `storage.objects` 被新版 Storage 拒绝（SQLSTATE 42501）。
+- 教训：**CLI 版本 = 它拉起的容器镜像版本**；迁移能用与否取决于 CLI 版本，不取决于 SQL 本身。
+
+## 4. 全局安装不是万能钥匙
+
+supabase 旧版本 postinstall 明确拒绝全局安装；`npm i -g` 失败不代表包不可用。官方支持的路径是项目内安装或官方二进制。
+
+## 5. npm postinstall 的联网下载不可控
+
+`free-email-domains` 与 supabase 的 postinstall 都会联网下载；在受限网络下抛 `ECONNRESET`，且前者的回退分支兜不住 socket 超时。对策：**跳过可选脚本**（`--ignore-scripts`）或**用官方二进制**，并把校验（长度 + sha256）写进文档。
+
+## 6. 门禁必须解析结果，不能只看退出码
+
+depcruise 的 JSON 模式即使有违规也退出 0；无参数运行只打印 Usage。修复后才真正检查到 237 模块 0 违规。**「命令返回 0」≠「检查通过」**。
+
+## 7. 写回型工具必须走同一门禁
+
+Onlook 类工具的产物是源码改动，必须与人工改动同等对待（PR + gate）。否则会出现「工具绕过质量线」。
+
+## 8. 选型要留退让档，而不是二选一
+
+Storybook 与 Onlook 不是替代关系：前者是验收面，后者是写在验收面上的编辑器。先落地 Storybook 的收益确定、成本低；编辑器只在其上增量评估。**先做确定收益，再赌不确定能力。**
+
+## 结论
+
+- Onlook：**排除**（自托管与桌面版均不作为交付依赖）。
+- 设计主路径：Figma（含 Dev Mode）；开发验收面：Storybook；代码契约：`UiSnapshot` + `UiIntents`。
+- 相关记录：ADR-009、提案 003、`docs/ui-final-plan.md`、runbook 05/06。
