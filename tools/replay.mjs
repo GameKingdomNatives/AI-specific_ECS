@@ -11,6 +11,7 @@ import { Box, Bullet, Position, spawnBoxes } from '../packages/engine/dist/src/d
 import { createPhysicsPort, PhysicsWorld } from '../packages/engine/dist/src/impl/physics.js';
 import {
   deserialize,
+  firstEventDivergence,
   hashHex,
   replay,
   serialize,
@@ -30,6 +31,7 @@ import {
 function createScenario() {
   const world = new World();
   const bus = new EventBus();
+  bus.startRecording();
   const commands = new CommandBuffer();
   const entity = world.spawn();
   world.add(entity, Position, { x: 0, y: 0 });
@@ -46,6 +48,7 @@ function createScenario() {
           x: position.x + input.pointer.x,
           y: position.y + input.pointer.y,
         });
+        ctx.bus.emit('replay.moved', { x: input.pointer.x, y: input.pointer.y });
       }
     },
   };
@@ -59,6 +62,11 @@ function createScenario() {
         scheduler.run(world, bus, commands, tick);
       },
       hash: () => worldHash(world, [Position]),
+      events: () => bus.drainRecording().map((record) => ({
+        tick: record.tick,
+        type: record.type,
+        payload: record.payload,
+      })),
     },
   };
 }
@@ -77,7 +85,12 @@ function makeRecording(ticks) {
       pointer: { x: index % 4, y: (index * 2) % 3 },
     }),
   );
-  return { version: 1, seed: 7, ticks: items };
+  const events = items.map((input) => ({
+    tick: input.tick,
+    type: 'replay.moved',
+    payload: { x: input.pointer.x, y: input.pointer.y },
+  }));
+  return { version: 2, seed: 7, ticks: items, events };
 }
 
 function firstHexDivergence(actual, expected) {
@@ -116,6 +129,7 @@ function replayApp(file, expectedHash) {
   scheduler.build();
   spawnBoxes(world, spec.count, width, height, spec.minSize, spec.maxSize, spec.speed);
   const bus = new EventBus();
+  bus.startRecording();
   const commands = new CommandBuffer();
   const result = replay(recording, {
     step: (tick, snapshot) => {
@@ -123,12 +137,27 @@ function replayApp(file, expectedHash) {
       scheduler.run(world, bus, commands, tick);
     },
     hash: () => worldHashGroups(world, [[Position, Box], [Position, Bullet]]),
+    events: () => bus.drainRecording().map((record) => ({
+      tick: record.tick,
+      type: record.type,
+      payload: record.payload,
+    })),
   });
   const final = hashHex(result.finalHash);
   console.log(`ticks      ${result.ticks}`);
   console.log(`final      ${final}`);
   if (result.startHashMatches === false) {
     console.log('干净开局   不匹配（录制可能跨内容热加载或世界不同）');
+    return 1;
+  }
+  let eventsOk = true;
+  if (recording.events !== undefined) {
+    const mismatch = firstEventDivergence(result.events, recording.events);
+    eventsOk = mismatch === null;
+    console.log(`events     ${result.events.length}`);
+    console.log(eventsOk ? '事件对比   PASS' : `事件对比   FAIL（tick ${mismatch.tick}）`);
+  }
+  if (!eventsOk) {
     return 1;
   }
   if (expectedHash !== null) {
@@ -157,18 +186,28 @@ if (args.includes('--self-test')) {
   const recording = makeRecording(30);
   const runs = Array.from({ length: repeat }, () => runRecording(recording));
   const baseline = runs[0].hashes.map(hashHex);
+  const baselineEvents = runs[0].events;
   let diverged = null;
+  let eventDiverged = null;
   for (const run of runs.slice(1)) {
     diverged = firstHexDivergence(baseline, run.hashes.map(hashHex));
-    if (diverged !== null) {
+    eventDiverged = firstEventDivergence(run.events, baselineEvents);
+    if (diverged !== null || eventDiverged !== null) {
       break;
     }
   }
+  const expectedEvents = recording.events ?? [];
+  const expectedMismatch = firstEventDivergence(baselineEvents, expectedEvents);
   console.log(`ticks      ${runs[0].ticks}`);
   console.log(`runs       ${repeat}`);
   console.log(`final      ${hashHex(runs[0].finalHash)}`);
+  console.log(`events     ${baselineEvents.length}`);
   console.log(diverged === null ? `重复 ${repeat} 次一致   PASS` : `首个偏离   ${diverged + 1}`);
-  process.exit(diverged === null ? 0 : 1);
+  const eventsPass = eventDiverged === null && expectedMismatch === null;
+  console.log(eventsPass
+    ? '事件对比   PASS'
+    : `事件对比   FAIL（tick ${(eventDiverged ?? expectedMismatch).tick}）`);
+  process.exit(diverged === null && eventsPass ? 0 : 1);
 }
 
 if (args.includes('--write')) {

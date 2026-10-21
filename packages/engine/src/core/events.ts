@@ -84,6 +84,21 @@ export class EventBus {
     return [...this.recording];
   }
 
+  /** 非破坏性读取：录制继续，用于导出快照。 */
+  snapshotRecording(): EventRecord[] {
+    return this.record ? [...this.recording] : [];
+  }
+
+  /** 取走并清空已录事件，录制继续（回放逐 tick 比对用）。 */
+  drainRecording(): EventRecord[] {
+    if (!this.record) {
+      return [];
+    }
+    const drained = [...this.recording];
+    this.recording.length = 0;
+    return drained;
+  }
+
   private recordEvent(type: string, payload: EventPayload): void {
     if (!this.record) {
       return;

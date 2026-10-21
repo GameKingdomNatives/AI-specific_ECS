@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { CommandBuffer, defineComponent, EventBus, Scheduler, World } from '../src/core/index.js';
 import type { SystemDef } from '../src/core/index.js';
 import type { InputSnapshot } from '../src/ports/index.js';
-import { deserialize, hashHex, Recorder, serialize, toSnapshot, worldHash, worldHashGroups } from '../src/determinism/index.js';
+import { deserialize, firstEventDivergence, hashHex, Recorder, replay, serialize, toSnapshot, worldHash, worldHashGroups } from '../src/determinism/index.js';
 
 const Position = defineComponent('Position', { x: 'f64', y: 'f64' });
 const Tag = defineComponent('Tag', { value: 'u32' });
@@ -117,4 +117,62 @@ test('录制文件可序列化并原样还原', () => {
 test('非法录制文件被拒绝', () => {
   assert.throws(() => deserialize('{}'), /版本或字段不合法/);
   assert.throws(() => deserialize('null'), /不是对象/);
+});
+
+test('v2 录制携带事件并可原样还原', () => {
+  const recorder = new Recorder(9);
+  recorder.record(1, snapshot(1, 1, 1));
+  recorder.captureEvents([{ seq: 1, tick: 1, type: 'hit', payload: { id: 7 } }]);
+  const recording = recorder.toRecording();
+  assert.equal(recording.version, 2);
+  assert.deepEqual(recording.events, [{ tick: 1, type: 'hit', payload: { id: 7 } }]);
+  assert.deepEqual(deserialize(serialize(recording)), recording);
+});
+
+test('空事件段表示「明确录制了零事件」', () => {
+  const recorder = new Recorder(1);
+  recorder.captureEvents([]);
+  assert.equal(recorder.toRecording().version, 2);
+  assert.deepEqual(recorder.toRecording().events, []);
+});
+
+test('旧版 v1 录制仍可解析', () => {
+  const restored = deserialize(JSON.stringify({ version: 1, seed: 3, ticks: [] }));
+  assert.equal(restored.version, 1);
+  assert.equal(restored.events, undefined);
+});
+
+test('重演可收集事件，首个事件偏离可定位', () => {
+  const inputs = [snapshot(1, 1, 0), snapshot(2, 2, 0), snapshot(3, 3, 0)];
+  const recording = {
+    version: 2 as const,
+    seed: 5,
+    ticks: inputs.map((input) => ({
+      tick: input.tick,
+      keys: [] as string[],
+      buttons: [] as number[],
+      pointer: { ...input.pointer },
+    })),
+    events: [],
+  };
+  const bus = new EventBus();
+  bus.startRecording();
+  const result = replay(recording, {
+    step: (_tick, input) => {
+      bus.setTick(input.tick);
+      bus.emit('moved', { x: input.pointer.x });
+    },
+    hash: () => 1,
+    events: () => bus.drainRecording().map((record) => ({
+      tick: record.tick,
+      type: record.type,
+      payload: record.payload,
+    })),
+  });
+  assert.equal(result.events.length, 3);
+  assert.deepEqual(result.events[1], { tick: 2, type: 'moved', payload: { x: 2 } });
+  const expected = result.events.map((event) => ({ ...event }));
+  assert.equal(firstEventDivergence(result.events, expected), null);
+  expected[1] = { tick: 2, type: 'moved', payload: { x: 99 } };
+  assert.deepEqual(firstEventDivergence(result.events, expected), { index: 1, tick: 2 });
 });

@@ -32,6 +32,7 @@ const probe = new URLSearchParams(location.search).get('probe');
 
 const world = new World();
 const bus = new EventBus();
+bus.startRecording();
 const commands = new CommandBuffer();
 const clock = new FixedClock(STEP_MS);
 const storage = createLocalStorage('itb:');
@@ -251,7 +252,10 @@ function frame(now: number): void {
 
 Object.assign(globalThis, {
   __itb: {
-    recording: () => serialize(recorder.toRecording()),
+    recording: () => {
+      recorder.captureEvents(bus.snapshotRecording());
+      return serialize(recorder.toRecording());
+    },
     hash: () => hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]])),
     snapshot: () => current,
     player: () => world.get(player, Position),

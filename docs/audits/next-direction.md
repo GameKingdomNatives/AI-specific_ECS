@@ -11,6 +11,8 @@
 | R1a 相机剔除 + 渲染统计 | **已完成** | `impl/render-cull.ts`、`pixi-renderer.ts`、`tests/render-cull.test.ts`；浏览器实测 zoom 2.5 → `submitted 14/65, culled 51, views 65`，关剔除 `65/65` |
 | R1b 视图池化 + 代际标记 | **已完成** | `impl/view-pool.ts`、`pixi-views.ts`（lastSeen 代际替代每帧 Set）；实测开火 `views 59→67 / pooled 87→79`，停火回到 `57 / 89`（复用而非累积） |
 | R1c 图集 + render-bench 进门禁 | **基准已完成；图集暂缓** | `tools/render-bench.mjs` + `tools/render-bench-baseline.json` 进 gate（10000 项、95.3% 剔除、0.507ms 基线，预算 4ms）。图集按 ADR-010 暂缓：当前仅 3 张贴图，收益不可测，等 >32 张或 >2000 Sprite 再引入 |
+| R2a Recording v2 + 事件级重演 | **已完成** | 录制带 `events`；`replay --self-test` 与 `--app` 均比对事件；实测浏览器 999 tick / 10 事件，CLI `事件对比 PASS`；单测覆盖 v2 往返与首个事件偏离定位 |
+| R2b 世界快照/恢复 + 属性测试 | 待做 | — |
 
 ## 0. 一句话判断
 
@@ -90,8 +92,8 @@
 |---|---|---|
 | **R1a** | 相机剔除 + 渲染统计（`__itb.render()`） | 5000 item 剔除比例 > 60%，统计可读 |
 | **R1b** | 视图池化 + 代际标记（去每帧 Set 分配） | 60s 运行视图数稳定，GC 抖动可测 |
-| R1c | 图集 + 帧索引 + render-bench 进 gate | 基线写入 `tools/render-baseline.json` |
-| R2a | `Recording` v2（events）+ `--verify-events` | 事件序列三次一致 |
+| R1c | 图集 + 帧索引 + render-bench 进 gate | 基线写入 `tools/render-bench-baseline.json` |
+| R2a | Recording v2（events）+ `--app`/`--self-test` 事件比对 | 事件序列三次一致 |
 | R2b | 世界快照/恢复 + 属性测试 | 快照→恢复哈希一致 |
 | R3a | WebAudio 后端 + 静音回退 | mock 测试通过，页面有声音可关 |
 | R3b | 输入映射 schema v2 + 迁移 | 改 JSON 即改键位，回放仍确定 |
