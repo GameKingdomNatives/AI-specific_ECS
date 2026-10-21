@@ -34,7 +34,7 @@
 | §11 热重载/隔离 | HMR、熔断、dump | 系统 HMR、内容 HMR、单系统熔断、dump 持久化 | 无系统级 dispose 契约文档 | `main.ts`、`impl/diagnostics.ts` |
 | §12 调试 | 探针、debugDraw、stats | 探针页、调试绘制、HUD | 无运行时开关面板 | `?probe=`、`__itb` |
 | §13 性能 | 3000 实体 ≤4ms | 0.6~0.8ms 中位数，基线+容差；渲染剔除基准 10000 项 0.5ms/95.3% 剔除 | 无 GPU 侧耗时读数 | `bench`、`render-bench` 步骤 |
-| §14/15 门禁 | 解析型检查、印章、演练 | 34 步：tsc/eslint/registry/tests(21)/replay/gitfacts/depcruise/drill/findings/build/storybook/starter/assets/bench | 无覆盖率阈值 | `gate.mjs`、`drill.mjs` |
+| §14/15 门禁 | 解析型检查、印章、演练 | 36 步：tsc/eslint/registry/tests(25)/coverage/replay/gitfacts/depcruise/drill(3 类)/findings/build/storybook/starter/assets/bench/render-bench | 覆盖率近似（dist 行号） | `gate.mjs`、`coverage.mjs`、`drill.mjs` |
 | §16 面板 | 六块 + 诊断明细 | 8 块（含文件:行:规则:片段:规则源） | 无基准趋势曲线 | `tools/panel` |
 | §18 文档 | 流程、ADR、runbook | 27 文件；ADR 2/4/5/6/7/8/9；runbook 1–6；audits 独立目录 | 无独立 API 参考 | `docs/` |
 | §19 验收 | 面板/门禁/回放/基准 | 全部可复跑 | 违规演练仅两类 | gate 报告 |

@@ -13,6 +13,11 @@
 | R1c 图集 + render-bench 进门禁 | **基准已完成；图集暂缓** | `tools/render-bench.mjs` + `tools/render-bench-baseline.json` 进 gate（10000 项、95.3% 剔除、0.507ms 基线，预算 4ms）。图集按 ADR-010 暂缓：当前仅 3 张贴图，收益不可测，等 >32 张或 >2000 Sprite 再引入 |
 | R2a Recording v2 + 事件级重演 | **已完成** | 录制带 `events`；`replay --self-test` 与 `--app` 均比对事件；实测浏览器 999 tick / 10 事件，CLI `事件对比 PASS`；单测覆盖 v2 往返与首个事件偏离定位 |
 | R2b 世界快照/恢复 + 属性测试 | **已完成** | `World.snapshot()/restore()`（实体代际/空闲表/组件列，可 JSON 往返）、`Random.snapshotState/restoreState`；单测 4 例；浏览器实测 `h0=0eddd239 → 开火 h1=2a2a0dbc → 恢复 h2=0eddd239` |
+| R3a WebAudio 后端 + 静音回退 | **已完成** | `impl/audio.ts` 增 `createWebAudio`（可注入上下文/加载器、静音回退、统计含 decoded/failures/started）；6 个单测；应用改用之 |
+| R3b 输入映射（键位） | **已完成** | `data/input-map.ts` v1 schema + `resolveActions`；`apps/game/src/data/input-map.json`；实测 `KeyW → keys:["up"]`；鼠标重映射需端口变更 |
+| R4 覆盖率与演练补强 | **已完成** | `tools/coverage.mjs`（NODE_V8_COVERAGE + 最内层区间）进门禁，阈值 70%，实测 81.7%；physics 增 2 例；drill 增「as any」第三类，3/3 拦截；ADR-013 |
+| 临时 CC0 音效 | **已完成** | Kenney Sci-Fi / Interface 六条，`createWebAudio.sources` 映射；浏览器实测 `decoded/started = 1`；见 `apps/game/public/audio/CREDITS.md` |
+| M2 控制条拆分 | **已完成** | `ControlBar/Button/StatusText/InfoRow` + stories（6 组标题 / 18 故事），门禁 storybook PASS |
 
 ## 0. 一句话判断
 

@@ -25,6 +25,13 @@ const DRILLS = [
     command: ['tools/checks/registry.mjs'],
     expect: '预算',
   },
+  {
+    name: '类型逃逸：as any',
+    file: 'packages/engine/src/demo/__drill_any.ts',
+    content: 'export const drill = (value: unknown): unknown => value as any;\n',
+    command: ['node_modules/eslint/bin/eslint.js', 'packages/engine/src/demo/__drill_any.ts'],
+    expect: 'no-explicit-any',
+  },
 ];
 
 const results = [];

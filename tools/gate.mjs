@@ -19,10 +19,10 @@ function execute(cmd, args) {
   return { code: result.status ?? 1, text: readFileSync(logPath, 'utf8') };
 }
 
-function step(name, cmd, args, cwd = ROOT) {
+function step(name, cmd, args, cwd = ROOT, env = process.env) {
   const logPath = join(ROOT, RUN, `${name}.log`);
   const fd = openSync(logPath, 'w');
-  const result = spawnSync(cmd, args, { cwd, stdio: ['ignore', fd, fd], windowsHide: true });
+  const result = spawnSync(cmd, args, { cwd, stdio: ['ignore', fd, fd], windowsHide: true, env });
   closeSync(fd);
   const code = result.status ?? 1;
   codes.push({ name, code });
@@ -41,10 +41,13 @@ function runTests() {
     console.log('tests      FAIL 未找到编译后的测试目录');
     return 1;
   }
+  const coverageDir = join(ROOT, RUN, 'coverage');
+  mkdirSync(coverageDir, { recursive: true });
+  const testEnv = { ...process.env, NODE_V8_COVERAGE: coverageDir };
   const files = readdirSync(dir).filter((file) => file.endsWith('.test.js'));
   let failed = 0;
   for (const file of files) {
-    const code = step(`test-${file.replace('.test.js', '')}`, process.execPath, [join(dir, file)]);
+    const code = step(`test-${file.replace('.test.js', '')}`, process.execPath, [join(dir, file)], ROOT, testEnv);
     if (code !== 0) failed += 1;
   }
   if (files.length === 0) {
@@ -60,6 +63,7 @@ step('tsc', process.execPath, ['node_modules/typescript/bin/tsc', '-b']);
 step('eslint', process.execPath, ['node_modules/eslint/bin/eslint.js', '.', '-f', 'json', '-o', join(RUN, 'eslint.json')]);
 step('registry', process.execPath, ['tools/checks/registry.mjs']);
 runTests();
+step('coverage', process.execPath, ['tools/coverage.mjs', join(RUN, 'coverage'), '0.7']);
 step('replay', process.execPath, ['tools/replay.mjs', '--self-test', '--repeat', '3']);
 step('gitfacts', process.execPath, ['tools/checks/gitfacts.mjs', RUN]);
 if (!FAST) {

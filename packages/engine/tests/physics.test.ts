@@ -107,3 +107,27 @@ test('端口实现与内核一致（HARD 变更后契约可用）', () => {
   port.removeByEntity(3);
   assert.equal(port.stats().bodies, 0);
 });
+
+test('contacts 同时报多对重叠，互不干扰', () => {
+  const world = new PhysicsWorld();
+  world.addCircle(1, 0, 0, 10);
+  world.addCircle(2, 5, 0, 10);
+  world.addCircle(3, 100, 0, 10);
+  world.addCircle(4, 106, 0, 10);
+  world.addCircle(5, 400, 400, 10);
+  assert.deepEqual(world.contacts(), [{ a: 1, b: 2 }, { a: 3, b: 4 }]);
+});
+
+test('debugShapes 圆形给出 kind/坐标/半径', () => {
+  const world = new PhysicsWorld();
+  world.addCircle(7, 30, 40, 12);
+  const shapes = world.debugShapes();
+  assert.equal(shapes.length, 1);
+  const shape = shapes[0];
+  assert.equal(shape?.entity, 7);
+  assert.equal(shape?.kind, 'circle');
+  assert.equal(shape?.x, 30);
+  assert.equal(shape?.y, 40);
+  assert.equal(shape?.radius, 12);
+  assert.equal(shape?.rotation, 0);
+});
