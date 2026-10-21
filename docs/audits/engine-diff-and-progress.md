@@ -27,7 +27,7 @@
 | §4 ECS 内核 | World/scheduler/commands/events | sparse-set+SoA、七阶段、冲突拒绝、阶段末 flush | 无阻塞缺口 | `tests/world|scheduler|commands` |
 | §5 事件总线 | 同步/延迟/记录 | 三模式齐全 | 无 | `core/events.ts` |
 | §6 端口（10 个） | 冻结形状 + 实现 | 渲染/输入/物理/时钟/随机/存储/事件/日志/音频占位/ModHost 形状 | 音频无真实播放；ModHost 无加载器 | `ports/index.ts`、`impl/audio.ts`、`impl/logger.ts` |
-| §7 渲染 | Pixi 渲染表、七层、相机 | 已达成；贴图 Sprite + 失败回退几何；**相机剔除 + 渲染统计（R1a）** | 无池化/图集；无渲染基准 | `pixi-renderer.ts`、`render-cull.ts`、`pixi-views.ts` |
+| §7 渲染 | Pixi 渲染表、七层、相机 | 已达成；贴图 Sprite + 失败回退几何；**相机剔除 + 渲染统计 + 视图池化（R1a/R1b）** | 图集未做；无渲染基准 | `pixi-renderer.ts`、`render-cull.ts`、`view-pool.ts`、`pixi-views.ts` |
 | §8 物理 | 查询层（非求解器） | 形状/射线/sweep/contacts/debug/stats/网格 | contacts 与 debugShapes 无独立测试 | `impl/physics.ts`、`tests/physics` |
 | §9 确定性 | 哈希、录制、重演、三次一致 | 全部具备；分组哈希；startHash 守卫 | 事件记录未参与重演 | `determinism/*`、`replay --repeat 3` |
 | §10 数据层 | schema、加载、迁移、资源 | Zod + fallback + 迁移管线 + 资产加载器 + 内容热加载 | 资产清单/图集未做 | `data/*`、`tests/data|migrate` |

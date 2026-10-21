@@ -2,6 +2,7 @@ import { Application, Container, Graphics } from 'pixi.js';
 import type { IRenderer, RenderItem } from '../ports/index.js';
 import { computeViewBounds, isVisible } from './render-cull.js';
 import { createViewLayer } from './pixi-views.js';
+import { destroyPools, poolSize } from './view-pool.js';
 
 const LAYER_COUNT = 7;
 const LOGICAL_WIDTH = 1920;
@@ -21,6 +22,7 @@ export interface RenderStats {
   readonly submitted: number;
   readonly culled: number;
   readonly views: number;
+  readonly pooled: number;
 }
 
 export interface PixiRenderer extends IRenderer {
@@ -98,7 +100,7 @@ function createSubmitter(
   camera: { get: () => { x: number; y: number; zoom: number }; apply: () => void },
   state: CullingState,
 ): { submit: (items: readonly RenderItem[]) => void; stats: () => RenderStats } {
-  let stats: RenderStats = { total: 0, submitted: 0, culled: 0, views: 0 };
+  let stats: RenderStats = { total: 0, submitted: 0, culled: 0, views: 0, pooled: 0 };
   const submit = (items: readonly RenderItem[]): void => {
     let submitted = 0;
     if (!state.enabled || items.length === 0) {
@@ -122,6 +124,7 @@ function createSubmitter(
       submitted,
       culled: items.length - submitted,
       views: viewLayer.size(),
+      pooled: poolSize(),
     };
     camera.apply();
   };
@@ -172,6 +175,7 @@ export async function createPixiRenderer(
       camera.apply();
     },
     destroy(): void {
+      destroyPools();
       app.destroy(true);
     },
   };

@@ -9,7 +9,7 @@
 | 迭代 | 状态 | 证据 |
 |---|---|---|
 | R1a 相机剔除 + 渲染统计 | **已完成** | `impl/render-cull.ts`、`pixi-renderer.ts`、`tests/render-cull.test.ts`；浏览器实测 zoom 2.5 → `submitted 14/65, culled 51, views 65`，关剔除 `65/65` |
-| R1b 视图池化 + 代际标记 | 待做 | — |
+| R1b 视图池化 + 代际标记 | **已完成** | `impl/view-pool.ts`、`pixi-views.ts`（lastSeen 代际替代每帧 Set）；实测开火 `views 59→67 / pooled 87→79`，停火回到 `57 / 89`（复用而非累积） |
 | R1c 图集 + render-bench 进门禁 | 待做 | — |
 
 ## 0. 一句话判断
