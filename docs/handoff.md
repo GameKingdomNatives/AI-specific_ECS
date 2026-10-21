@@ -64,7 +64,7 @@
 - 引擎教训：`docs/lessons/2026-10-engine.md`（12 条，含哈希空集、子弹反弹、门禁空转、ESM JSON、基准抖动等）。
 - 进度对照：`docs/audits/engine-diff-and-progress.md`（46 提交 / 208 文件 / 21 测试文件 / 34 门禁步骤；引擎整体约 82%），刷新方法见 `docs/audits/README.md`。
 - 交付型 starter：`starters/ui-storybook-kit/`（可独立复制）——React 19 + Tailwind 4 + Storybook 10；组件已中性化（按钮/状态文字/信息行）共 9 个故事 + 颜色尺寸总览。README 以 Storybook 为**唯一事实源**重写，含 30 秒理解、术语表、四步新增组件、交付方式与 FAQ；四篇 docs 去掉了具体项目假设。已实测复制到仓库外 `npm install` + `build` 均 exit 0。
-- 下一步：M2 拆组件（ControlBar/StatusText/InfoRow）+ 补齐 hover/disabled/空状态故事；之后补 `IAudio` 真实后端与渲染基准。
+- 下一步（方向已判定）：**R1 渲染规模化**——相机剔除、视图池化、图集、渲染统计与基准；之后 R2 确定性快照/事件重演、R3 端口补全（音频/输入映射）。依据与验收见 `docs/audits/next-direction.md`。UI M2 拆组件仍可并行（应用侧，不阻塞引擎）。
 
 ## 当前缺口（2026-10-21 核对）
 
