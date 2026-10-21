@@ -1,4 +1,4 @@
-# 交接清单
+﻿# 交接清单
 
 > 每轮收尾更新。新会话先读本节，再读 `docs/00-最终指令.md`。
 
@@ -64,7 +64,7 @@
 - 引擎教训：`docs/lessons/2026-10-engine.md`（12 条，含哈希空集、子弹反弹、门禁空转、ESM JSON、基准抖动等）。
 - 进度对照：`docs/audits/engine-diff-and-progress.md`（46 提交 / 208 文件 / 21 测试文件 / 34 门禁步骤；引擎整体约 82%），刷新方法见 `docs/audits/README.md`。
 - 交付型 starter：`starters/ui-storybook-kit/`（可独立复制）——React 19 + Tailwind 4 + Storybook 10；组件已中性化（按钮/状态文字/信息行）共 9 个故事 + 颜色尺寸总览。README 以 Storybook 为**唯一事实源**重写，含 30 秒理解、术语表、四步新增组件、交付方式与 FAQ；四篇 docs 去掉了具体项目假设。已实测复制到仓库外 `npm install` + `build` 均 exit 0。
-- 本轮（R4 + M2 + 音效）：**R4 完成**——覆盖率门禁 `coverage`（NODE_V8_COVERAGE + 最内层区间，阈值 70%，实测 81.7%，ADR-013）、physics 多对 contacts / debugShapes 圆形测试、drill 新增 as-any 第三类（3/3 拦截）。**M2 完成**——`ControlBar/Button/StatusText/InfoRow` + 18 个故事（6 组标题）。**音效**——Kenney CC0 六条临时资源，`createWebAudio.sources` 映射，浏览器实测 decoded/started=1，来源见 `apps/game/public/audio/CREDITS.md`。门禁 36 步 PASS。
+- 本轮（R4 + M2 + 音效）：**R4 完成**——覆盖率门禁 `coverage`（NODE_V8_COVERAGE + 最内层区间，阈值 70%，实测 81.7%，ADR-013）、physics 多对 contacts / debugShapes 圆形测试、drill 新增 as-any 第三类（3/3 拦截）。**M2 完成**——`ControlBar/Button/StatusText/InfoRow` + 18 个故事（6 组标题）。**音效**——Kenney CC0 六条临时资源，`createWebAudio.sources` 映射，浏览器实测 decoded/started=1，来源见 `apps/game/public/audio/CREDITS.md`。门禁 38 步 PASS。
 - 待做：替换正式音效、GPU 侧渲染耗时读数、鼠标按键动作映射（需端口变更）、覆盖率读数精确化（source map）。
 
 ## 当前缺口（2026-10-21 核对）
