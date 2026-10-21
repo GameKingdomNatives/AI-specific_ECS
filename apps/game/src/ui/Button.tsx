@@ -8,7 +8,7 @@ export interface ButtonProps {
 }
 
 const base =
-  'cursor-pointer rounded-md border px-2.5 py-1 font-mono text-[13px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-orange-400 disabled:cursor-not-allowed disabled:opacity-45';
+  'shrink-0 cursor-pointer whitespace-nowrap rounded-md border px-2.5 py-1 font-mono text-[13px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-orange-400 disabled:cursor-not-allowed disabled:opacity-45';
 
 const tones: Record<ButtonTone, string> = {
   default: 'border-stone-700 bg-stone-900 text-stone-200 hover:enabled:bg-stone-800',

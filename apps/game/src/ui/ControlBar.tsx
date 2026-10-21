@@ -21,19 +21,21 @@ const actions: ReadonlyArray<{ readonly key: ControlAction; readonly label: stri
   { key: 'exportDumps', label: '导出诊断' },
 ];
 
-/** 控制条：五个意图按钮 + 状态 + 计数，只读快照。 */
+/** 控制条：五个意图按钮 + 状态一行，计数一行，只读快照。 */
 export function ControlBar({ snapshot, intents, disabled = {} }: ControlBarProps) {
   return (
-    <div className="flex items-center gap-2 font-mono text-[13px] text-stone-200">
-      {actions.map((action) => (
-        <Button
-          key={action.key}
-          label={action.label}
-          onClick={intents[action.key]}
-          disabled={disabled[action.key] ?? false}
-        />
-      ))}
-      <StatusText tone={snapshot.note.includes('失败') ? 'error' : 'info'}>{snapshot.note}</StatusText>
+    <div className="flex flex-col gap-1 font-mono text-[13px] text-stone-200">
+      <div className="flex items-center gap-2">
+        {actions.map((action) => (
+          <Button
+            key={action.key}
+            label={action.label}
+            onClick={intents[action.key]}
+            disabled={disabled[action.key] ?? false}
+          />
+        ))}
+        <StatusText tone={snapshot.note.includes('失败') ? 'error' : 'info'}>{snapshot.note}</StatusText>
+      </div>
       <InfoRow
         items={[
           { label: 'tick', value: snapshot.tick },
