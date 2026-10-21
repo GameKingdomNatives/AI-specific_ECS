@@ -97,6 +97,13 @@ step('bench', process.execPath, [
   '--baseline',
   'tools/bench-baseline.json',
 ]);
+step('render-bench', process.execPath, [
+  'tools/render-bench.mjs',
+  '--items',
+  '10000',
+  '--baseline',
+  'tools/render-bench-baseline.json',
+]);
 
 writeFileSync(join(ROOT, RUN, 'codes.txt'), `${codes.map((c) => `${c.name} ${c.code}`).join('\n')}\n`);
 const report = execute(process.execPath, ['tools/report.mjs', RUN]);

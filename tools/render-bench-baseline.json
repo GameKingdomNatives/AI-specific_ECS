@@ -1,0 +1,13 @@
+{
+  "msPerPass": 0.507,
+  "items": 10000,
+  "world": {
+    "width": 8000,
+    "height": 6000
+  },
+  "viewport": {
+    "width": 1920,
+    "height": 1080
+  },
+  "recordedAt": "2026-10-21T09:54:44.003Z"
+}

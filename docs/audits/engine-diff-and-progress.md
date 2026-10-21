@@ -27,13 +27,13 @@
 | §4 ECS 内核 | World/scheduler/commands/events | sparse-set+SoA、七阶段、冲突拒绝、阶段末 flush | 无阻塞缺口 | `tests/world|scheduler|commands` |
 | §5 事件总线 | 同步/延迟/记录 | 三模式齐全 | 无 | `core/events.ts` |
 | §6 端口（10 个） | 冻结形状 + 实现 | 渲染/输入/物理/时钟/随机/存储/事件/日志/音频占位/ModHost 形状 | 音频无真实播放；ModHost 无加载器 | `ports/index.ts`、`impl/audio.ts`、`impl/logger.ts` |
-| §7 渲染 | Pixi 渲染表、七层、相机 | 已达成；贴图 Sprite + 失败回退几何；**相机剔除 + 渲染统计 + 视图池化（R1a/R1b）** | 图集未做；无渲染基准 | `pixi-renderer.ts`、`render-cull.ts`、`view-pool.ts`、`pixi-views.ts` |
+| §7 渲染 | Pixi 渲染表、七层、相机 | 已达成；贴图 Sprite + 失败回退几何；**相机剔除 + 渲染统计 + 视图池化（R1a/R1b）** | 图集暂缓（ADR-010，3 张贴图无收益） | `pixi-renderer.ts`、`render-cull.ts`、`view-pool.ts`、`pixi-views.ts` |
 | §8 物理 | 查询层（非求解器） | 形状/射线/sweep/contacts/debug/stats/网格 | contacts 与 debugShapes 无独立测试 | `impl/physics.ts`、`tests/physics` |
 | §9 确定性 | 哈希、录制、重演、三次一致 | 全部具备；分组哈希；startHash 守卫 | 事件记录未参与重演 | `determinism/*`、`replay --repeat 3` |
 | §10 数据层 | schema、加载、迁移、资源 | Zod + fallback + 迁移管线 + 资产加载器 + 内容热加载 | 资产清单/图集未做 | `data/*`、`tests/data|migrate` |
 | §11 热重载/隔离 | HMR、熔断、dump | 系统 HMR、内容 HMR、单系统熔断、dump 持久化 | 无系统级 dispose 契约文档 | `main.ts`、`impl/diagnostics.ts` |
 | §12 调试 | 探针、debugDraw、stats | 探针页、调试绘制、HUD | 无运行时开关面板 | `?probe=`、`__itb` |
-| §13 性能 | 3000 实体 ≤4ms | 0.6~0.8ms 中位数，基线+容差 | 无渲染侧基准 | `bench` 步骤 |
+| §13 性能 | 3000 实体 ≤4ms | 0.6~0.8ms 中位数，基线+容差；渲染剔除基准 10000 项 0.5ms/95.3% 剔除 | 无 GPU 侧耗时读数 | `bench`、`render-bench` 步骤 |
 | §14/15 门禁 | 解析型检查、印章、演练 | 34 步：tsc/eslint/registry/tests(21)/replay/gitfacts/depcruise/drill/findings/build/storybook/starter/assets/bench | 无覆盖率阈值 | `gate.mjs`、`drill.mjs` |
 | §16 面板 | 六块 + 诊断明细 | 8 块（含文件:行:规则:片段:规则源） | 无基准趋势曲线 | `tools/panel` |
 | §18 文档 | 流程、ADR、runbook | 27 文件；ADR 2/4/5/6/7/8/9；runbook 1–6；audits 独立目录 | 无独立 API 参考 | `docs/` |
