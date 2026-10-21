@@ -39,8 +39,10 @@ export interface AudioContextLike {
 export interface WebAudioOptions {
   /** 浏览器传 `() => new AudioContext()`；无浏览器环境返回 null 即静音回退。 */
   readonly contextFactory?: () => AudioContextLike | null;
-  /** 资源加载器，默认 fetch(id) 取 ArrayBuffer；返回 null 表示放弃。 */
-  readonly load?: (id: string) => Promise<ArrayBuffer | null>;
+  /** 资源加载器，接收解析后的 URL；返回 null 表示放弃。 */
+  readonly load?: (url: string) => Promise<ArrayBuffer | null>;
+  /** 音效 id → URL；未列出的 id 直接当 URL 用。 */
+  readonly sources?: Readonly<Record<string, string>>;
   readonly volume?: number;
   readonly enabled?: boolean;
 }
@@ -117,8 +119,12 @@ function ensureContext(state: WebAudioState): AudioContextLike | null {
   return state.context;
 }
 
-function defaultLoad(id: string): Promise<ArrayBuffer | null> {
-  return fetch(id).then((response) => (response.ok ? response.arrayBuffer() : null));
+export function resolveAudioUrl(sources: Readonly<Record<string, string>> | undefined, id: string): string {
+  return sources?.[id] ?? id;
+}
+
+function defaultLoad(url: string): Promise<ArrayBuffer | null> {
+  return fetch(url).then((response) => (response.ok ? response.arrayBuffer() : null));
 }
 
 async function loadBuffer(state: WebAudioState, id: string): Promise<unknown | null> {
@@ -131,8 +137,9 @@ async function loadBuffer(state: WebAudioState, id: string): Promise<unknown | n
     return null;
   }
   try {
+    const url = resolveAudioUrl(state.options.sources, id);
     const loader = state.options.load ?? defaultLoad;
-    const data = await loader(id);
+    const data = await loader(url);
     if (data === null) {
       state.failures += 1;
       return null;

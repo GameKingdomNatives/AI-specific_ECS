@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createNullAudio, createWebAudio } from '../src/impl/audio.js';
+import { createNullAudio, createWebAudio, resolveAudioUrl } from '../src/impl/audio.js';
 import type { AudioContextLike, AudioNodeLike, BufferSourceLike } from '../src/impl/audio.js';
 
 test('默认静音：play 不计数，也不抛错', () => {
@@ -113,4 +113,28 @@ test('WebAudio：加载失败只记 failures，不抛错', async () => {
   const stats = audio.stats();
   assert.equal(stats.failures, 1);
   assert.equal(stats.started, 0);
+});
+
+test('音效 id 映射到 URL，未映射时原样使用', () => {
+  const sources = { shoot: '/audio/laser.ogg' };
+  assert.equal(resolveAudioUrl(sources, 'shoot'), '/audio/laser.ogg');
+  assert.equal(resolveAudioUrl(sources, 'unknown'), 'unknown');
+  assert.equal(resolveAudioUrl(undefined, 'x'), 'x');
+});
+
+test('WebAudio：loader 收到映射后的 URL', async () => {
+  const fake = fakeContext();
+  const seen: string[] = [];
+  const audio = createWebAudio({
+    contextFactory: () => fake.context,
+    sources: { shoot: '/audio/laser.ogg' },
+    load: async (url) => {
+      seen.push(url);
+      return new ArrayBuffer(8);
+    },
+  });
+  audio.play('shoot');
+  await settle();
+  assert.deepEqual(seen, ['/audio/laser.ogg']);
+  assert.equal(audio.stats().started, 1);
 });

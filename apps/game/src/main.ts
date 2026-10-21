@@ -6,7 +6,8 @@ import type { BoxSpec } from '@itb/engine/data';
 import { hashHex, Recorder, serialize, worldHashGroups } from '@itb/engine/determinism';
 import { Box, Bullet, Position, spawnBoxes } from '@itb/engine/demo';
 import { createPixiRenderer } from '@itb/engine/impl';
-import { createWebAudio } from '@itb/engine/audio';
+import { createGameAudio } from './sound.js';
+import { createUiIntents } from './ui-intents.js';
 import { createDumpSink } from '@itb/engine/diagnostics';
 import { createMemoryLogger } from '@itb/engine/logger';
 import { createPhysicsPort, PhysicsWorld } from '@itb/engine/physics';
@@ -38,9 +39,7 @@ bus.startRecording();
 const commands = new CommandBuffer();
 const clock = new FixedClock(STEP_MS);
 const storage = createLocalStorage('itb:');
-const audio = createWebAudio({
-  contextFactory: () => (typeof AudioContext === 'undefined' ? null : new AudioContext()),
-});
+const audio = createGameAudio(bus, canvas);
 const dumpSink = createDumpSink({ storage, key: 'dumps', max: 20 });
 dumpSink.restore();
 const logger = createMemoryLogger({ max: 50 });
@@ -69,7 +68,7 @@ function onSystemError(system: string, error: unknown, tick: number): void {
   logger.error('system failed', { system, tick, message: String(error) });
   dumpSink.record({ system, tick, message: String(error), stack });
   dumpSink.persist();
-  audio.play('system-error');
+  audio.play('error');
 }
 
 function createScheduler(): Scheduler {
@@ -150,7 +149,7 @@ const controls = createControls({
   dumpSink,
   setNote,
 });
-mountUi(uiStore, controls);
+mountUi(uiStore, createUiIntents(controls, audio));
 
 watchContent((state) => {
   dataStatus = state.ok ? 'data ok (hot)' : `data fallback: ${state.issue ?? 'invalid'}`;
