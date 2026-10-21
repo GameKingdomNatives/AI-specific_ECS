@@ -231,7 +231,8 @@ function frame(now: number): void {
     const mode = probe === null ? 'run' : `probe ${probe}`;
     const bullets = world.query(Position, Bullet).length;
     const bodies = deps.physics.stats().bodies;
-    hud.textContent = `${mode} · tick ${clock.tick} · entities ${world.aliveCount} · bullets ${bullets} · kills ${kills} · bodies ${bodies} · rec ${recorder.count} · err ${dumpSink.list().length} · ${lastHash} · ${dataStatus}`;
+    const renderStats = renderer.stats();
+    hud.textContent = `${mode} · tick ${clock.tick} · entities ${world.aliveCount} · bullets ${bullets} · kills ${kills} · bodies ${bodies} · vis ${renderStats.submitted}/${renderStats.total} · rec ${recorder.count} · err ${dumpSink.list().length} · ${lastHash} · ${dataStatus}`;
     uiStore.update({
       tick: clock.tick,
       entities: world.aliveCount,
@@ -257,6 +258,9 @@ Object.assign(globalThis, {
     dumps: () => dumpSink.list(),
     logs: () => logger.entries(),
     audio: () => audio.stats(),
+    render: () => renderer.stats(),
+    setCulling: (enabled: boolean) => renderer.setCulling(enabled),
+    camera: (x: number, y: number, zoom: number) => renderer.setCamera(x, y, zoom),
     systems: () => scheduler.orderNames,
   },
 });

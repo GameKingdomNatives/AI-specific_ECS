@@ -75,42 +75,60 @@ function layerAt(layers: Container[], index: number): Container {
   return layers[index] ?? (layers[0] as Container);
 }
 
+/** 同步一个可见项：必要时重建/换层，然后写入变换。 */
+function syncView(views: Map<number, View>, layers: Container[], item: RenderItem, seen: Set<number>): void {
+  const desiredKey = item.texture ?? null;
+  let view = views.get(item.id);
+  if (view === undefined || view.textureKey !== desiredKey) {
+    view?.node.destroy();
+    const built = buildNode(item);
+    view = { node: built.node, layer: item.layer, textureKey: built.textureKey };
+    views.set(item.id, view);
+    layerAt(layers, item.layer).addChild(view.node);
+  }
+  if (view.layer !== item.layer) {
+    view.node.removeFromParent();
+    view.layer = item.layer;
+    layerAt(layers, item.layer).addChild(view.node);
+  }
+  applyTransform(view, item);
+  seen.add(item.id);
+}
+
+function destroyUnseen(views: Map<number, View>, seen: Set<number>): void {
+  for (const [id, view] of views) {
+    if (!seen.has(id)) {
+      view.node.destroy();
+      views.delete(id);
+    }
+  }
+}
+
 export function createViewLayer(layers: Container[]): {
-  submit: (items: readonly RenderItem[]) => void;
+  submit: (items: readonly RenderItem[], isItemVisible?: (item: RenderItem) => boolean) => void;
+  size: () => number;
 } {
   const views = new Map<number, View>();
 
-  const sync = (item: RenderItem, seen: Set<number>): void => {
-    const desiredKey = item.texture ?? null;
-    let view = views.get(item.id);
-    if (view === undefined || view.textureKey !== desiredKey) {
-      view?.node.destroy();
-      const built = buildNode(item);
-      view = { node: built.node, layer: item.layer, textureKey: built.textureKey };
-      views.set(item.id, view);
-      layerAt(layers, item.layer).addChild(view.node);
-    }
-    if (view.layer !== item.layer) {
-      view.node.removeFromParent();
-      view.layer = item.layer;
-      layerAt(layers, item.layer).addChild(view.node);
-    }
-    applyTransform(view, item);
-    seen.add(item.id);
-  };
-
   return {
-    submit(items) {
+    submit(items, isItemVisible) {
       const seen = new Set<number>();
       for (const item of items) {
-        sync(item, seen);
-      }
-      for (const [id, view] of views) {
-        if (!seen.has(id)) {
-          view.node.destroy();
-          views.delete(id);
+        const visible = isItemVisible === undefined ? true : isItemVisible(item);
+        if (!visible) {
+          const hidden = views.get(item.id);
+          if (hidden !== undefined) {
+            hidden.node.visible = false;
+            seen.add(item.id);
+          }
+          continue;
         }
+        syncView(views, layers, item, seen);
       }
+      destroyUnseen(views, seen);
+    },
+    size(): number {
+      return views.size;
     },
   };
 }

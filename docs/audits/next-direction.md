@@ -4,6 +4,14 @@
 - 依据：`git` 源码实测 + `docs/audits/engine-diff-and-progress.md` + `docs/00-最终指令.md`
 - 结论：**先做 R1 渲染规模化**；R2 确定性快照/事件重演；R3 端口补全；质量项随迭代带入
 
+## 进展
+
+| 迭代 | 状态 | 证据 |
+|---|---|---|
+| R1a 相机剔除 + 渲染统计 | **已完成** | `impl/render-cull.ts`、`pixi-renderer.ts`、`tests/render-cull.test.ts`；浏览器实测 zoom 2.5 → `submitted 14/65, culled 51, views 65`，关剔除 `65/65` |
+| R1b 视图池化 + 代际标记 | 待做 | — |
+| R1c 图集 + render-bench 进门禁 | 待做 | — |
+
 ## 0. 一句话判断
 
 逻辑帧已经达标（3000 实体 **0.788ms**，预算 4ms），而渲染表是**每帧全量提交、每实体一个 Container、无剔除/无池化/无图集/无统计**——在弹幕类目标下，下一堵墙在渲染，不在 ECS。

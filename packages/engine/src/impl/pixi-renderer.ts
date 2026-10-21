@@ -1,16 +1,31 @@
 import { Application, Container, Graphics } from 'pixi.js';
 import type { IRenderer, RenderItem } from '../ports/index.js';
+import { computeViewBounds, isVisible } from './render-cull.js';
 import { createViewLayer } from './pixi-views.js';
 
 const LAYER_COUNT = 7;
 const LOGICAL_WIDTH = 1920;
 const LOGICAL_HEIGHT = 1080;
+/** 剔除余量：容纳描边、旋转与贴图透明边。 */
+const CULL_MARGIN = 24;
 
 export interface PixiRendererOptions {
   /** 截图/取像时开启：让 WebGL 保留绘制缓冲，代价是少量性能。 */
   readonly preserveDrawingBuffer?: boolean;
   /** 调试用：把 Pixi Application 挂到 globalThis.__pixiApp。 */
   readonly debugGlobal?: boolean;
+}
+
+export interface RenderStats {
+  readonly total: number;
+  readonly submitted: number;
+  readonly culled: number;
+  readonly views: number;
+}
+
+export interface PixiRenderer extends IRenderer {
+  stats(): RenderStats;
+  setCulling(enabled: boolean): void;
 }
 
 function createLayers(app: Application): Container[] {
@@ -30,6 +45,7 @@ function layerAt(layers: Container[], index: number): Container {
 
 function createCamera(layers: Container[]): {
   set: (x: number, y: number, zoom: number) => void;
+  get: () => { x: number; y: number; zoom: number };
   apply: () => void;
 } {
   let camera = { x: 0, y: 0, zoom: 1 };
@@ -46,6 +62,7 @@ function createCamera(layers: Container[]): {
       camera = { x, y, zoom };
       apply();
     },
+    get: () => camera,
     apply,
   };
 }
@@ -71,14 +88,55 @@ function createDebugDraw(layers: Container[]): (commands: readonly string[]) => 
   };
 }
 
+interface CullingState {
+  enabled: boolean;
+}
+
+/** 剔除 + 统计：只决定提交哪些项，视图销毁由 viewLayer 的 seen 逻辑负责。 */
+function createSubmitter(
+  viewLayer: ReturnType<typeof createViewLayer>,
+  camera: { get: () => { x: number; y: number; zoom: number }; apply: () => void },
+  state: CullingState,
+): { submit: (items: readonly RenderItem[]) => void; stats: () => RenderStats } {
+  let stats: RenderStats = { total: 0, submitted: 0, culled: 0, views: 0 };
+  const submit = (items: readonly RenderItem[]): void => {
+    let submitted = 0;
+    if (!state.enabled || items.length === 0) {
+      viewLayer.submit(items);
+      submitted = items.length;
+    } else {
+      const bounds = computeViewBounds(camera.get(), {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+      viewLayer.submit(items, (item) => {
+        const visible = item.visible && isVisible(bounds, item.x, item.y, item.sx, item.sy, CULL_MARGIN);
+        if (visible) {
+          submitted += 1;
+        }
+        return visible;
+      });
+    }
+    stats = {
+      total: items.length,
+      submitted,
+      culled: items.length - submitted,
+      views: viewLayer.size(),
+    };
+    camera.apply();
+  };
+  return { submit, stats: () => stats };
+}
+
 /**
  * Pixi 渲染后端：只消费渲染表，不认识实体与组件。
  * 有 texture 用 Sprite，没有就退回几何图形；贴图加载失败同样回退。
+ * 剔除只影响提交与可见性，不销毁视图（视野外再回来不会重建）。
  */
 export async function createPixiRenderer(
   canvas: HTMLCanvasElement,
   options: PixiRendererOptions = {},
-): Promise<IRenderer> {
+): Promise<PixiRenderer> {
   const app = new Application();
   await app.init({
     canvas,
@@ -95,15 +153,18 @@ export async function createPixiRenderer(
   const camera = createCamera(layers);
   const viewLayer = createViewLayer(layers);
   const debugDraw = createDebugDraw(layers);
+  const culling: CullingState = { enabled: true };
+  const submitter = createSubmitter(viewLayer, camera, culling);
   camera.apply();
 
   return {
-    submit(items: readonly RenderItem[]): void {
-      viewLayer.submit(items);
-      camera.apply();
-    },
+    submit: submitter.submit,
     setCamera(x: number, y: number, zoom: number): void {
       camera.set(x, y, zoom);
+    },
+    stats: submitter.stats,
+    setCulling(enabled: boolean): void {
+      culling.enabled = enabled;
     },
     debugDraw,
     resize(width: number, height: number): void {
