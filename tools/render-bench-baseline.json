@@ -1,5 +1,5 @@
 {
-  "msPerPass": 0.507,
+  "msPerPass": 0.453,
   "items": 10000,
   "world": {
     "width": 8000,
@@ -9,5 +9,5 @@
     "width": 1920,
     "height": 1080
   },
-  "recordedAt": "2026-10-21T09:54:44.003Z"
+  "recordedAt": "2026-10-21T10:06:57.817Z"
 }

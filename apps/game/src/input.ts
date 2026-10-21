@@ -1,4 +1,6 @@
 import type { IInput, InputSnapshot } from '@itb/engine/ports';
+import type { InputMap } from '@itb/engine/data';
+import { resolveActions } from '@itb/engine/data';
 
 export interface BrowserInput extends IInput {
   dispose(): void;
@@ -7,6 +9,8 @@ export interface BrowserInput extends IInput {
 export interface BrowserInputOptions {
   /** 把页面坐标换算成世界坐标，保证录制里存的是尺度无关的意图。 */
   readonly toWorld?: (x: number, y: number) => { x: number; y: number };
+  /** 键位映射：提供时快照里的 keys 是动作名，未绑定键被丢弃。 */
+  readonly map?: InputMap;
 }
 
 interface InputState {
@@ -73,9 +77,11 @@ export function createBrowserInput(target: Target, options: BrowserInputOptions 
   return {
     sample(tick: number): InputSnapshot {
       const point = options.toWorld !== undefined ? options.toWorld(state.pointerX, state.pointerY) : { x: state.pointerX, y: state.pointerY };
+      const rawKeys = [...state.keys].sort();
+      const keys = options.map === undefined ? new Set(rawKeys) : resolveActions(options.map, rawKeys);
       return {
         tick,
-        keys: new Set([...state.keys].sort()),
+        keys,
         buttons: new Set([...state.buttons].sort((left, right) => left - right)),
         pointer: point,
       };

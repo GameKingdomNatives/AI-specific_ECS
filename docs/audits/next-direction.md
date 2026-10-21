@@ -95,9 +95,9 @@
 | R1c | 图集 + 帧索引 + render-bench 进 gate | 基线写入 `tools/render-bench-baseline.json` |
 | R2a | Recording v2（events）+ `--app`/`--self-test` 事件比对 | 事件序列三次一致 |
 | R2b | 世界快照/恢复 + 属性测试 | 快照→恢复哈希一致 |
-| R3a | WebAudio 后端 + 静音回退 | mock 测试通过，页面有声音可关 |
-| R3b | 输入映射 schema v2 + 迁移 | 改 JSON 即改键位，回放仍确定 |
-| R4 | 覆盖率与演练补强 | gate 步骤增加且有基线 |
+| R3a WebAudio 后端 + 静音回退 | **已完成** | `impl/audio.ts` 增 `createWebAudio`（可注入上下文/加载器，静音回退，统计含 decoded/failures/started）；4 个单测；应用改用之 |
+| R3b 输入映射 schema + 迁移 | **已完成（键位）** | `data/input-map.ts`（v1 schema + 校验 + resolveActions）、`apps/game/src/data/input-map.json`、`input.ts` 接 map；实测 `KeyW → keys:["up"]`；鼠标按钮重映射需改端口，留待 ADR |
+| R4 覆盖率与演练补强 | 待做 | — |
 
 ## 4. 暂不做
 

@@ -64,7 +64,7 @@
 - 引擎教训：`docs/lessons/2026-10-engine.md`（12 条，含哈希空集、子弹反弹、门禁空转、ESM JSON、基准抖动等）。
 - 进度对照：`docs/audits/engine-diff-and-progress.md`（46 提交 / 208 文件 / 21 测试文件 / 34 门禁步骤；引擎整体约 82%），刷新方法见 `docs/audits/README.md`。
 - 交付型 starter：`starters/ui-storybook-kit/`（可独立复制）——React 19 + Tailwind 4 + Storybook 10；组件已中性化（按钮/状态文字/信息行）共 9 个故事 + 颜色尺寸总览。README 以 Storybook 为**唯一事实源**重写，含 30 秒理解、术语表、四步新增组件、交付方式与 FAQ；四篇 docs 去掉了具体项目假设。已实测复制到仓库外 `npm install` + `build` 均 exit 0。
-- 下一步（方向已判定）：**R1 渲染规模化完成**（剔除/池化/统计/基准，图集按 ADR-010 暂缓）；**R2 确定性完成**——R2a Recording v2 + 事件级重演（浏览器 999 tick/10 事件 → CLI 事件对比 PASS），R2b 世界快照/恢复 + RNG 状态（浏览器 `h0 0eddd239 → h1 2a2a0dbc → 恢复 h2 0eddd239`），ADR-011。下一步 **R3 端口补全**：WebAudio 后端（静音回退 + mock 测试）与输入映射数据化。依据与验收见 `docs/audits/next-direction.md`。UI M2 拆组件仍可并行（应用侧）。
+- 下一步（方向已判定）：**R1 渲染规模化完成**；**R2 确定性完成**（事件级重演 + 世界快照/恢复，ADR-011）；**R3 端口补全完成**——R3a `createWebAudio`（静音回退、可注入上下文、4 单测，应用已切换），R3b `input-map` v1（键位→动作，`KeyW → up` 实测；鼠标重映射待端口变更）。R4 质量补强（覆盖率阈值、contacts/debugShapes 测试、更多演练）待做。依据与验收见 `docs/audits/next-direction.md`。UI M2 拆组件仍可并行（应用侧）。
 
 ## 当前缺口（2026-10-21 核对）
 

@@ -26,7 +26,7 @@
 | §2/§3 仓库与分层 | core 不外依赖、engine 不依赖 apps | 已达成，depcruise 真检查 | 无 | `checks/depcruise.mjs`，237 模块 0 违规 |
 | §4 ECS 内核 | World/scheduler/commands/events | sparse-set+SoA、七阶段、冲突拒绝、阶段末 flush | 无阻塞缺口 | `tests/world|scheduler|commands` |
 | §5 事件总线 | 同步/延迟/记录 | 三模式齐全 | 无 | `core/events.ts` |
-| §6 端口（10 个） | 冻结形状 + 实现 | 渲染/输入/物理/时钟/随机/存储/事件/日志/音频占位/ModHost 形状 | 音频无真实播放；ModHost 无加载器 | `ports/index.ts`、`impl/audio.ts`、`impl/logger.ts` |
+| §6 端口（10 个） | 冻结形状 + 实现 | 渲染/输入/物理/时钟/随机/存储/事件/日志/**音频 WebAudio**/ModHost 形状 | ModHost 无加载器（规格占位）；鼠标按键重映射需端口变更 | `ports/index.ts`、`impl/audio.ts`、`data/input-map.ts` |
 | §7 渲染 | Pixi 渲染表、七层、相机 | 已达成；贴图 Sprite + 失败回退几何；**相机剔除 + 渲染统计 + 视图池化（R1a/R1b）** | 图集暂缓（ADR-010，3 张贴图无收益） | `pixi-renderer.ts`、`render-cull.ts`、`view-pool.ts`、`pixi-views.ts` |
 | §8 物理 | 查询层（非求解器） | 形状/射线/sweep/contacts/debug/stats/网格 | contacts 与 debugShapes 无独立测试 | `impl/physics.ts`、`tests/physics` |
 | §9 确定性 | 哈希、录制、重演、三次一致 | 全部具备；分组哈希；startHash 守卫；**事件级重演 + 世界快照/恢复（R2a/R2b）** | RNG 流状态需调用方显式快照 | `determinism/*`、`core/world-state.ts`、`replay --repeat 3` |

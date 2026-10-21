@@ -6,7 +6,7 @@ import type { BoxSpec } from '@itb/engine/data';
 import { hashHex, Recorder, serialize, worldHashGroups } from '@itb/engine/determinism';
 import { Box, Bullet, Position, spawnBoxes } from '@itb/engine/demo';
 import { createPixiRenderer } from '@itb/engine/impl';
-import { createNullAudio } from '@itb/engine/audio';
+import { createWebAudio } from '@itb/engine/audio';
 import { createDumpSink } from '@itb/engine/diagnostics';
 import { createMemoryLogger } from '@itb/engine/logger';
 import { createPhysicsPort, PhysicsWorld } from '@itb/engine/physics';
@@ -15,6 +15,8 @@ import type { RenderItem } from '@itb/engine/ports';
 import { initialContent, watchContent } from './content.js';
 import { createControls } from './controls.js';
 import { createBrowserInput } from './input.js';
+import { parseInputMap } from '@itb/engine/data';
+import inputMapRaw from './data/input-map.json' with { type: 'json' };
 import { createSystems } from './system-registry.js';
 import { mountUi } from './ui/mount.js';
 import { createUiStore } from './ui/snapshot.js';
@@ -36,11 +38,14 @@ bus.startRecording();
 const commands = new CommandBuffer();
 const clock = new FixedClock(STEP_MS);
 const storage = createLocalStorage('itb:');
-const audio = createNullAudio({ enabled: true });
+const audio = createWebAudio({
+  contextFactory: () => (typeof AudioContext === 'undefined' ? null : new AudioContext()),
+});
 const dumpSink = createDumpSink({ storage, key: 'dumps', max: 20 });
 dumpSink.restore();
 const logger = createMemoryLogger({ max: 50 });
 
+const inputMapParsed = parseInputMap(inputMapRaw);
 const input = createBrowserInput(canvas, {
   toWorld: (x, y) => {
     const rect = canvas.getBoundingClientRect();
@@ -49,6 +54,7 @@ const input = createBrowserInput(canvas, {
       y: ((y - rect.top) / Math.max(rect.height, 1)) * HEIGHT,
     };
   },
+  ...(inputMapParsed.value === null ? {} : { map: inputMapParsed.value }),
 });
 
 const player = world.spawn();

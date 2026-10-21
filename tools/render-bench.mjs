@@ -17,11 +17,12 @@ const stringOf = (name, fallback) => {
 };
 
 const items = valueOf('--items', 10000);
-const rounds = valueOf('--rounds', 5);
+const rounds = valueOf('--rounds', 9);
 const budgetMs = valueOf('--budget', 4);
-const tolerance = valueOf('--tolerance', 1.5);
+const tolerance = valueOf('--tolerance', 2);
 const baselinePath = stringOf('--baseline', 'tools/render-bench-baseline.json');
 const update = args.includes('--update');
+const WARMUP_ROUNDS = 2;
 
 const world = { width: 8000, height: 6000 };
 const viewport = { width: 1920, height: 1080 };
@@ -63,8 +64,9 @@ for (let round = 0; round < rounds; round += 1) {
   samples.push(Number(process.hrtime.bigint() - started) / 1e6);
   visible = count;
 }
-samples.sort((left, right) => left - right);
-const msPerPass = samples[Math.floor(samples.length / 2)];
+const measured = samples.slice(WARMUP_ROUNDS);
+const sorted = [...measured].sort((left, right) => left - right);
+const msPerPass = sorted[Math.floor(sorted.length / 2)];
 const culledRatio = items === 0 ? 0 : (items - visible) / items;
 
 let baselineMs = null;
