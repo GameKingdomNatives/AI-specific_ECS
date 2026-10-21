@@ -3,6 +3,7 @@ export type { ComponentDef, EntityId, FieldKind, FieldMap, Values } from './type
 export { FixedClock } from './clock.js';
 export { Random, stream } from './random.js';
 export { entityGeneration, entityIndex, World } from './world.js';
+export type { ComponentSnapshot, WorldSnapshot } from './world.js';
 export { CommandBuffer } from './commands.js';
 export { EventBus } from './events.js';
 export type { EventPayload, EventRecord } from './events.js';

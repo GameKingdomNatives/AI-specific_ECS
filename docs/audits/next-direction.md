@@ -12,7 +12,7 @@
 | R1b 视图池化 + 代际标记 | **已完成** | `impl/view-pool.ts`、`pixi-views.ts`（lastSeen 代际替代每帧 Set）；实测开火 `views 59→67 / pooled 87→79`，停火回到 `57 / 89`（复用而非累积） |
 | R1c 图集 + render-bench 进门禁 | **基准已完成；图集暂缓** | `tools/render-bench.mjs` + `tools/render-bench-baseline.json` 进 gate（10000 项、95.3% 剔除、0.507ms 基线，预算 4ms）。图集按 ADR-010 暂缓：当前仅 3 张贴图，收益不可测，等 >32 张或 >2000 Sprite 再引入 |
 | R2a Recording v2 + 事件级重演 | **已完成** | 录制带 `events`；`replay --self-test` 与 `--app` 均比对事件；实测浏览器 999 tick / 10 事件，CLI `事件对比 PASS`；单测覆盖 v2 往返与首个事件偏离定位 |
-| R2b 世界快照/恢复 + 属性测试 | 待做 | — |
+| R2b 世界快照/恢复 + 属性测试 | **已完成** | `World.snapshot()/restore()`（实体代际/空闲表/组件列，可 JSON 往返）、`Random.snapshotState/restoreState`；单测 4 例；浏览器实测 `h0=0eddd239 → 开火 h1=2a2a0dbc → 恢复 h2=0eddd239` |
 
 ## 0. 一句话判断
 

@@ -1,38 +1,22 @@
 import type { ComponentDef, EntityId, FieldMap, RowValues, Values } from './types.js';
-import { isBoolField } from './types.js';
+import { defineComponent, isBoolField } from './types.js';
+import {
+  entityGeneration,
+  entityIndex,
+  growColumn,
+  packEntity,
+  readCell,
+  takeSnapshot,
+  worldCapacity,
+  writeCell,
+} from './world-state.js';
+import type { Column, StoreView, WorldSnapshot } from './world-state.js';
 
-const INDEX_BITS = 20;
-const INDEX_MASK = (1 << INDEX_BITS) - 1;
-const GEN_BITS = 11;
-const GEN_MASK = (1 << GEN_BITS) - 1;
+export { entityGeneration, entityIndex } from './world-state.js';
+export type { ComponentSnapshot, WorldSnapshot } from './world-state.js';
 
-type Column = Float64Array | Uint8Array;
-
-export function entityIndex(entity: EntityId): number {
-  return entity & INDEX_MASK;
-}
-
-export function entityGeneration(entity: EntityId): number {
-  return (entity >>> INDEX_BITS) & GEN_MASK;
-}
-
-function pack(index: number, generation: number): EntityId {
-  return index | (generation << INDEX_BITS);
-}
-
-function writeCell(column: Column, slot: number, value: number | boolean): void {
-  column[slot] = typeof value === 'boolean' ? (value ? 1 : 0) : value;
-}
-
-function readCell(column: Column, slot: number): number | boolean {
-  return column instanceof Uint8Array ? column[slot] === 1 : (column[slot] as number);
-}
-
-interface Store {
-  readonly def: ComponentDef;
-  readonly entities: EntityId[];
+interface Store extends StoreView {
   readonly slots: Map<EntityId, number>;
-  readonly columns: Map<string, Column>;
 }
 
 function createStore(def: ComponentDef): Store {
@@ -41,15 +25,6 @@ function createStore(def: ComponentDef): Store {
     columns.set(field, isBoolField(kind) ? new Uint8Array(8) : new Float64Array(8));
   }
   return { def, entities: [], slots: new Map<EntityId, number>(), columns };
-}
-
-function growColumn(column: Column, capacity: number): Column {
-  if (column.length >= capacity) {
-    return column;
-  }
-  const next = column instanceof Uint8Array ? new Uint8Array(capacity) : new Float64Array(capacity);
-  next.set(column);
-  return next;
 }
 
 /** 世界：实体表 + 每种组件一张稀疏集（稠密实体数组 + 列式字段数组）。 */
@@ -79,7 +54,7 @@ export class World {
     const generation = this.generations[index] ?? 0;
     this.alive[index] = 1;
     this.liveCount += 1;
-    return pack(index, generation);
+    return packEntity(index, generation);
   }
 
   despawn(entity: EntityId): boolean {
@@ -91,7 +66,7 @@ export class World {
       this.detach(store, entity);
     }
     this.alive[index] = 0;
-    this.generations[index] = ((entityGeneration(entity) + 1) & GEN_MASK) >>> 0;
+    this.generations[index] = ((entityGeneration(entity) + 1) & ((1 << 11) - 1)) >>> 0;
     this.free.push(index);
     this.liveCount -= 1;
     return true;
@@ -159,6 +134,44 @@ export class World {
         throw new Error(`组件 ${def.name} 没有字段 ${field}`);
       }
       writeCell(column, slot, value);
+    }
+  }
+
+  /** 导出可 JSON 化的完整状态；随机流状态需单独快照。 */
+  snapshot(): WorldSnapshot {
+    return takeSnapshot({
+      nextIndex: this.nextIndex,
+      liveCount: this.liveCount,
+      free: this.free,
+      generations: this.generations,
+      alive: this.alive,
+      stores: this.stores.values(),
+    });
+  }
+
+  /** 用快照替换当前状态；组件按名字与字段重建 store。 */
+  restore(snapshot: WorldSnapshot): void {
+    if (snapshot.alive.length !== snapshot.generations.length) {
+      throw new Error('世界快照长度不一致');
+    }
+    const capacity = worldCapacity(snapshot);
+    this.generations = new Uint32Array(capacity);
+    this.alive = new Uint8Array(capacity);
+    this.generations.set(snapshot.generations);
+    this.alive.set(snapshot.alive);
+    this.nextIndex = snapshot.nextIndex;
+    this.liveCount = snapshot.liveCount;
+    this.free.length = 0;
+    this.free.push(...snapshot.free);
+    this.stores.clear();
+    for (const component of snapshot.components) {
+      if (component.entities.length !== component.rows.length) {
+        throw new Error(`组件快照长度不一致：${component.name}`);
+      }
+      const store = this.storeFor(defineComponent(component.name, component.fields));
+      for (let slot = 0; slot < component.entities.length; slot += 1) {
+        this.attach(store, component.entities[slot] as EntityId, component.rows[slot] ?? {});
+      }
     }
   }
 

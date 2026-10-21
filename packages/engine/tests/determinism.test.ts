@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CommandBuffer, defineComponent, EventBus, Scheduler, World } from '../src/core/index.js';
+import { CommandBuffer, defineComponent, entityIndex, EventBus, Scheduler, stream, World } from '../src/core/index.js';
 import type { SystemDef } from '../src/core/index.js';
 import type { InputSnapshot } from '../src/ports/index.js';
 import { deserialize, firstEventDivergence, hashHex, Recorder, replay, serialize, toSnapshot, worldHash, worldHashGroups } from '../src/determinism/index.js';
@@ -175,4 +175,56 @@ test('重演可收集事件，首个事件偏离可定位', () => {
   assert.equal(firstEventDivergence(result.events, expected), null);
   expected[1] = { tick: 2, type: 'moved', payload: { x: 99 } };
   assert.deepEqual(firstEventDivergence(result.events, expected), { index: 1, tick: 2 });
+});
+
+test('世界快照恢复后哈希一致，且可 JSON 往返', () => {
+  const world = new World();
+  const first = world.spawn();
+  world.add(first, Position, { x: 1, y: 2 });
+  world.add(first, Tag, { value: 3 });
+  const second = world.spawn();
+  world.add(second, Position, { x: 4, y: 5 });
+  const third = world.spawn();
+  world.add(third, Tag, { value: 9 });
+  const groups = [[Position], [Position, Tag]] as const;
+  const before = worldHashGroups(world, groups);
+  const snapshot = world.snapshot();
+
+  world.set(first, Position, { x: 99 });
+  world.despawn(second);
+  assert.notEqual(worldHashGroups(world, groups), before);
+
+  world.restore(snapshot);
+  assert.equal(worldHashGroups(world, groups), before);
+  assert.equal(world.aliveCount, 3);
+
+  const fresh = new World();
+  fresh.restore(JSON.parse(JSON.stringify(snapshot)));
+  assert.equal(worldHashGroups(fresh, groups), before);
+  assert.equal(fresh.aliveCount, 3);
+});
+
+test('恢复后代际与空闲表继续有效', () => {
+  const world = new World();
+  const original = world.spawn();
+  world.add(original, Position, { x: 0, y: 0 });
+  const snapshot = world.snapshot();
+
+  world.despawn(original);
+  const reused = world.spawn();
+  assert.equal(entityIndex(reused), entityIndex(original), '空闲表应复用下标');
+  assert.notEqual(reused, original, '代际必须递增');
+
+  world.restore(snapshot);
+  assert.equal(world.isAlive(original), true);
+  const next = world.spawn();
+  assert.equal(entityIndex(next), entityIndex(original) + 1, '恢复后 nextIndex 继续递增');
+});
+
+test('随机流状态可快照与恢复', () => {
+  const random = stream(7, 'fx');
+  const state = random.snapshotState();
+  const sequence = [random.next(), random.next(), random.next()];
+  random.restoreState(state);
+  assert.deepEqual([random.next(), random.next(), random.next()], sequence);
 });

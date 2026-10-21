@@ -1,6 +1,6 @@
-# ADR-011 确定性事件级重演与世界快照
+﻿# ADR-011 确定性事件级重演与世界快照
 
-- 状态：已接受（事件级已完成；世界快照随 R2b 落地）
+- 状态：已接受（事件级与快照均已落地，2026-10-21）
 - 日期：2026-10-21
 - 相关：ADR-005（分组哈希）、`docs/audits/next-direction.md`
 
@@ -15,7 +15,7 @@
 3. **总线**：新增 `snapshotRecording()` 与 `drainRecording()`；`drain` 供逐 tick 比对使用，录制不中断。
 4. **重演**：`ReplayHooks.events?` 取走自上次调用以来产生的事件；`ReplayResult.events` 带出；`firstEventDivergence` 按 tick/type/payload（JSON 口径）定位首个偏离。
 5. **工具**：`tools/replay.mjs` 的 `--self-test` 与 `--app` 都比对事件序列；`--app` 在录制带 `events` 时输出 `事件对比 PASS/FAIL（tick N）`。该文件属保护路径，本次修改按 `ALLOW_PROTECTED=1` 执行并记录于本 ADR。
-6. **快照（R2b）**：`World.snapshot()/restore()` 覆盖实体代际、空闲表、组件列；RNG 流状态随快照附带；恢复后哈希必须一致。
+6. **快照（R2b）**：`World.snapshot()/restore()` 覆盖实体代际、空闲表、组件列；`Random.snapshotState()/restoreState()` 单独快照随机流；恢复后哈希一致。实现拆分见 `core/world-state.ts`（列操作与快照）与 `core/world.ts`（store 管理），以守住 300 行文件预算。
 
 ## 后果
 

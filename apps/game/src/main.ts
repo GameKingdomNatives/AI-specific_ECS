@@ -262,6 +262,8 @@ Object.assign(globalThis, {
     dumps: () => dumpSink.list(),
     logs: () => logger.entries(),
     audio: () => audio.stats(),
+    worldSnapshot: () => world.snapshot(),
+    restoreWorld: (snapshot: Parameters<typeof world.restore>[0]) => world.restore(snapshot),
     render: () => renderer.stats(),
     setCulling: (enabled: boolean) => renderer.setCulling(enabled),
     camera: (x: number, y: number, zoom: number) => renderer.setCamera(x, y, zoom),

@@ -43,6 +43,15 @@ export class Random {
     return Math.floor(this.next() * maxExclusive);
   }
 
+  /** 快照当前状态（不含 baseSeed）；与 restoreState 配对用于回滚。 */
+  snapshotState(): number {
+    return this.state;
+  }
+
+  restoreState(state: number): void {
+    this.state = state >>> 0;
+  }
+
   /**
    * 派生独立流：由「基础种子 + 流名」决定，不受当前已抽取次数影响。
    * 这样系统顺序调整不会让另一个系统的随机序列整体漂移。
