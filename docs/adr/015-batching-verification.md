@@ -26,12 +26,24 @@ ADR-014 实测 3000 项提交 avg 0.95ms、p95 1.4ms：均值压线、p95 超预
 
 比值 **0.167（约 6 倍）**。Particle 支持 x/y/scale/rotation/anchor/tint/alpha/texture，覆盖当前 `RenderItem` 的变换字段。
 
-## 决定
+## 实施结果（2026-10-22，`?batch=1`）
 
-1. **值得做**：在 `impl` 内为「带贴图的视图」增加 ParticleContainer 路径，按 `(layer, texture)` 分组；几何图元（Graphics）保持原路径。端口与 `RenderItem` 不变。
-2. **先做可开关原型**：`?batch=1` 启用，默认仍走现有 Sprite 路径；用 `?stress=3000` 对比 submit avg/p95 与截图，确认无视觉回归后再决定默认值。
-3. **验收**：3000 项 batch 开启时 submit avg < 0.9ms 且 p95 < 1.4ms（相对 ADR-014 基线）；截图逐项无错位/丢纹理；关闭开关行为与现在完全一致。
-4. **风险**：多纹理是否退化为多批次、ParticleContainer 的排序/层级语义、池化与 HMR 清理；任一项不满足即回退到 Sprite 路径并记录。
+- 视图层新增 `impl/particle-batch.ts`：带贴图项按 `(layer, texture)` 分桶到 `ParticleContainer`；`impl/texture-cache.ts` 抽出贴图缓存；`pixi-views.ts` 增加 `batching` 选项，几何图元保持原路径。
+- `RenderStats` 增 `batching` 与 `batched`，避免「看起来像」的误判；HUD 同步。
+- 浏览器实测（`?stress=3000`，3001 项全可见，窗口 1280×720 左右）：
+
+| 模式 | avg | p95 | batched |
+|---|---|---|---|
+| 合批 `?batch=1` | **0.49ms** | **0.80ms** | 3001 |
+| 未合批 | 1.16ms | 1.80ms | 0 |
+
+- 视觉：两张截图（`artifacts/panel/batch-on.png` / `batch-off.png`）均为 3000 方块 + HUD，粗看无缺失/错位；由于画面在动，像素级 diff 不可用。
+- 第一版实现因每帧重建字符串键 + 重复 Map 查找反而更慢（1.33ms）；改为条目缓存 texture/layer 后降到 0.49ms。
+
+## 决定（更新）
+
+**保留为可开关路径，默认关闭**：`?batch=1` 开启。原因：同一层内不同贴图的相对绘制顺序由容器创建顺序决定，混合贴图层的 z 序尚未用真实场景验证；HMR 下的 ParticleContainer 清理也未覆盖。等这两项验证后再决定是否默认开启。验收值（avg<0.9、p95<1.4）已达成。
+
 
 ## 后果
 

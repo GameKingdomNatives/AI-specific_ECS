@@ -17,6 +17,8 @@ export interface PixiRendererOptions {
   readonly preserveDrawingBuffer?: boolean;
   /** 调试用：把 Pixi Application 挂到 globalThis.__pixiApp。 */
   readonly debugGlobal?: boolean;
+  /** 带贴图的项走 ParticleContainer 合批；默认关闭（ADR-015）。 */
+  readonly batching?: boolean;
 }
 
 export interface RenderStats {
@@ -29,6 +31,9 @@ export interface RenderStats {
   readonly submitMs: number;
   readonly submitAvgMs: number;
   readonly submitP95Ms: number;
+  /** 是否启用了合批路径，以及本帧进入 ParticleContainer 的项数。 */
+  readonly batching: boolean;
+  readonly batched: number;
 }
 
 export interface PixiRenderer extends IRenderer {
@@ -106,6 +111,8 @@ function makeStats(
   views: number,
   pooled: number,
   timing: FrameTiming,
+  batching: boolean,
+  batched: number,
 ): RenderStats {
   return {
     total,
@@ -116,6 +123,8 @@ function makeStats(
     submitMs: timing.last,
     submitAvgMs: timing.avg,
     submitP95Ms: timing.p95,
+    batching,
+    batched,
   };
 }
 
@@ -126,9 +135,10 @@ function createSubmitter(
   viewLayer: ReturnType<typeof createViewLayer>,
   camera: { get: () => { x: number; y: number; zoom: number }; apply: () => void },
   state: CullingState,
+  batching: boolean,
 ): { submit: (items: readonly RenderItem[]) => void; stats: () => RenderStats } {
   const timings = createFrameStats(60);
-  let stats: RenderStats = makeStats(0, 0, 0, 0, EMPTY_TIMING);
+  let stats: RenderStats = makeStats(0, 0, 0, 0, EMPTY_TIMING, batching, 0);
   const submit = (items: readonly RenderItem[]): void => {
     const started = performance.now();
     let submitted = 0;
@@ -150,7 +160,7 @@ function createSubmitter(
     }
     camera.apply();
     timings.push(performance.now() - started);
-    stats = makeStats(items.length, submitted, viewLayer.size(), poolSize(), timings.get());
+    stats = makeStats(items.length, submitted, viewLayer.size(), poolSize(), timings.get(), batching, viewLayer.batchedSize());
   };
   return { submit, stats: () => stats };
 }
@@ -178,10 +188,10 @@ export async function createPixiRenderer(
 
   const layers = createLayers(app);
   const camera = createCamera(layers);
-  const viewLayer = createViewLayer(layers);
+  const viewLayer = createViewLayer(layers, { batching: options.batching === true });
   const debugDraw = createDebugDraw(layers);
   const culling: CullingState = { enabled: true };
-  const submitter = createSubmitter(viewLayer, camera, culling);
+  const submitter = createSubmitter(viewLayer, camera, culling, options.batching === true);
   camera.apply();
 
   return {

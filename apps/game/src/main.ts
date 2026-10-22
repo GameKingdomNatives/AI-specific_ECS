@@ -164,9 +164,11 @@ watchContent((state) => {
 });
 
 const captureMode = new URLSearchParams(location.search).has('capture');
+const batching = new URLSearchParams(location.search).get('batch') === '1';
 const renderer = await createPixiRenderer(canvas, {
   preserveDrawingBuffer: captureMode,
   debugGlobal: captureMode,
+  batching,
 });
 renderer.setCamera(WIDTH / 2, HEIGHT / 2, 1);
 

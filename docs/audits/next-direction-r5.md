@@ -27,7 +27,7 @@
 
 | # | 规格 | 现状 | 差距 |
 |---|---|---|---|
-| G1 | §7「渲染器做 diff，把连续同类图元塞进 Pixi 批处理」 | 有按 id 的视图池化与相机剔除；每个实体仍是独立 Container | **没有合批**：几何图元每项一个 Graphics，纹理项一个 Sprite；图集按 ADR-010 暂缓 |
+| G1 | §7「渲染器做 diff，把连续同类图元塞进 Pixi 批处理」 | 视图池化 + 剔除 + **ParticleContainer 合批（可选，默认关）** | 几何图元仍逐项 Graphics；混合贴图 z 序待验证；图集暂缓（ADR-010） |
 | G2 | §13「单帧渲染提交 ≤1ms」 | `render-bench` 只测剔除判定（0.5ms/万项） | **没有 submit 耗时读数**：`RenderStats` 无 `submitMs`，3000 项提交未测 |
 | G3 | §19「违规演练：越界 import、删测试、改阈值」 | `drill.mjs` 三类 = 越界 import / 文件超预算 / `as any` | **缺「删测试」「改阈值」**；且 registry 没有「每个系统至少 1 个契约测试」的存在性检查，删测试可能漏过 |
 | G4 | §19「删掉 `apps/game` 后 engine 仍可独立构建与测试」 | 根 `tsc -b` 一起构建 | **无自动检查**：没有 engine 单独构建的步骤 |
@@ -51,11 +51,11 @@
 
 **验收**：`grep Onlook` 只剩 ADR/教训中的「已排除」；capabilities 无「待第三批」「9 个端口」等旧说法。
 
-### R5 · 渲染收尾（R5a/R5b 已完成；R5c 验证完成、实施待做）
+### R5 · 渲染收尾（R5a/R5b/R5c 均已实现；合批默认关闭待验证）
 
 1. ~~**submit 计时**~~：已完成，`RenderStats.submitMs/submitAvgMs/submitP95Ms`，HUD 显示 `sub x.xxms`（ADR-014）。
 2. ~~**3000 项提交基准**~~：已完成，`tools/submit-bench.mjs` 基线 0.432ms，进门禁；浏览器 `?stress=3000` 实测 avg 0.95ms / p95 1.4ms。
-3. **合批验证（已完成）**：`apps/game/batch-probe.html` 对照 3000 Sprite vs 3000 Particle：中位 1.2ms → **0.2ms**（约 6 倍，ADR-015）。**实施待做**：为带贴图视图加 ParticleContainer 路径（按 layer+texture 分组），`?batch=1` 开关，几何图元保持原路径；验收 avg<0.9ms、p95<1.4ms 且截图无回归。
+3. **合批验证（已完成）**：`apps/game/batch-probe.html` 对照 3000 Sprite vs 3000 Particle：中位 1.2ms → **0.2ms**（约 6 倍，ADR-015）。**实施完成（默认关闭）**：`particle-batch.ts` 按 layer+texture 分桶，`?batch=1` 开启；实测 avg 0.49ms / p95 0.80ms（未合批 1.16/1.80），batched=3001；默认关闭待混合贴图 z 序与 HMR 清理验证。
 4. **验收**：3000 项 avg ≤1ms 已达成；p95 1.4ms 未达标，R5c 用原型验证合批后再判定；`submit-bench` 已进门禁。
 
 **风险**：ParticleContainer 对旋转/逐项缩放支持有限（需验证）；分组 Graphics 在 tint 多样时退化。回退：保留现有 per-item 路径开关。

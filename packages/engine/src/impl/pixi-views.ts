@@ -1,6 +1,7 @@
-import { Assets } from 'pixi.js';
 import type { Container, Texture } from 'pixi.js';
 import type { RenderItem } from '../ports/index.js';
+import { createBatchLayer } from './particle-batch.js';
+import { ensureTexture } from './texture-cache.js';
 import {
   acquireShape,
   acquireSprite,
@@ -17,32 +18,14 @@ interface View {
   lastSeen: number;
 }
 
-const textures = new Map<string, Texture>();
-const pending = new Set<string>();
-
-/** 贴图按需异步加载；失败静默回退到几何图形，不阻塞渲染循环。 */
-function ensureTexture(url: string): Texture | null {
-  const cached = textures.get(url);
-  if (cached !== undefined) {
-    return cached;
-  }
-  if (!pending.has(url)) {
-    pending.add(url);
-    Assets.load(url)
-      .then((texture: Texture) => {
-        textures.set(url, texture);
-        pending.delete(url);
-      })
-      .catch(() => {
-        pending.delete(url);
-      });
-  }
-  return null;
+export interface ViewLayerOptions {
+  /** 带贴图的项走 ParticleContainer 合批；默认关闭，保持 Sprite 路径。 */
+  readonly batching?: boolean;
 }
 
 function buildNode(item: RenderItem): { node: Container; textureKey: string | null; poolKey: string } {
   const key = item.texture ?? null;
-  const texture = key === null ? null : ensureTexture(key);
+  const texture: Texture | null = key === null ? null : ensureTexture(key);
   if (key !== null && texture !== null) {
     return { node: acquireSprite(texture, key), textureKey: key, poolKey: spritePoolKey(key) };
   }
@@ -109,11 +92,16 @@ function releaseUnseen(views: Map<number, View>, frame: number): void {
   }
 }
 
-export function createViewLayer(layers: Container[]): {
+export function createViewLayer(
+  layers: Container[],
+  options: ViewLayerOptions = {},
+): {
   submit: (items: readonly RenderItem[], isItemVisible?: (item: RenderItem) => boolean) => void;
   size: () => number;
+  batchedSize: () => number;
 } {
   const views = new Map<number, View>();
+  const batch = options.batching === true ? createBatchLayer(layers) : null;
   let frame = 0;
 
   return {
@@ -122,6 +110,9 @@ export function createViewLayer(layers: Container[]): {
       for (const item of items) {
         const visible = isItemVisible === undefined ? true : isItemVisible(item);
         if (visible) {
+          if (batch !== null && item.texture !== undefined && batch.sync(item, frame)) {
+            continue;
+          }
           syncView(views, layers, item, frame);
           continue;
         }
@@ -130,11 +121,16 @@ export function createViewLayer(layers: Container[]): {
           hidden.node.visible = false;
           hidden.lastSeen = frame;
         }
+        batch?.hide(item.id, frame);
       }
       releaseUnseen(views, frame);
+      batch?.releaseUnseen(frame);
     },
     size(): number {
-      return views.size;
+      return views.size + (batch?.size() ?? 0);
+    },
+    batchedSize(): number {
+      return batch?.size() ?? 0;
     },
   };
 }

@@ -16,7 +16,8 @@
 | 端口契约（10 个） | `packages/engine/src/ports` | ports | 已冻结（ADR-006） |
 | 方块运动夹具 | `demo.movement` | demo | 已具备 |
 | 渲染表提交 | `IRenderer.submit`（Pixi 实现） | impl | 已具备 |
-| 相机剔除 + 渲染统计 + 提交计时 | `impl/render-cull.ts`、`impl/frame-stats.ts`、`PixiRenderer.stats()/setCulling()` | impl | 已具备（submitMs/avg/p95；合批待 R5c） |
+| 相机剔除 + 渲染统计 + 提交计时 | `impl/render-cull.ts`、`impl/frame-stats.ts`、`PixiRenderer.stats()/setCulling()` | impl | 已具备（submitMs/avg/p95） |
+| 贴图合批（可选） | `impl/particle-batch.ts`、`?batch=1` | impl+app | 已具备（默认关闭；3000 项 avg 0.49ms） |
 | 视图池化 + 代际清理 | `impl/view-pool.ts`、`pixi-views.ts` | impl | 已具备 |
 | 渲染剔除基准 | `tools/render-bench.mjs`（万项、预算 4ms） | tools | 已具备（进门禁） |
 | 提交簿记基准 | `tools/submit-bench.mjs`（3000 项、基线 0.432ms、预算 2ms） | tools | 已具备（进门禁） |
