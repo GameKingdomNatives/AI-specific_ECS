@@ -223,6 +223,7 @@ function renderTable(alpha: number, previous: Map<EntityId, { x: number; y: numb
       texture: '/assets/bullet.png',
     });
   }
+  items.push({ id: -1, x: WIDTH / 2, y: 70, rot: 0, sx: 1, sy: 1, layer: 5, shape: 'rect', tint: 0xffaa66, alpha: 1, visible: true, text: `KILLS ${kills}`, font: 'monospace', fontSize: 28 });
   return items;
 }
 

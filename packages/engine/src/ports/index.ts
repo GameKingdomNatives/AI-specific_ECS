@@ -35,6 +35,10 @@ export interface RenderItem {
   readonly visible: boolean;
   /** 可选贴图 URL；加载完成前退回 shape 几何图形。 */
   readonly texture?: string;
+  /** 可选文本：设置后渲染为文本视图（tint 作填充色，sx/sy 忽略）。 */
+  readonly text?: string;
+  readonly font?: string;
+  readonly fontSize?: number;
 }
 
 export interface IRenderer {

@@ -2,9 +2,11 @@ import type { Container, Texture } from 'pixi.js';
 import type { RenderItem } from '../ports/index.js';
 import { createBatchLayer } from './particle-batch.js';
 import { ensureTexture } from './texture-cache.js';
+import { textKey } from './text-style.js';
 import {
   acquireShape,
   acquireSprite,
+  acquireText,
   releaseView,
   shapePoolKey,
   spritePoolKey,
@@ -24,6 +26,10 @@ export interface ViewLayerOptions {
 }
 
 function buildNode(item: RenderItem): { node: Container; textureKey: string | null; poolKey: string } {
+  if (item.text !== undefined) {
+    const key = textKey(item.text, item.font, item.fontSize, item.tint);
+    return { node: acquireText(item.text, item.font, item.fontSize, item.tint), textureKey: key, poolKey: key };
+  }
   const key = item.texture ?? null;
   const texture: Texture | null = key === null ? null : ensureTexture(key);
   if (key !== null && texture !== null) {
@@ -54,7 +60,9 @@ function syncView(
   item: RenderItem,
   frame: number,
 ): void {
-  const desiredKey = item.texture ?? null;
+  const desiredKey = item.text !== undefined
+    ? textKey(item.text, item.font, item.fontSize, item.tint)
+    : item.texture ?? null;
   let view = views.get(item.id);
   if (view === undefined || view.textureKey !== desiredKey) {
     if (view !== undefined) {

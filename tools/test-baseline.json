@@ -1,5 +1,5 @@
 {
-  "minTestFiles": 26,
+  "minTestFiles": 27,
   "contractTests": [
     "bridge.contract.test.ts",
     "demo.contract.test.ts",

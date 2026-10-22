@@ -17,7 +17,8 @@
 | 随机流状态快照 | `Random.snapshotState/restoreState` | core | 已具备 |
 | 端口契约（10 个） | `packages/engine/src/ports` | ports | 已冻结（ADR-006） |
 | 方块运动夹具 | `demo.movement` | demo | 已具备 |
-| 渲染表提交 | `IRenderer.submit`（Pixi 实现） | impl | 已具备 |
+| 渲染表提交 | `IRenderer.submit`（Pixi 实现，图元/贴图/文本） | impl | 已具备 |
+| 文本渲染 | `RenderItem.text/font/fontSize` + Pixi Text 池化 | impl | 已具备（HARD，ADR-020） |
 | 相机剔除 + 渲染统计 + 提交计时 | `impl/render-cull.ts`、`impl/frame-stats.ts`、`PixiRenderer.stats()/setCulling()` | impl | 已具备（submitMs/avg/p95） |
 | 相机抖动 | `PixiRenderer.shake` + `impl/camera-shake.ts`（命中事件触发） | impl+app | 已具备（ADR-019） |
 | 渲染插值 | `core/interpolate.ts` + `FixedClock.alpha` + `capturePoses` | core+app | 已具备（ADR-019） |

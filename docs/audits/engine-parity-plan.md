@@ -62,11 +62,11 @@
 
 **验收**：新增测试通过；全量门禁 PASS；重演 CLI 对 invalid 录制给出可读拒绝。
 
-### B2 · 表现能力（抖动/插值已完成；文本待做）
+### B2 · 表现能力（已完成，ADR-019/020）
 
-5. **PG-04 文本渲染**（待做；HARD：`RenderItem.text/font/size`，更新 `port-contract.json` + ADR-020）：
-   - 渲染表增可选文本字段；`PixiRenderer` 增加文本视图（Canvas 纹理缓存按 `(text,font,size,color)` 键复用），失败回退几何；
-   - 单元：纯缓存键/命中级逻辑；浏览器：HUD 外的场景文本可见截图。
+5. ~~**PG-04 文本渲染**~~（已完成；HARD：`RenderItem.text/font/fontSize`，`port-contract.json` 已更新 + ADR-020）：
+   - `Pixi Text` 按 `(text,font,size,tint)` 池化；默认 monospace/16、字号取整；文本变化即重建视图；
+   - 单测 `text-style`（默认/夹取/池键）；浏览器 OCR 读到 `KILLS 0`，射击后读到 `KILLS 29`，`vis` 恒为实体数 +1。
 6. ~~**PG-05 相机抖动**~~（已完成，ADR-019）：`PixiRenderer.shake(amp, ms)`（impl，不改端口），衰减由 tick/时间驱动；命中事件触发；浏览器验证。
 7. ~~**PG-06 渲染插值**~~（已完成，ADR-019）：引擎纯函数 `interpolate(prev, curr, alpha)` + 应用层 prev/current 位置表；`renderTable(alpha)`；补纯函数测试；固定步长逻辑不变。
 

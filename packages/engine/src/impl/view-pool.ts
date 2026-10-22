@@ -1,6 +1,7 @@
-import { Graphics, Sprite } from 'pixi.js';
+import { Graphics, Sprite, Text } from 'pixi.js';
 import type { Container, Texture } from 'pixi.js';
 import type { RenderShape } from '../ports/index.js';
+import { resolveTextStyle, textKey } from './text-style.js';
 
 /**
  * 视图池：按「形状」或「贴图 URL」复用 Container，避免实体反复增删时
@@ -25,6 +26,27 @@ export function shapePoolKey(shape: RenderShape): string {
 
 export function spritePoolKey(textureKey: string): string {
   return `tex:${textureKey}`;
+}
+
+/** 文本视图：Pixi Text 自身走 Canvas 纹理缓存；池键由内容/字体/字号/颜色决定。 */
+export function acquireText(
+  text: string,
+  font: string | undefined,
+  fontSize: number | undefined,
+  tint: number,
+): Container {
+  const key = textKey(text, font, fontSize, tint);
+  const reused = pools.get(key)?.pop();
+  if (reused instanceof Text) {
+    return reused;
+  }
+  const style = resolveTextStyle(font, fontSize);
+  const node = new Text({
+    text,
+    style: { fontFamily: style.font, fontSize: style.size, fill: tint },
+  });
+  node.anchor.set(0.5);
+  return node;
 }
 
 export function acquireShape(shape: RenderShape): Container {
