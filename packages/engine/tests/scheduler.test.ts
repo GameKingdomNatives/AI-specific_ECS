@@ -81,3 +81,53 @@ test('阶段内按顺序执行，阶段末统一 flush 命令', () => {
   assert.deepEqual(seen, ['spawner', 'reader:1']);
   assert.equal(commands.size, 0);
 });
+
+test('dispose 逆序调用并清空系统', () => {
+  const calls: string[] = [];
+  const scheduler = new Scheduler();
+  scheduler.add(system('a', 'input', { dispose: () => calls.push('a') }));
+  scheduler.add(system('b', 'movement', { dispose: () => calls.push('b') }));
+  scheduler.build();
+  scheduler.dispose();
+  assert.deepEqual(calls, ['b', 'a']);
+  assert.equal(scheduler.orderNames.length, 0);
+});
+
+test('dispose 抛错不阻断其余系统清理', () => {
+  const calls: string[] = [];
+  const scheduler = new Scheduler();
+  scheduler.add(
+    system('bad', 'input', {
+      dispose: () => {
+        throw new Error('dispose failed');
+      },
+    }),
+  );
+  scheduler.add(system('good', 'movement', { dispose: () => calls.push('good') }));
+  scheduler.build();
+  scheduler.dispose();
+  assert.deepEqual(calls, ['good']);
+  assert.equal(scheduler.orderNames.length, 0);
+});
+
+test('熔断后标记 invalid，其余系统继续运行', () => {
+  const world = new World();
+  const bus = new EventBus();
+  const commands = new CommandBuffer();
+  let healthy = 0;
+  const scheduler = new Scheduler({ maxConsecutiveFailures: 2 });
+  scheduler.add(
+    system('broken', 'input', {
+      update: () => {
+        throw new Error('boom');
+      },
+    }),
+  );
+  scheduler.add(system('healthy', 'movement', { update: () => { healthy += 1; } }));
+  scheduler.run(world, bus, commands, 1);
+  assert.equal(scheduler.invalid, false);
+  scheduler.run(world, bus, commands, 2);
+  assert.equal(scheduler.invalid, true);
+  assert.deepEqual(scheduler.disabledSystems, ['broken']);
+  assert.equal(healthy, 2);
+});

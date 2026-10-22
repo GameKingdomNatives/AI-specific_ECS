@@ -30,8 +30,10 @@
 - 代价：新增基线文件需随测试增长维护（只增不减，成本很低）。
 - 回退：删除 drill 两条与 `engine-standalone` 步骤即可；测试基线可放宽。
 
-## 验收
+## R6b · HMR dispose 与脏局 invalid（2026-10-22）
 
-- `node tools/drill.mjs`：5/5「拦住了 PASS」。
-- 全量门禁含 `engine-standalone PASS` 与 `drill PASS`（2026-10-22 实测）。
-- 待续（R6b）：HMR 旧系统 dispose、脏局 invalid 标记。
+- `SystemDef` 增可选 `dispose?()`；`Scheduler.dispose()` 逆序调用、单个抛错不阻断，随后清空系统/失败计数/熔断集合。
+- `main.ts` 的 `applySystems` 在重建调度器前先 `scheduler.dispose()`，HMR 不再泄漏旧系统。
+- `Scheduler.invalid`：任一系统达到熔断阈值即置 true；`apps/game/src/validity.ts` 的 `RunState` 记录整局有效位，失效后停止录制并写日志/dump，`__itb.valid()` 可读。
+- 测试：`scheduler.test.ts` 增 3 例（逆序 dispose、dispose 抛错不阻断、熔断后 invalid 且其余系统继续）。
+

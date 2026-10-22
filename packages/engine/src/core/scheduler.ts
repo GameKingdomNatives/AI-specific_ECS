@@ -23,6 +23,8 @@ export interface SystemDef {
   readonly after?: readonly string[];
   readonly before?: readonly string[];
   readonly update: (ctx: SystemContext) => void;
+  /** 热替换或卸载时回收系统资源；调用方保证在停止 update 后执行。 */
+  readonly dispose?: () => void;
 }
 
 /**
@@ -35,6 +37,7 @@ export class Scheduler {
   private ready = false;
   private readonly failures = new Map<string, number>();
   private readonly disabled = new Set<string>();
+  private invalidGame = false;
   private readonly maxFailures: number;
   private readonly onError: SchedulerOptions['onSystemError'];
 
@@ -46,6 +49,29 @@ export class Scheduler {
   /** 已熔断的系统名：隔离发生在系统边界，其余系统照常运行。 */
   get disabledSystems(): readonly string[] {
     return [...this.disabled];
+  }
+
+  /** §9 脏局规则：任一系统熔断后整局标记 invalid（录制不再参与哈希回归）。 */
+  get invalid(): boolean {
+    return this.invalidGame;
+  }
+
+  /** 逆序回收系统资源并清空注册表；单个 dispose 抛错不阻断其余清理。 */
+  dispose(): void {
+    const list = this.ordered.length > 0 ? this.ordered : [...this.systems.values()];
+    for (let index = list.length - 1; index >= 0; index -= 1) {
+      try {
+        list[index]?.dispose?.();
+      } catch {
+        // HMR/卸载路径不以 dispose 错误为致命错误，继续清理其余系统。
+      }
+    }
+    this.systems.clear();
+    this.ordered = [];
+    this.ready = false;
+    this.failures.clear();
+    this.disabled.clear();
+    this.invalidGame = false;
   }
 
   failureCount(systemName: string): number {
@@ -101,6 +127,7 @@ export class Scheduler {
     this.onError?.(system.name, error, tick);
     if (count >= this.maxFailures) {
       this.disabled.add(system.name);
+      this.invalidGame = true;
     }
   }
 

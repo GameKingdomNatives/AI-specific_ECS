@@ -8,6 +8,7 @@ import { Box, Bullet, Position, spawnBoxes } from '@itb/engine/demo';
 import { createPixiRenderer } from '@itb/engine/impl';
 import { createGameAudio } from './sound.js';
 import { createUiIntents } from './ui-intents.js';
+import { createRunState } from './validity.js';
 import { createDumpSink } from '@itb/engine/diagnostics';
 import { createMemoryLogger } from '@itb/engine/logger';
 import { createPhysicsPort, PhysicsWorld } from '@itb/engine/physics';
@@ -63,6 +64,7 @@ world.add(player, Box, { size: 22, tint: 0xff8844 });
 let current = input.sample(0);
 
 let scheduler = createScheduler();
+const runState = createRunState();
 
 function onSystemError(system: string, error: unknown, tick: number): void {
   const stack = error instanceof Error ? (error.stack ?? '') : '';
@@ -77,6 +79,7 @@ function createScheduler(): Scheduler {
 }
 
 function applySystems(list: readonly SystemDef[]): void {
+  scheduler.dispose();
   scheduler = createScheduler();
   for (const system of list) {
     if (probe === null || system.name === probe) {
@@ -229,8 +232,12 @@ function frame(now: number): void {
   for (let index = 0; index < steps; index += 1) {
     const tick = startTick + index + 1;
     current = input.sample(tick);
-    recorder.record(tick, current);
+    if (runState.valid) recorder.record(tick, current);
     scheduler.run(world, bus, commands, tick);
+    if (scheduler.invalid && runState.markInvalid()) {
+      logger.error('game invalid', { tick, disabled: scheduler.disabledSystems });
+      dumpSink.persist();
+    }
   }
   if (clock.tick % 60 === 0) {
     lastHash = hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]]));
@@ -276,6 +283,7 @@ Object.assign(globalThis, {
     setCulling: (enabled: boolean) => renderer.setCulling(enabled),
     camera: (x: number, y: number, zoom: number) => renderer.setCamera(x, y, zoom),
     systems: () => scheduler.orderNames,
+    valid: () => runState.valid,
   },
 });
 

@@ -32,9 +32,10 @@
 | 无头回放 CLI | `node tools/replay.mjs`（自测/写录制/事件比对/`--app`） | tools | 已具备（实测 999 tick / 10 事件） |
 | 输入快照接入主循环 | `createBrowserInput`（app）＋每 tick 采样/录制 | app | 已具备 |
 | 输入映射（键位 → 动作） | `data/input-map.ts`、`apps/game/src/data/input-map.json` | data+app | 已具备（鼠标按钮重映射待 HARD） |
-| 单系统崩溃隔离 | `SchedulerOptions.maxConsecutiveFailures` / `disabledSystems` / `onSystemError` | core | 已具备（脏局 invalid 待做） |
+| 单系统崩溃隔离 | `SchedulerOptions.maxConsecutiveFailures` / `disabledSystems` / `onSystemError` | core | 已具备 |
+| 脏局失效标记 | `Scheduler.invalid` + `RunState`（停录制） | core+app | 已具备（§9） |
 | 系统探针页 | `?probe=<system>` | app | 已具备 |
-| 系统热替换（HMR） | `system-registry.ts` accept，保留世界状态 | app | 已具备（旧系统 dispose 待补） |
+| 系统热替换（HMR） | `system-registry.ts` accept + `Scheduler.dispose()`，保留世界状态 | app | 已具备（旧系统逆序 dispose） |
 | 内容热加载 | `content.ts`（JSON 模块更新 → 重新校验 → 重建实体） | app | 已具备 |
 | 诊断 dump（浏览器） | `__itb.dumps()` | app | 已具备 |
 | 逻辑帧基准 | `tools/bench.mjs`（3000 实体，历史基线对比） | tools | 已具备（最新 0.97ms） |

@@ -60,14 +60,14 @@
 
 **风险**：ParticleContainer 对旋转/逐项缩放支持有限（需验证）；分组 Graphics 在 tint 多样时退化。回退：保留现有 per-item 路径开关。
 
-### R6 · 验收补齐（R6a 已完成；R6b dispose/invalid 待做）
+### R6 · 验收补齐（R6a/R6b 均已完成）
 
 1. ~~**演练 3 类补齐**~~（已完成，ADR-016）：新增「删测试」与「改阈值」：
    - 删测试：临时删除一个契约测试文件 → `registry` 的「每个系统至少 1 个契约测试」检查必须失败（**先加这条检查**，否则删测试不会红）；
    - 改阈值：临时给 `tools/gate.mjs` 追加一行 → `tools/checks/gitfacts.mjs` 在未设 `ALLOW_PROTECTED` 时必须失败。
 2. ~~**engine 独立构建**~~（已完成）：门禁增 `engine-standalone` 步骤（`tsc -p packages/engine/tsconfig.json --noEmit`），全量 PASS。
-3. **HMR dispose**：`SystemDef` 增可选 `dispose?()`；`Scheduler.dispose()` 逆序调用；HMR 替换前调旧 scheduler.dispose；加一条隔离测试（假系统计数 dispose）。
-4. **脏局规则**：`onSystemError` 触达熔断阈值时把该局标 invalid（`__itb.valid` 可读），并停止录制/不参与哈希回归；补一条测试。
+3. ~~**HMR dispose**~~（已完成）：`SystemDef.dispose?()` + `Scheduler.dispose()` 逆序调用、抛错不阻断；`applySystems` 替换前先 dispose；3 个单测。
+4. ~~**脏局规则**~~（已完成）：`Scheduler.invalid` + `RunState`；失效后停录制、写日志/dump，`__itb.valid()` 可读。
 5. **验收**：门禁步骤新增 3 条且全绿；drill 输出 5 类全拦；HMR 测试通过。
 
 ### R7 · 可选（按需）
