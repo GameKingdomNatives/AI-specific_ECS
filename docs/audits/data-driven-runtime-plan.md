@@ -29,9 +29,10 @@
 - 应用 `component-meta.ts` 登记 Position/Box/BoxSpawner；检查器与“添加组件”完全由元数据渲染；删除 `component-kinds.ts`。
 - Storybook：`editor.stories.tsx` 展示 SceneTree/Inspector/ScheduleEditor/AssetBrowser（静态 props + noop 动作），glob 扩展；全量门禁 storybook 构建通过（ADR-033）。
 
-## D5 · 收口
-- 更新 `docs/audits/scene-editor-acceptance.md`（新增所有权/玩家/spawner/原地重建/元数据/Storybook 项）。
-- 全量门禁 PASS、handoff、目标完成。
+## D5 · 收口（已完成）
+- 更新 `docs/audits/scene-editor-acceptance.md`：补作者节点映射、玩家语义、spawner、原地重建、元数据/Storybook，15 项全有证据。
+- 记录接受的偏离（spawner 无节点、重建=重开一局、系统参数无 schema、Storybook 仅展示部件、同 tick 连点）。
+- 全量门禁 PASS，目标完成。
 
 ## AI 质量护栏（每阶段）
 - 契约优先：schema/类型/端口不变；新增行为先加测试或浏览器断言。
