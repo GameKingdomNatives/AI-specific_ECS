@@ -26,5 +26,5 @@ export {
   setComponentField,
 } from './edit.js';
 export type { MoveResult } from './edit.js';
-export { coerceFieldValue, defaultsFor, findComponentMeta } from './meta.js';
-export type { ComponentMeta, MetaField, MetaFieldKind } from './meta.js';
+export { coerceFieldValue, coerceParamValue, defaultsFor, findComponentMeta, validateSystemParams } from './meta.js';
+export type { ComponentMeta, MetaField, MetaFieldKind, ParamField, ParamKind, ParamValue, SystemMeta } from './meta.js';

@@ -1,7 +1,6 @@
 /// <reference types="vite/client" />
 import './ui/app.css';
-import { CommandBuffer, EventBus, FixedClock, Scheduler, World } from '@itb/engine/core';
-import type { EntityId, SystemDef } from '@itb/engine/core';
+import { CommandBuffer, EventBus, FixedClock, Scheduler, World, type EntityId, type SystemDef } from '@itb/engine/core';
 import type { BoxSpec } from '@itb/engine/data';
 import { hashHex, Recorder, serialize, worldHashGroups } from '@itb/engine/determinism';
 import { Box, BoxSpawner, Bullet, Position, spawnBoxes } from '@itb/engine/demo';
@@ -19,16 +18,15 @@ import { createMemoryLogger } from '@itb/engine/logger';
 import { createPhysicsPort, PhysicsWorld } from '@itb/engine/physics';
 import { createLocalStorage, createSaveStore } from '@itb/engine/storage';
 import { initialContent, watchContent } from './content.js';
-import { createControls } from './controls.js';
-import type { SavePayload } from './controls.js';
+import { createControls, type SavePayload } from './controls.js';
 import { createBrowserInput } from './input.js';
 import { parseInputMap } from '@itb/engine/data';
 import inputMapRaw from './data/input-map.json' with { type: 'json' };
-import { createSystems } from './system-registry.js';
+import { createSceneSystems } from './system-registry.js';
 import { instantiateSceneState, loadSceneRuntime } from './scene-runtime.js';
 import { pickSystems, resolvePlayer } from './scene-bootstrap.js';
-import { parseScene } from '@itb/engine/scene';
-import type { Scene } from '@itb/engine/scene';
+import { validateSceneSystemParams } from './editor/system-meta.js';
+import { parseScene, type Scene } from '@itb/engine/scene';
 import { mountUi } from './ui/mount.js';
 import { createUiStore } from './ui/snapshot.js';
 
@@ -106,8 +104,7 @@ let deps = {
   getInput: (): typeof current => current,
   physics: createPhysicsPort(new PhysicsWorld()),
 };
-const baseSystems = createSystems(deps);
-applySystems(pickSystems(baseSystems, sceneResult.loaded));
+applySystems(pickSystems(sceneSystems(), sceneResult.loaded));
 
 let kills = 0;
 bus.on('demo.hit', () => { kills += 1; renderer.shake(10, 180); });
@@ -130,12 +127,13 @@ function sceneLabel(): string {
 function playerLabel(): string {
   return player < 0 ? 'missing' : 'ok';
 }
-
 function depsFor(playerId: number) {
   return { width: WIDTH, height: HEIGHT, player: playerId, getInput: (): typeof current => current, physics: createPhysicsPort(new PhysicsWorld()) };
 }
 
-/** 原地重建：新世界/调度器/物理端口，renderer 与编辑器保持不变。 */
+function sceneSystems(): SystemDef[] {
+  return createSceneSystems(deps, sceneResult.loaded?.scene ?? null);
+}
 function rebuild(scene: Scene | null): { ok: boolean; issues: string[] } {
   scheduler.dispose();
   world = new World();
@@ -144,7 +142,7 @@ function rebuild(scene: Scene | null): { ok: boolean; issues: string[] } {
   player = resolvePlayer(world, sceneResult.loaded, { position: Position, box: Box }, WIDTH, HEIGHT) ?? -1;
   deps = depsFor(player);
   scheduler = createScheduler();
-  applySystems(pickSystems(createSystems(deps), sceneResult.loaded));
+  applySystems(pickSystems(sceneSystems(), sceneResult.loaded));
   boxes = sceneResult.loaded === null ? spawnSpec(initial.spec) : [];
   runState = createRunState();
   kills = 0;
@@ -158,6 +156,8 @@ let lastAppliedScene = '';
 function applySceneDocument(raw: unknown): { ok: boolean; issues: string[] } {
   const parsed = parseScene(raw);
   if (!parsed.ok) return { ok: false, issues: parsed.issues.map((issue) => issue.message) };
+  const paramIssues = validateSceneSystemParams(parsed.value);
+  if (paramIssues.length > 0) return { ok: false, issues: paramIssues.map((issue) => issue.message) };
   const json = JSON.stringify(parsed.value);
   if (json === lastAppliedScene) return { ok: true, issues: [] };
   lastAppliedScene = json;

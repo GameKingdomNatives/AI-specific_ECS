@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { PHASES } from '@itb/engine/core';
 import type { Phase } from '@itb/engine/core';
-import type { Scene } from '@itb/engine/scene';
+import type { ParamField, Scene } from '@itb/engine/scene';
+import { coerceParamValue } from '@itb/engine/scene';
 import type { ScheduleActions } from './schedule-actions.js';
+import { SYSTEM_META_BY_ID } from './system-meta.js';
 
 function coerceParam(raw: string, previous: number | string | boolean | undefined): number | string | boolean {
   if (typeof previous === 'number' || (previous === undefined && /^-?\d+(\.\d+)?$/.test(raw))) {
@@ -12,14 +14,45 @@ function coerceParam(raw: string, previous: number | string | boolean | undefine
   return raw;
 }
 
-function ParamRows(props: { scene: Scene; id: string; actions: ScheduleActions }) {
-  const system = props.scene.systems?.find((entry) => entry.id === props.id);
-  const params = Object.entries(system?.params ?? {});
-  const [key, setKey] = useState('');
-  const [value, setValue] = useState('');
+function MetaParamRow(props: { id: string; field: ParamField; current: number | string | boolean | undefined; actions: ScheduleActions }) {
+  const { field } = props;
+  const value = props.current ?? field.defaultValue;
+  const change = (raw: string | boolean): void => props.actions.setParam(props.id, field.key, coerceParamValue(field, raw));
+  return (
+    <div className="flex items-center gap-1 py-0.5" title={field.key}>
+      <span className="w-20 truncate text-neutral-500">{field.label}</span>
+      {field.kind === 'boolean'
+        ? <input type="checkbox" checked={value === true} onChange={(event) => change(event.target.checked)} />
+        : <input type={field.kind === 'number' ? 'number' : 'text'} value={String(value)} min={field.min} max={field.max} step={field.step}
+            onChange={(event) => change(event.target.value)} className="min-w-0 flex-1 rounded border border-neutral-300 px-1 py-0.5 text-xs" />}
+      <span className="w-6 text-right text-[9px] text-neutral-300">{field.kind}</span>
+    </div>
+  );
+}
+
+function MetaParamRows(props: { id: string; meta: NonNullable<ReturnType<typeof SYSTEM_META_BY_ID.get>>; params: Readonly<Record<string, number | string | boolean>>; actions: ScheduleActions }) {
   return (
     <div className="mt-1 rounded border border-neutral-200 p-1">
-      <div className="text-[10px] uppercase tracking-wide text-neutral-400">params</div>
+      <div className="text-[10px] uppercase tracking-wide text-neutral-400">params · schema</div>
+      {props.meta.params.map((field) => (
+        <MetaParamRow key={field.key} id={props.id} field={field} current={props.params[field.key]} actions={props.actions} />
+      ))}
+    </div>
+  );
+}
+
+function ParamRows(props: { scene: Scene; id: string; actions: ScheduleActions }) {
+  const system = props.scene.systems?.find((entry) => entry.id === props.id);
+  const meta = SYSTEM_META_BY_ID.get(props.id);
+  const [key, setKey] = useState('');
+  const [value, setValue] = useState('');
+  if (meta !== undefined) {
+    return <MetaParamRows id={props.id} meta={meta} params={system?.params ?? {}} actions={props.actions} />;
+  }
+  const params = Object.entries(system?.params ?? {});
+  return (
+    <div className="mt-1 rounded border border-neutral-200 p-1">
+      <div className="text-[10px] uppercase tracking-wide text-neutral-400">params · 未登记 schema</div>
       {params.map(([name, current]) => (
         <div key={name} className="flex items-center gap-1 py-0.5">
           <span className="w-20 truncate text-neutral-500">{name}</span>

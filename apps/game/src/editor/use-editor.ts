@@ -18,6 +18,7 @@ import { usePreview } from './use-preview.js';
 import type { ApplyResult, PreviewApi } from './use-preview.js';
 import { scheduleActions } from './schedule-actions.js';
 import type { ScheduleActions } from './schedule-actions.js';
+import { validateSceneSystemParams } from './system-meta.js';
 
 export interface EditorApi {
   readonly scene: Scene | null;
@@ -119,6 +120,11 @@ function makeApply(doc: SceneDocRef, selected: SelectionRef, setters: {
     const parsed = parseScene(next);
     if (!parsed.ok) {
       setters.setIssue(parsed.issues[0]?.message ?? '场景不合法');
+      return;
+    }
+    const paramIssues = validateSceneSystemParams(parsed.value);
+    if (paramIssues.length > 0) {
+      setters.setIssue(paramIssues[0]?.message ?? '系统参数不合法');
       return;
     }
     setters.setIssue(null);
