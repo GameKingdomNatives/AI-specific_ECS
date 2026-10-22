@@ -154,13 +154,15 @@ function rebuild(scene: Scene | null): { ok: boolean; issues: string[] } {
   dataStatus = `scene ${sceneLabel()} · player ${playerLabel()}`;
   return { ok: sceneResult.loaded !== null && sceneResult.issues.length === 0, issues: sceneResult.issues.map((issue) => issue.message) };
 }
-
+let lastAppliedScene = '';
 function applySceneDocument(raw: unknown): { ok: boolean; issues: string[] } {
   const parsed = parseScene(raw);
   if (!parsed.ok) return { ok: false, issues: parsed.issues.map((issue) => issue.message) };
+  const json = JSON.stringify(parsed.value);
+  if (json === lastAppliedScene) return { ok: true, issues: [] };
+  lastAppliedScene = json;
   return rebuild(parsed.value);
 }
-
 async function reloadSceneLive(): Promise<void> {
   try {
     const raw: unknown = await (await fetch('/scenes/demo.scene.json')).json();

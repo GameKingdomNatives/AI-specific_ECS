@@ -34,6 +34,11 @@
 - 记录接受的偏离（spawner 无节点、重建=重开一局、系统参数无 schema、Storybook 仅展示部件、同 tick 连点）。
 - 全量门禁 PASS，目标完成。
 
+## D6 · 同步修复（已完成，ADR-034）
+- 保存成功后直接 `__itbApplyScene(scene)`，不再依赖 watcher；`lastAppliedScene` JSON 去重。
+- 编辑器「实时」开关：300ms 防抖预览；「应用」按钮手动应用；失败写 issue。
+- 浏览器：实时开 count 64→10 即生效；实时关 10→20 保存后文件/运行时均 20，marker 存活；恢复文件回到 64。
+
 ## AI 质量护栏（每阶段）
 - 契约优先：schema/类型/端口不变；新增行为先加测试或浏览器断言。
 - 禁止 `any`、`@ts-ignore`、断言绕过；文件/函数预算与依赖边界保持。

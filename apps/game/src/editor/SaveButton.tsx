@@ -16,6 +16,12 @@ export function SaveButton(props: { scene: Scene | null; onSaved?: () => void })
       .then(async (response) => {
         const payload = (await response.json()) as { ok?: boolean; error?: string; bytes?: number };
         if (response.ok && payload.ok === true) {
+          // 保存成功后直接应用到运行时；不依赖 watcher 事件是否到达。
+          const applied = globalThis.__itbApplyScene?.(props.scene);
+          if (applied !== undefined && !applied.ok) {
+            setState({ kind: 'error', message: applied.issues[0] ?? '运行时应用失败' });
+            return;
+          }
           setState({ kind: 'ok', bytes: payload.bytes ?? 0 });
           props.onSaved?.();
         } else setState({ kind: 'error', message: payload.error ?? `HTTP ${response.status}` });

@@ -13,6 +13,8 @@ import {
   setComponentField,
 } from '@itb/engine/scene';
 import { COMPONENT_META_BY_NAME } from './component-meta.js';
+import { usePreview } from './use-preview.js';
+import type { ApplyResult, PreviewApi } from './use-preview.js';
 import { scheduleActions } from './schedule-actions.js';
 import type { ScheduleActions } from './schedule-actions.js';
 
@@ -29,6 +31,9 @@ export interface EditorApi {
   addComp(component: string): void;
   attach(slot: 'texture' | 'audio', assetName: string): void;
   readonly schedule: ScheduleActions;
+  readonly preview: boolean;
+  setPreview(next: boolean): void;
+  applyNow(): ApplyResult;
   reload(): void;
 }
 
@@ -88,10 +93,19 @@ function dataActions(scene: Scene | null, selected: string | null, apply: Apply)
   };
 }
 
+function makeApplyNow(scene: Scene | null, previewApi: PreviewApi, setIssue: (issue: string | null) => void) {
+  return (): ApplyResult => {
+    const result = previewApi.applyNow(scene);
+    setIssue(result.ok ? null : (result.issues[0] ?? '运行时应用失败'));
+    return result;
+  };
+}
+
 export function useEditor(): EditorApi {
   const [scene, setScene] = useState<Scene | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [issue, setIssue] = useState<string | null>(null);
+  const previewApi = usePreview();
 
   useEffect(() => {
     let alive = true;
@@ -111,6 +125,7 @@ export function useEditor(): EditorApi {
     }
     setIssue(null);
     setScene(parsed.value);
+    previewApi.schedule(parsed.value);
     if (select !== undefined) setSelected(select);
   };
 
@@ -127,6 +142,9 @@ export function useEditor(): EditorApi {
     issue,
     select: setSelected,
     reload,
+    preview: previewApi.preview,
+    setPreview: previewApi.setPreview,
+    applyNow: makeApplyNow(scene, previewApi, setIssue),
     ...nodeActions(scene, selected, apply, setIssue),
     ...dataActions(scene, selected, apply),
     schedule: scheduleActions(scene, apply),

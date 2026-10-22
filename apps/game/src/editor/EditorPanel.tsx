@@ -47,6 +47,11 @@ export function EditorPanel() {
           <span className="ml-2 text-[11px] text-neutral-500">{editor.scene?.name ?? '加载中'}</span>
         </div>
         <div className="flex items-center gap-1">
+          <label className="flex items-center gap-1 text-[10px] text-neutral-500" title="编辑时防抖应用到运行时，不写盘">
+            <input type="checkbox" checked={editor.preview} onChange={(event) => editor.setPreview(event.target.checked)} />
+            实时
+          </label>
+          <button type="button" onClick={() => editor.applyNow()} className="rounded border border-neutral-300 px-1.5 py-0.5 text-[10px]">应用</button>
           <SaveButton scene={editor.scene} onSaved={editor.reload} />
           <button type="button" onClick={() => setOpen(false)} className="rounded border border-neutral-300 px-1.5 py-0.5 text-[11px]">收起</button>
         </div>
