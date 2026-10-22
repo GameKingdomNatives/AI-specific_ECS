@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>批次探针 · 3000 精灵 vs 3000 粒子</title>
+    <style>
+      body { margin: 0; background: #111; color: #eee; font: 13px/1.6 monospace; }
+      #out { padding: 12px 16px; white-space: pre; }
+      canvas { display: block; width: 960px; height: 540px; }
+    </style>
+  </head>
+  <body>
+    <div id="out">measuring…</div>
+    <script type="module">
+      import { Application, Container, Particle, ParticleContainer, Sprite, Texture } from 'pixi.js';
+
+      const N = 3000;
+      const WARMUP = 20;
+      const FRAMES = 90;
+      const out = document.getElementById('out');
+      const result = { sprites: null, particles: null, delta: null };
+      globalThis.__itbBatch = { result, done: false };
+
+      function median(values) {
+        const sorted = [...values].sort((a, b) => a - b);
+        return sorted[Math.floor(sorted.length / 2)];
+      }
+      function p95(values) {
+        const sorted = [...values].sort((a, b) => a - b);
+        return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))];
+      }
+
+      function makeItems(kind, stage) {
+        const positions = [];
+        let container;
+        if (kind === 'sprites') {
+          container = new Container();
+          for (let i = 0; i < N; i += 1) {
+            const sprite = new Sprite(Texture.WHITE);
+            sprite.anchor.set(0.5);
+            sprite.width = 8;
+            sprite.height = 8;
+            sprite.tint = 0xff8844;
+            sprite.x = (i * 37) % 1900;
+            sprite.y = (i * 53) % 1060;
+            container.addChild(sprite);
+            positions.push(sprite);
+          }
+        } else {
+          container = new ParticleContainer({
+            dynamicProperties: { position: true, rotation: true, color: true },
+          });
+          for (let i = 0; i < N; i += 1) {
+            const particle = new Particle({
+              texture: Texture.WHITE,
+              x: (i * 37) % 1900,
+              y: (i * 53) % 1060,
+              anchorX: 0.5,
+              anchorY: 0.5,
+              scaleX: 8,
+              scaleY: 8,
+              tint: 0xff8844,
+            });
+            container.addParticle(particle);
+            positions.push(particle);
+          }
+        }
+        container.x = 20;
+        container.y = 20;
+        stage.addChild(container);
+        return { container, positions };
+      }
+
+      function measure(kind, stage, renderer) {
+        const { container, positions } = makeItems(kind, stage);
+        const samples = [];
+        for (let frame = 0; frame < WARMUP + FRAMES; frame += 1) {
+          const started = performance.now();
+          for (let i = 0; i < positions.length; i += 1) {
+            const item = positions[i];
+            item.x += 0.1;
+            item.y += 0.05;
+            item.rotation = 0.01 * i;
+          }
+          renderer.render(stage);
+          const elapsed = performance.now() - started;
+          if (frame >= WARMUP) {
+            samples.push(elapsed);
+          }
+        }
+        stage.removeChild(container);
+        container.destroy();
+        return {
+          median: Number(median(samples).toFixed(3)),
+          p95: Number(p95(samples).toFixed(3)),
+          min: Number(Math.min(...samples).toFixed(3)),
+          max: Number(Math.max(...samples).toFixed(3)),
+        };
+      }
+
+      const app = new Application();
+      await app.init({ width: 960, height: 540, background: '#151515', antialias: false });
+      document.body.insertBefore(app.canvas, out);
+      Texture.WHITE.source.scaleMode = 'nearest';
+
+      try {
+        result.sprites = measure('sprites', app.stage, app.renderer);
+        result.particles = measure('particles', app.stage, app.renderer);
+        result.delta = Number((result.particles.median / Math.max(0.001, result.sprites.median)).toFixed(3));
+      } catch (error) {
+        result.error = String(error && error.stack ? error.stack : error);
+      }
+      out.textContent = JSON.stringify(result, null, 2);
+      globalThis.__itbBatch.done = true;
+    </script>
+  </body>
+</html>

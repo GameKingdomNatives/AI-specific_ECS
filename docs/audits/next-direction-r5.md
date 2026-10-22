@@ -51,11 +51,11 @@
 
 **验收**：`grep Onlook` 只剩 ADR/教训中的「已排除」；capabilities 无「待第三批」「9 个端口」等旧说法。
 
-### R5 · 渲染收尾（进行中：R5a/R5b 已完成，R5c 待验证）
+### R5 · 渲染收尾（R5a/R5b 已完成；R5c 验证完成、实施待做）
 
 1. ~~**submit 计时**~~：已完成，`RenderStats.submitMs/submitAvgMs/submitP95Ms`，HUD 显示 `sub x.xxms`（ADR-014）。
 2. ~~**3000 项提交基准**~~：已完成，`tools/submit-bench.mjs` 基线 0.432ms，进门禁；浏览器 `?stress=3000` 实测 avg 0.95ms / p95 1.4ms。
-3. **合批决策与实现**：优先评估子弹层 `ParticleContainer`（Pixi 8 支持 per-particle tint/alpha，适合 3000 弹幕）；几何图元按 `(layer, shape, tint, alpha)` 分组到单 Graphics 的收益先量后做（颜色种类多时可能无效）。合批实现必须在 `impl/` 内，不动端口。
+3. **合批验证（已完成）**：`apps/game/batch-probe.html` 对照 3000 Sprite vs 3000 Particle：中位 1.2ms → **0.2ms**（约 6 倍，ADR-015）。**实施待做**：为带贴图视图加 ParticleContainer 路径（按 layer+texture 分组），`?batch=1` 开关，几何图元保持原路径；验收 avg<0.9ms、p95<1.4ms 且截图无回归。
 4. **验收**：3000 项 avg ≤1ms 已达成；p95 1.4ms 未达标，R5c 用原型验证合批后再判定；`submit-bench` 已进门禁。
 
 **风险**：ParticleContainer 对旋转/逐项缩放支持有限（需验证）；分组 Graphics 在 tint 多样时退化。回退：保留现有 per-item 路径开关。
