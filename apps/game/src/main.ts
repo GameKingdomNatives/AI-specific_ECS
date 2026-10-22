@@ -25,6 +25,7 @@ import inputMapRaw from './data/input-map.json' with { type: 'json' };
 import { createSceneSystems } from './system-registry.js';
 import { currentSceneFile } from './scene-file.js';
 import { currentSceneUrl, instantiateSceneState, loadSceneRuntime } from './scene-runtime.js';
+import { tryApplyComponentScene } from './scene-apply.js';
 import { pickSystems, resolvePlayer } from './scene-bootstrap.js';
 import { validateSceneSystemParams } from './editor/system-meta.js';
 import { parseScene, type Scene } from '@itb/engine/scene';
@@ -161,6 +162,15 @@ function applySceneDocument(raw: unknown): { ok: boolean; issues: string[] } {
   if (paramIssues.length > 0) return { ok: false, issues: paramIssues.map((issue) => issue.message) };
   const json = JSON.stringify(parsed.value);
   if (json === lastAppliedScene) return { ok: true, issues: [] };
+  const light = sceneResult.loaded === null ? null : tryApplyComponentScene(world, sceneResult.loaded, parsed.value, componentLookup);
+  if (light !== null) {
+    sceneResult = { loaded: light, issues: [] };
+    lastAppliedScene = json;
+    lastHash = hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]]));
+    recorder = new Recorder(20261020, lastHash);
+    dataStatus = `scene ${sceneLabel()} · player ${playerLabel()}`;
+    return { ok: true, issues: [] };
+  }
   lastAppliedScene = json;
   return rebuild(parsed.value);
 }
@@ -202,7 +212,6 @@ function quarantinedCount(): number {
 function setNote(message: string): void {
   uiStore.update({ note: `${message} · 隔离 ${quarantinedCount()}` });
 }
-
 const controls = createControls({
   world: () => world,
   player: () => player,
@@ -213,7 +222,6 @@ const controls = createControls({
   setNote,
 });
 mountUi(uiStore, createUiIntents(controls, audio));
-
 watchContent((state) => {
   dataStatus = state.ok ? 'data ok (hot)' : `data fallback: ${state.issue ?? 'invalid'}`;
   if (!state.ok || sceneResult.loaded !== null) return;
@@ -222,16 +230,13 @@ watchContent((state) => {
   }
   boxes = spawnSpec(state.spec);
 });
-
 const captureMode = new URLSearchParams(location.search).has('capture');
 const batching = new URLSearchParams(location.search).get('batch') !== '0';
 const debugView = createDebugView(new URLSearchParams(location.search).has('debug'));
 const renderer = await createPixiRenderer(canvas, { preserveDrawingBuffer: captureMode, debugGlobal: captureMode, batching });
 renderer.setCamera(WIDTH / 2, HEIGHT / 2, 1);
-
 let last = performance.now();
 let lastHash = hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]]));
-
 function updateHud(): void {
   if (hud === null || clock.tick % 10 !== 0) return;
   const mode = probe === null ? 'run' : `probe ${probe}`;
@@ -241,7 +246,6 @@ function updateHud(): void {
   hud.textContent = `${mode} · tick ${clock.tick} · entities ${world.aliveCount} · bullets ${bullets} · kills ${kills} · bodies ${bodies} · vis ${renderStats.submitted}/${renderStats.total} · a ${clock.alpha.toFixed(2)} · sub ${renderStats.submitAvgMs.toFixed(2)}ms · rec ${recorder.count} · err ${dumpSink.list().length} · ${lastHash} · ${dataStatus}`;
   uiStore.update({ tick: clock.tick, entities: world.aliveCount, bullets, kills, bodies, recordingTicks: recorder.count, dumps: dumpSink.list().length, audioPlays: audio.stats().plays, hash: lastHash, dataStatus });
 }
-
 function frame(now: number): void {
   const delta = now - last;
   last = now;
@@ -264,7 +268,6 @@ function frame(now: number): void {
   updateHud();
   requestAnimationFrame(frame);
 }
-
 Object.assign(globalThis, {
   __itb: {
     recording: () => {
@@ -289,11 +292,9 @@ Object.assign(globalThis, {
     timings: () => scheduler.systemTimings(),
   },
 });
-
 if (import.meta.hot !== undefined) {
   import.meta.hot.accept('./system-registry.ts', (module) => {
     if (module !== undefined && schemaGuard()) applySystems(module.createSystems(deps));
   });
 }
-
 requestAnimationFrame(frame);

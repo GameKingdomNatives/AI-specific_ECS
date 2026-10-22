@@ -53,7 +53,7 @@
 1. **编辑器同 tick 竞态**：删除+保存同一事件循环会保存旧文档（本轮浏览器实测）；~~应改为文档 reducer / 状态机~~ **已修（ADR-035：doc/selected ref + SaveButton getScene）**。
 2. **系统参数无 schema**：~~通用 key/value，编辑器无法声明类型/范围~~ **已修（ADR-036：ParamField/SystemMeta + 校验 + 调度表单 + createSystems 消费）**。
 3. **多 scene 文件/另存**：~~保存端点固定 `demo.scene.json`~~ **已修（ADR-037：?scene= + /__scene/list + 编辑器下拉/另存 + watcher 文件名）**。
-4. **预览/应用 = 整世界重建**：recorder/kills/物理重置；长编辑会反复"重开一局"，需要差异应用或冻结模拟。
+4. **预览/应用 = 整世界重建**：~~recorder/kills/物理重置~~ **部分已修（ADR-038：Position/Box 原地写列，不换世界、不重置 kills；结构/系统/BoxSpawner 变更仍整重建）**。
 
 ### P1（契约/规范偏差，需裁定或补实现）
 5. 渲染表非 SoA、缺 anchor/frame（§7）——改动 IRenderer 属 HARD，需 ADR。

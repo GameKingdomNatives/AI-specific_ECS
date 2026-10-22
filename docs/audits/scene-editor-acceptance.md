@@ -24,6 +24,7 @@
 | 17 | 同 tick 操作一致（P0-1） | 文档/选中引用同步写；保存读 `getScene()`；浏览器同一 eval 内删除 target+保存 → 文件与运行时均 3 节点、树 3 | ✅（ADR-035） |
 | 18 | 系统参数 schema（P0-2） | `ParamField/SystemMeta` + `validateSystemParams` + `coerceParamValue`；调度页显示「冷却 tick/弹速」；`cooldownTicks:999` 被拒绝，10 保存进文件；createSystems 消费 player/weapon 参数 | ✅（ADR-036） |
 | 19 | 多 scene 文件（P0-3） | `/__scene/list` + `?scene=` + 编辑器下拉/另存；浏览器：另存 test.scene.json→同页加载，test count 8 保存后 demo 仍 64，切回 demo 恢复 64；测试文件已删 | ✅（ADR-037） |
+| 20 | 组件级轻量应用（P0-4） | Position/Box 改值原地写列：tick 780→2210、entities 不变、spawned=64；spawner count 改 10 走整重建 spawned=10；文件未保存保持 64 | ✅（ADR-038） |
 
 ## 相关审计
 
