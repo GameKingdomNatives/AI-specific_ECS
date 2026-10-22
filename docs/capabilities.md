@@ -1,6 +1,7 @@
 # 能力注册表
 
 实现新系统前先查这里；已有能力就复用，不重复造。新增能力需同时补系统卡与契约测试。
+（2026-10-22 校正：端口 10 个；删除 Onlook 与「待第三批」旧项；补事件级回放、世界快照、输入映射、渲染剔除/池化、覆盖率、音效与 UI 组件。）
 
 | 能力 | 入口 | 边界 | 状态 |
 |---|---|---|---|
@@ -10,45 +11,47 @@
 | 延迟结构变更 | `CommandBuffer` + 阶段末 flush | core | 已具备 |
 | 依赖图调度 | `Scheduler.add/build/run` | core | 已具备 |
 | 事件广播（同步/延迟/录制） | `EventBus` | core | 已具备 |
-| 端口契约 | `packages/engine/src/ports` | ports | 已冻结（9 个） |
+| 世界快照 / 恢复 | `World.snapshot/restore` + `core/world-state.ts` | core | 已具备（JSON 可往返） |
+| 随机流状态快照 | `Random.snapshotState/restoreState` | core | 已具备 |
+| 端口契约（10 个） | `packages/engine/src/ports` | ports | 已冻结（ADR-006） |
 | 方块运动夹具 | `demo.movement` | demo | 已具备 |
-| 渲染表批处理 | `IRenderer.submit`（Pixi 实现） | impl | 已具备 |
+| 渲染表提交 | `IRenderer.submit`（Pixi 实现） | impl | 已具备 |
+| 相机剔除 + 渲染统计 | `impl/render-cull.ts`、`PixiRenderer.stats()/setCulling()` | impl | 已具备（合批待做，见 R5） |
+| 视图池化 + 代际清理 | `impl/view-pool.ts`、`pixi-views.ts` | impl | 已具备 |
+| 渲染剔除基准 | `tools/render-bench.mjs`（万项、预算 4ms） | tools | 已具备（进门禁） |
 | 物理查询（圆／盒／胶囊／凸多边形／射线／扫掠／扇形／最近） | `IPhysics` v2 → `PhysicsWorld` | impl | 已具备（端口 v2） |
-| 接触对与调试形状 | `contacts()` / `debugShapes()` / `stats()` | impl | 已具备 |
+| 接触对与调试形状 | `contacts()` / `debugShapes()` / `stats()` | impl | 已具备（含独立测试） |
 | 数据校验与失败隔离 | `parseContent` / `loadContent` | data | 已具备 |
 | 种子随机流（按名派生） | `Random` / `stream(seed, name)` | core | 已具备 |
-| 世界哈希 | `worldHash(world, defs)` / `hashHex` | determinism | 已具备 |
-| 录制与序列化 | `Recorder` / `serialize` / `deserialize` | determinism | 已具备 |
+| 世界哈希 | `worldHash` / `worldHashGroups` / `hashHex` | determinism | 已具备 |
+| 录制与序列化（事件级 v2） | `Recorder` / `serialize` / `deserialize` | determinism | 已具备（`events` 可选段） |
 | 固定步长时钟 | `FixedClock`（上限防死亡螺旋、暂停/变速/单步） | core | 已具备 |
-| 回放执行器 | `replay(recording, hooks)` / `firstDivergence` | determinism | 已具备 |
-| 无头回放 CLI | `node tools/replay.mjs`（自测/写录制/对比） | tools | 已具备 |
-| 输入快照接入主循环 | `createBrowserInput`（app）＋ 每 tick 采样/录制 | app | 已具备 |
-| 单系统崩溃隔离 | `SchedulerOptions.maxConsecutiveFailures` / `disabledSystems` / `onSystemError` | core | 已具备 |
-| 系统探针页 | `?probe=<system>`（只跑单系统 + 最小世界） | app | 已具备 |
-| 系统热替换（HMR） | `system-registry.ts` accept，保留世界状态 | app | 已具备 |
+| 回放执行器（哈希 + 事件） | `replay(recording, hooks)` / `firstDivergence` / `firstEventDivergence` | determinism | 已具备 |
+| 无头回放 CLI | `node tools/replay.mjs`（自测/写录制/事件比对/`--app`） | tools | 已具备（实测 999 tick / 10 事件） |
+| 输入快照接入主循环 | `createBrowserInput`（app）＋每 tick 采样/录制 | app | 已具备 |
+| 输入映射（键位 → 动作） | `data/input-map.ts`、`apps/game/src/data/input-map.json` | data+app | 已具备（鼠标按钮重映射待 HARD） |
+| 单系统崩溃隔离 | `SchedulerOptions.maxConsecutiveFailures` / `disabledSystems` / `onSystemError` | core | 已具备（脏局 invalid 待做） |
+| 系统探针页 | `?probe=<system>` | app | 已具备 |
+| 系统热替换（HMR） | `system-registry.ts` accept，保留世界状态 | app | 已具备（旧系统 dispose 待补） |
 | 内容热加载 | `content.ts`（JSON 模块更新 → 重新校验 → 重建实体） | app | 已具备 |
-| 录制 → 无头重演 | `__itb.recording()` + `node tools/replay.mjs --app` | app+tools | 已具备（403 tick 哈希一致） |
-| 诊断 dump（浏览器） | `__itb.dumps()`（系统名/tick/错误/栈） | app | 已具备 |
-| 逻辑帧基准 | `npm run bench`（默认 3000 实体，含历史基线对比） | tools | 已具备 |
-| 数据迁移管线 | `applyMigrations`（逐版、缺链即失败） | data | 已具备 |
-| 内容迁移接线 | `parseContentMigrated`（迁移后再 Zod 校验） | data | 已具备 |
+| 诊断 dump（浏览器） | `__itb.dumps()` | app | 已具备 |
+| 逻辑帧基准 | `tools/bench.mjs`（3000 实体，历史基线对比） | tools | 已具备（最新 0.97ms） |
+| 数据迁移管线 | `applyMigrations` / `parseContentMigrated` | data | 已具备 |
 | 资源加载器 | `createAssetLoader`（缓存、失败隔离、clear） | data | 已具备 |
-| 程序化贴图 | `node tools/gen-assets.mjs`（自带 PNG 编码，确定性形状） | tools | 已具备 |
-| 贴图渲染 | `RenderItem.texture` → `pixi-views` Sprite（失败回退几何） | impl | 已具备 |
-| 鼠标射击（临时） | 按住左键朝指针连射；`demo.weapon`＋`demo.bulletMovement`＋回收 | demo/app | 已具备（临时方案） |
-| 物理命中检测 | `demo.bodySync`（ECS→刚体）＋`demo.hit`（queryCircle，命中即销毁并事件） | demo | 已具备 |
-| 分组世界哈希 | `worldHashGroups`（互斥组件组合也能参与确定性校验，ADR-005） | determinism | 已具备 |
-| 物理桥（正式层） | `createPhysicsBridge`（组件注入，不依赖夹具） | bridge | 已具备 |
-| 音频端口占位 | `createNullAudio`（默认静音 + 计数 + 夹音量） | impl | 已具备（无解码/播放） |
-| 日志端口 | `createMemoryLogger`（环形 + 可选 sink） | impl | 已具备（无控制台输出） |
-| 故障 dump | `createDumpSink`（环形、持久化、可导出 JSON） | impl | 已具备 |
-| 重复重演校验 | `replay --self-test --repeat 3` 已进门禁 | tools | 已具备 |
-| 违规演练 | `tools/drill.mjs`（越界 import / 超预算各一条） | tools | 已具备 |
-| UI 覆盖层 | React 19 + `UiSnapshot` 只读 + `UiIntents`（10Hz 快照） | apps/ui | 已具备 |
-| 样式 | Tailwind 4（`@tailwindcss/vite`，工具类） | apps/ui | 已具备 |
-| 组件画布 | Storybook 10.6（`@storybook/react-vite`，Vite 8 兼容） | apps/ui | 已具备（进全量门禁） |
-| 可视化编辑 | Onlook 自托管 | 外部 | 待用户终端（步骤见 runbook 04） |
-| 存档 UI | 页内 存档/读档/清除/导出录制（`@itb/engine/storage`） | app | 已具备 |
-| 录制干净开局校验 | `startHash` + `replay` 返回 `startHashMatches` | determinism | 已具备 |
-| 数据热加载 | — | data | 待第三批 |
-| 确定性回放 | `src/determinism` | determinism | 待第三批 |
+| 程序化贴图 | `tools/gen-assets.mjs` | tools | 已具备 |
+| 贴图渲染 | `RenderItem.texture` → Sprite（失败回退几何） | impl | 已具备 |
+| 音频后端（WebAudio） | `createWebAudio`（可注入上下文、静音回退、sources 映射） | impl | 已具备（临时 CC0 音效） |
+| 音效资源 | `apps/game/public/audio/*` + `CREDITS.md` | app | 已具备（临时，正式版替换） |
+| 日志端口 | `createMemoryLogger` | impl | 已具备 |
+| 故障 dump | `createDumpSink`（环形、持久化、导出） | impl | 已具备 |
+| 重复重演校验 | `replay --self-test --repeat 3` | tools | 已具备（进门禁） |
+| 违规演练 | `tools/drill.mjs`（越界 import / 超预算 / `as any`） | tools | 已具备（§19 的删测试、改阈值待补，见 R6） |
+| 覆盖率门禁 | `tools/coverage.mjs`（阈值 70%，实测 81.7%） | tools | 已具备（近似口径，ADR-013） |
+| UI 覆盖层 | React 19 + `UiSnapshot` 只读 + `UiIntents`（10Hz） | apps/ui | 已具备 |
+| UI 组件 | `ControlBar/Button/StatusText/InfoRow` | apps/ui | 已具备 |
+| 组件画布 | Storybook 10.6（18 个故事） | apps/ui | 已具备（进全量门禁） |
+| 独立起步工程 | `starters/ui-storybook-kit/` | starters | 已具备（可单独复制） |
+| 可视化编辑 | Onlook | 外部 | **已排除**（ADR-009） |
+| 设计评审 | Storybook 本地/静态包 | apps/ui | 已具备（唯一评审面） |
+| 存档 UI | 页内 存档/读档/清除/导出录制 | app | 已具备 |
+| 录制干净开局校验 | `startHash` + `startHashMatches` | determinism | 已具备 |
