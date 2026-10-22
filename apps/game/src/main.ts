@@ -32,6 +32,7 @@ if (!(canvas instanceof HTMLCanvasElement)) {
 }
 const hud = document.getElementById('hud');
 const probe = new URLSearchParams(location.search).get('probe');
+const stress = Number(new URLSearchParams(location.search).get('stress') ?? '0');
 
 const world = new World();
 const bus = new EventBus();
@@ -103,7 +104,7 @@ const initial = initialContent();
 let dataStatus = initial.ok ? 'data ok' : `data fallback: ${initial.issue ?? 'invalid'}`;
 
 function spawnSpec(spec: BoxSpec): EntityId[] {
-  const count = probe === null ? spec.count : Math.min(8, spec.count);
+  const count = probe === null ? (stress > 0 ? stress : spec.count) : Math.min(8, spec.count);
   return spawnBoxes(world, count, WIDTH, HEIGHT, spec.minSize, spec.maxSize, spec.speed);
 }
 
@@ -238,7 +239,7 @@ function frame(now: number): void {
     const bullets = world.query(Position, Bullet).length;
     const bodies = deps.physics.stats().bodies;
     const renderStats = renderer.stats();
-    hud.textContent = `${mode} · tick ${clock.tick} · entities ${world.aliveCount} · bullets ${bullets} · kills ${kills} · bodies ${bodies} · vis ${renderStats.submitted}/${renderStats.total} · rec ${recorder.count} · err ${dumpSink.list().length} · ${lastHash} · ${dataStatus}`;
+    hud.textContent = `${mode} · tick ${clock.tick} · entities ${world.aliveCount} · bullets ${bullets} · kills ${kills} · bodies ${bodies} · vis ${renderStats.submitted}/${renderStats.total} · sub ${renderStats.submitAvgMs.toFixed(2)}ms · rec ${recorder.count} · err ${dumpSink.list().length} · ${lastHash} · ${dataStatus}`;
     uiStore.update({
       tick: clock.tick,
       entities: world.aliveCount,

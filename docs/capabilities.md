@@ -1,4 +1,4 @@
-# 能力注册表
+﻿# 能力注册表
 
 实现新系统前先查这里；已有能力就复用，不重复造。新增能力需同时补系统卡与契约测试。
 （2026-10-22 校正：端口 10 个；删除 Onlook 与「待第三批」旧项；补事件级回放、世界快照、输入映射、渲染剔除/池化、覆盖率、音效与 UI 组件。）
@@ -16,9 +16,10 @@
 | 端口契约（10 个） | `packages/engine/src/ports` | ports | 已冻结（ADR-006） |
 | 方块运动夹具 | `demo.movement` | demo | 已具备 |
 | 渲染表提交 | `IRenderer.submit`（Pixi 实现） | impl | 已具备 |
-| 相机剔除 + 渲染统计 | `impl/render-cull.ts`、`PixiRenderer.stats()/setCulling()` | impl | 已具备（合批待做，见 R5） |
+| 相机剔除 + 渲染统计 + 提交计时 | `impl/render-cull.ts`、`impl/frame-stats.ts`、`PixiRenderer.stats()/setCulling()` | impl | 已具备（submitMs/avg/p95；合批待 R5c） |
 | 视图池化 + 代际清理 | `impl/view-pool.ts`、`pixi-views.ts` | impl | 已具备 |
 | 渲染剔除基准 | `tools/render-bench.mjs`（万项、预算 4ms） | tools | 已具备（进门禁） |
+| 提交簿记基准 | `tools/submit-bench.mjs`（3000 项、基线 0.432ms、预算 2ms） | tools | 已具备（进门禁） |
 | 物理查询（圆／盒／胶囊／凸多边形／射线／扫掠／扇形／最近） | `IPhysics` v2 → `PhysicsWorld` | impl | 已具备（端口 v2） |
 | 接触对与调试形状 | `contacts()` / `debugShapes()` / `stats()` | impl | 已具备（含独立测试） |
 | 数据校验与失败隔离 | `parseContent` / `loadContent` | data | 已具备 |

@@ -1,4 +1,4 @@
-# 交接清单
+﻿# 交接清单
 
 > 每轮收尾更新。新会话先读本节，再读 `docs/00-最终指令.md`。
 
@@ -65,7 +65,7 @@
 - 进度对照：`docs/audits/engine-diff-and-progress.md`（46 提交 / 208 文件 / 21 测试文件 / 34 门禁步骤；引擎整体约 82%），刷新方法见 `docs/audits/README.md`。
 - 交付型 starter：`starters/ui-storybook-kit/`（可独立复制）——React 19 + Tailwind 4 + Storybook 10；组件已中性化（按钮/状态文字/信息行）共 9 个故事 + 颜色尺寸总览。README 以 Storybook 为**唯一事实源**重写，含 30 秒理解、术语表、四步新增组件、交付方式与 FAQ；四篇 docs 去掉了具体项目假设。已实测复制到仓库外 `npm install` + `build` 均 exit 0。
 - 本轮（R4 + M2 + 音效）：**R4 完成**——覆盖率门禁 `coverage`（NODE_V8_COVERAGE + 最内层区间，阈值 70%，实测 81.7%，ADR-013）、physics 多对 contacts / debugShapes 圆形测试、drill 新增 as-any 第三类（3/3 拦截）。**M2 完成**——`ControlBar/Button/StatusText/InfoRow` + 18 个故事（6 组标题）。**音效**——Kenney CC0 六条临时资源，`createWebAudio.sources` 映射，浏览器实测 decoded/started=1，来源见 `apps/game/public/audio/CREDITS.md`。门禁 38 步 PASS。
-- 待做：替换正式音效、GPU 侧渲染耗时读数、鼠标按键动作映射（需端口变更）、覆盖率读数精确化（source map）。
+- R5a/R5b 已完成：`RenderStats` 增 `submitMs/submitAvgMs/submitP95Ms`，HUD 显示 `sub x.xxms`；`?stress=3000` 夹具 + `tools/submit-bench.mjs`（基线 0.432ms，进门禁）；浏览器实测 3001 项 avg 0.95ms / p95 1.4ms（ADR-014）。R5c 合批待原型验证。
 - **下一步方案（2026-10-22 判定）**：见 `docs/audits/next-direction-r5.md`。P0 先修文档漂移（00 §22 Onlook、capabilities 旧说法）；随后 R5 渲染收尾（submitMs + 3000 项提交基准 + 合批决策）、R6 验收补齐（删测试/改阈值演练、engine 独立构建、HMR dispose、脏局 invalid）。待人裁定：`clear/ontology/` 外来目录去留。
 
 ## 当前缺口（2026-10-21 核对）

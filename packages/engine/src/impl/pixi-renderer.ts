@@ -1,5 +1,7 @@
 import { Application, Container, Graphics } from 'pixi.js';
 import type { IRenderer, RenderItem } from '../ports/index.js';
+import { createFrameStats } from './frame-stats.js';
+import type { FrameTiming } from './frame-stats.js';
 import { computeViewBounds, isVisible } from './render-cull.js';
 import { createViewLayer } from './pixi-views.js';
 import { destroyPools, poolSize } from './view-pool.js';
@@ -23,6 +25,10 @@ export interface RenderStats {
   readonly culled: number;
   readonly views: number;
   readonly pooled: number;
+  /** 最近一次 submit 的耗时（毫秒，JS 侧，不含 GPU 绘制）。 */
+  readonly submitMs: number;
+  readonly submitAvgMs: number;
+  readonly submitP95Ms: number;
 }
 
 export interface PixiRenderer extends IRenderer {
@@ -94,14 +100,37 @@ interface CullingState {
   enabled: boolean;
 }
 
+function makeStats(
+  total: number,
+  submitted: number,
+  views: number,
+  pooled: number,
+  timing: FrameTiming,
+): RenderStats {
+  return {
+    total,
+    submitted,
+    culled: total - submitted,
+    views,
+    pooled,
+    submitMs: timing.last,
+    submitAvgMs: timing.avg,
+    submitP95Ms: timing.p95,
+  };
+}
+
+const EMPTY_TIMING: FrameTiming = { last: 0, avg: 0, p95: 0, count: 0 };
+
 /** 剔除 + 统计：只决定提交哪些项，视图销毁由 viewLayer 的 seen 逻辑负责。 */
 function createSubmitter(
   viewLayer: ReturnType<typeof createViewLayer>,
   camera: { get: () => { x: number; y: number; zoom: number }; apply: () => void },
   state: CullingState,
 ): { submit: (items: readonly RenderItem[]) => void; stats: () => RenderStats } {
-  let stats: RenderStats = { total: 0, submitted: 0, culled: 0, views: 0, pooled: 0 };
+  const timings = createFrameStats(60);
+  let stats: RenderStats = makeStats(0, 0, 0, 0, EMPTY_TIMING);
   const submit = (items: readonly RenderItem[]): void => {
+    const started = performance.now();
     let submitted = 0;
     if (!state.enabled || items.length === 0) {
       viewLayer.submit(items);
@@ -119,14 +148,9 @@ function createSubmitter(
         return visible;
       });
     }
-    stats = {
-      total: items.length,
-      submitted,
-      culled: items.length - submitted,
-      views: viewLayer.size(),
-      pooled: poolSize(),
-    };
     camera.apply();
+    timings.push(performance.now() - started);
+    stats = makeStats(items.length, submitted, viewLayer.size(), poolSize(), timings.get());
   };
   return { submit, stats: () => stats };
 }

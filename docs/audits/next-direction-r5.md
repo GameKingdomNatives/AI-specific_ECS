@@ -1,4 +1,4 @@
-# 下一步方向（R5 及之后）
+﻿# 下一步方向（R5 及之后）
 
 - 日期：2026-10-22
 - 依据：`docs/00-最终指令.md` §7/§9/§11/§12/§13/§19/§20 对照源码与门禁实测；`docs/capabilities.md`、`docs/audits/engine-diff-and-progress.md`
@@ -51,12 +51,12 @@
 
 **验收**：`grep Onlook` 只剩 ADR/教训中的「已排除」；capabilities 无「待第三批」「9 个端口」等旧说法。
 
-### R5 · 渲染收尾（推荐先做，1–2 迭代）
+### R5 · 渲染收尾（进行中：R5a/R5b 已完成，R5c 待验证）
 
-1. **submit 计时**：`createSubmitter` 内部用 `performance.now()` 记录 `submitMs`，`RenderStats` 增 `submitMs`；HUD/`__itb.render()` 可读。
-2. **3000 项提交基准**：扩展 `render-bench`（或新增 `submit-bench`）在 Node 侧用 stub 视图测「剔除 + 视图簿记 + 表遍历」的 JS 耗时；预算 1ms/3000 项，基线容差 2。
+1. ~~**submit 计时**~~：已完成，`RenderStats.submitMs/submitAvgMs/submitP95Ms`，HUD 显示 `sub x.xxms`（ADR-014）。
+2. ~~**3000 项提交基准**~~：已完成，`tools/submit-bench.mjs` 基线 0.432ms，进门禁；浏览器 `?stress=3000` 实测 avg 0.95ms / p95 1.4ms。
 3. **合批决策与实现**：优先评估子弹层 `ParticleContainer`（Pixi 8 支持 per-particle tint/alpha，适合 3000 弹幕）；几何图元按 `(layer, shape, tint, alpha)` 分组到单 Graphics 的收益先量后做（颜色种类多时可能无效）。合批实现必须在 `impl/` 内，不动端口。
-4. **验收**：3000 项 `submitMs` p50 ≤1ms（浏览器读数 + Node 簿记基准）；`render-bench`/`submit-bench` 进门禁；帧内 draw 调用数可读（若 Pixi 提供，不可读则记录为已知限制）。
+4. **验收**：3000 项 avg ≤1ms 已达成；p95 1.4ms 未达标，R5c 用原型验证合批后再判定；`submit-bench` 已进门禁。
 
 **风险**：ParticleContainer 对旋转/逐项缩放支持有限（需验证）；分组 Graphics 在 tint 多样时退化。回退：保留现有 per-item 路径开关。
 
