@@ -13,6 +13,8 @@ import {
   setComponentField,
 } from '@itb/engine/scene';
 import { COMPONENT_KINDS } from './component-kinds.js';
+import { scheduleActions } from './schedule-actions.js';
+import type { ScheduleActions } from './schedule-actions.js';
 
 export interface EditorApi {
   readonly scene: Scene | null;
@@ -26,6 +28,7 @@ export interface EditorApi {
   setField(component: string, field: string, value: number | boolean): void;
   addComp(component: string): void;
   attach(slot: 'texture' | 'audio', assetName: string): void;
+  readonly schedule: ScheduleActions;
 }
 
 type Apply = (next: Scene, select?: string | null) => void;
@@ -116,5 +119,6 @@ export function useEditor(): EditorApi {
     select: setSelected,
     ...nodeActions(scene, selected, apply, setIssue),
     ...dataActions(scene, selected, apply),
+    schedule: scheduleActions(scene, apply),
   };
 }

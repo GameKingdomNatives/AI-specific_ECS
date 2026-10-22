@@ -6,6 +6,14 @@ export type { ComponentLookup, SceneInstantiation, SceneInstantiationOptions } f
 export { buildSchedule } from './schedule.js';
 export type { SceneSchedule, SystemBuilder, SystemParams } from './schedule.js';
 export {
+  addSystem,
+  removeSystem,
+  setSystemAfter,
+  setSystemEnabled,
+  setSystemParam,
+  updateSystemPhase,
+} from './schedule-edit.js';
+export {
   addComponent,
   addNode,
   cloneScene,
