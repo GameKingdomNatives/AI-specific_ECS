@@ -20,6 +20,12 @@
 | 13 | 组件元数据表单 | `scene-meta.test.ts` 3 组（默认值/夹取/步长/布尔）；检查器显示「位置 X/Y」「方块 尺寸/颜色」「环境生成器 数量/…」 | ✅ |
 | 14 | Storybook 展示层 | `editor.stories.tsx` 4 个纯展示部件；Storybook 构建纳入全量门禁并 PASS | ✅ |
 | 15 | 门禁 | 每阶段全量 PASS；测试基线 39；drill 5/5 | ✅ |
+| 16 | 保存/编辑同步（D6） | 保存成功直接 apply（不依赖 watcher）；「实时」300ms 防抖预览；JSON 去重；浏览器：64→10 未保存生效、10→20 保存后文件/运行时均 20、marker 存活 | ✅ |
+
+## 相关审计
+
+- 规范逐节对照与 P0/P1/P2 偏离清单：`docs/audits/engine-spec-audit-2026-10-22.md`
+- 同步根因与决策：`docs/adr/034-editor-live-sync.md`
 
 ## 接受的偏离
 
