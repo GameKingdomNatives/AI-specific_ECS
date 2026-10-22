@@ -8,6 +8,7 @@
 |---|---|
 | [engine-diff-and-progress.md](<E:\个人游戏项目\IntoTheBattlefiel深入战火\docs\audits\engine-diff-and-progress.md>) | 规格章节 × 现状 × 差异 × 证据；完成度估计；剩余差异按风险排序 |
 | [next-direction.md](<E:\个人游戏项目\IntoTheBattlefiel深入战火\docs\audits\next-direction.md>) | 源码取证后的方向判定（R1 渲染规模化 → R2 确定性快照 → R3 端口补全），含范围、验收、风险与暂缓项 |
+| [next-direction-r5.md](<E:\个人游戏项目\IntoTheBattlefiel深入战火\docs\audits\next-direction-r5.md>) | 2026-10-22 规格 × 现状对照：P0 文档一致性、R5 渲染收尾（合批/提交计时）、R6 验收补齐（演练 3 类/HMR dispose/脏局）、R7 可选 |
 
 ## 怎么刷新（每次里程碑或收尾）
 
