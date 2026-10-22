@@ -24,6 +24,8 @@ import { createBrowserInput } from './input.js';
 import { parseInputMap } from '@itb/engine/data';
 import inputMapRaw from './data/input-map.json' with { type: 'json' };
 import { createSystems } from './system-registry.js';
+import { loadSceneRuntime } from './scene-runtime.js';
+import { pickSystems, resolvePlayer } from './scene-bootstrap.js';
 import { mountUi } from './ui/mount.js';
 import { createUiStore } from './ui/snapshot.js';
 
@@ -38,7 +40,6 @@ if (!(canvas instanceof HTMLCanvasElement)) {
 const hud = document.getElementById('hud');
 const probe = new URLSearchParams(location.search).get('probe');
 const stress = Number(new URLSearchParams(location.search).get('stress') ?? '0');
-
 const world = new World();
 const textures = await loadTextureUrls();
 const schemaGuard = createSchemaGuard(world);
@@ -64,9 +65,8 @@ const input = createBrowserInput(canvas, {
   ...(inputMapParsed.value === null ? {} : { map: inputMapParsed.value }),
 });
 
-const player = world.spawn();
-world.add(player, Position, { x: WIDTH / 2, y: HEIGHT / 2 });
-world.add(player, Box, { size: 22, tint: 0xff8844 });
+const sceneResult = await loadSceneRuntime(world, (name) => (name === 'Position' ? Position : name === 'Box' ? Box : undefined));
+const player = resolvePlayer(world, sceneResult.loaded, { position: Position, box: Box }, WIDTH, HEIGHT);
 let current = input.sample(0);
 
 let scheduler = createScheduler();
@@ -102,16 +102,14 @@ const deps = {
   getInput: (): typeof current => current,
   physics: createPhysicsPort(new PhysicsWorld()),
 };
-applySystems(createSystems(deps));
+const baseSystems = createSystems(deps);
+applySystems(pickSystems(baseSystems, sceneResult.loaded));
 
 let kills = 0;
-bus.on('demo.hit', () => {
-  kills += 1;
-  renderer.shake(10, 180);
-});
+bus.on('demo.hit', () => { kills += 1; renderer.shake(10, 180); });
 
 const initial = initialContent();
-let dataStatus = initial.ok ? 'data ok' : `data fallback: ${initial.issue ?? 'invalid'}`;
+let dataStatus = `${initial.ok ? 'data ok' : `data fallback: ${initial.issue ?? 'invalid'}`} · scene ${sceneResult.loaded === null ? 'fallback' : sceneResult.loaded.scene.name}`;
 
 function spawnSpec(spec: BoxSpec): EntityId[] {
   const count = probe === null ? (stress > 0 ? stress : spec.count) : Math.min(8, spec.count);
@@ -182,6 +180,12 @@ renderer.setCamera(WIDTH / 2, HEIGHT / 2, 1);
 let last = performance.now();
 let lastHash = hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]]));
 
+function textureFor(entity: EntityId): string {
+  const sceneTexture = sceneResult.loaded?.assets.get(entity)?.texture;
+  if (sceneTexture !== undefined) return textures.url(sceneTexture);
+  return entity === player ? textures.url('player') : textures.url('box');
+}
+
 function renderTable(alpha: number, previous: Map<EntityId, { x: number; y: number }>): RenderItem[] {
   const items: RenderItem[] = [];
   for (const entity of world.query(Position, Box)) {
@@ -203,7 +207,7 @@ function renderTable(alpha: number, previous: Map<EntityId, { x: number; y: numb
       tint: entity === player ? 0xffaa66 : 0xf0f0f0,
       alpha: 0.92,
       visible: true,
-      texture: entity === player ? textures.url('player') : textures.url('box'),
+      texture: textureFor(entity),
     });
   }
   for (const entity of world.query(Position, Bullet)) {

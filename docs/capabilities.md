@@ -47,6 +47,7 @@
 | 场景编辑器（S3） | `?editor=1` 面板：场景树/检查器/资源浏览器（内存编辑） | app | S3 已具备（ADR-026） |
 | 调度图编辑器（S4） | 阶段分组、系统卡片、after/enabled/params 编辑 | app | S4 已具备（ADR-027） |
 | 场景保存闭环（S5a） | Vite `POST /__scene/save`：校验 + 路径守卫 + 原子写；客户端保存后重载 | app | S5a 已具备（ADR-028） |
+| 运行时场景接线（S5b） | `loadSceneRuntime` 实例化 + `pickSystems` 调度重排 + 失败降级 + watcher 重载 | app+scene | S5b 已具备（ADR-029） |
 | 接触事件桥 | `bridge/contacts.ts`（enter/exit + 每 tick 上限） | bridge | 已具备（ADR-023） |
 | 资源清单 | `parseAssetManifest`（zod）+ `loadTextureUrls` | data+app | 已具备（ADR-022） |
 | schema 指纹 | `World.schemaFingerprint()` + HMR `schemaGuard` | core+app | 已具备（ADR-022） |

@@ -7,27 +7,77 @@
     "bulletTex": "bullet"
   },
   "nodes": [
-    { "id": "root", "name": "root" },
+    {
+      "id": "root",
+      "name": "root"
+    },
     {
       "id": "player",
       "name": "player",
       "parentId": "root",
-      "assets": { "texture": "playerTex" },
-      "components": { "Position": { "x": 960, "y": 540 }, "Box": { "size": 24 } }
+      "assets": {
+        "texture": "playerTex"
+      },
+      "components": {
+        "Position": {
+          "x": 960,
+          "y": 540
+        },
+        "Box": {
+          "size": 22
+        }
+      }
     },
     {
       "id": "target",
       "name": "target",
       "parentId": "root",
-      "assets": { "texture": "boxTex" },
-      "components": { "Position": { "x": 620, "y": 420 }, "Box": { "size": 24 } }
+      "assets": {
+        "texture": "boxTex"
+      },
+      "components": {
+        "Position": {
+          "x": 620,
+          "y": 420
+        },
+        "Box": {
+          "size": 24
+        }
+      }
     }
   ],
   "systems": [
-    { "id": "demo.movement", "phase": "movement" },
-    { "id": "demo.player", "phase": "ai" },
-    { "id": "demo.weapon", "phase": "damage" },
-    { "id": "demo.bulletMovement", "phase": "movement" },
-    { "id": "demo.bulletCleanup", "phase": "cleanup" }
+    {
+      "id": "demo.movement",
+      "phase": "movement"
+    },
+    {
+      "id": "demo.bulletMovement",
+      "phase": "movement"
+    },
+    {
+      "id": "demo.player",
+      "phase": "ai"
+    },
+    {
+      "id": "demo.weapon",
+      "phase": "damage"
+    },
+    {
+      "id": "physics.bodySync",
+      "phase": "collision"
+    },
+    {
+      "id": "physics.contacts",
+      "phase": "collision"
+    },
+    {
+      "id": "demo.hit",
+      "phase": "damage"
+    },
+    {
+      "id": "demo.bulletCleanup",
+      "phase": "cleanup"
+    }
   ]
 }

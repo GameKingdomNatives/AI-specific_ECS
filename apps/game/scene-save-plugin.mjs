@@ -44,6 +44,13 @@ export function sceneSavePlugin() {
     name: 'itb-scene-save',
     apply: 'serve',
     configureServer(server) {
+      const sceneDir = resolve(server.config.root, 'scenes');
+      server.watcher.add(sceneDir);
+      server.watcher.on('change', (file) => {
+        if (file.endsWith('.scene.json')) {
+          server.ws.send({ type: 'full-reload' });
+        }
+      });
       server.middlewares.use('/__scene/save', (request, response) => {
         if (request.method !== 'POST') {
           send(response, 405, { ok: false, error: '只接受 POST' });
