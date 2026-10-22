@@ -1,6 +1,7 @@
 import { buildSchedule, instantiateScene, parseScene } from '@itb/engine/scene';
 import type { ComponentDef, EntityId, SystemDef, World } from '@itb/engine/core';
 import type { Scene, SceneAssets, SceneIssue } from '@itb/engine/scene';
+import { currentSceneFile, sceneUrl } from './scene-file.js';
 
 export interface LoadedScene {
   readonly scene: Scene;
@@ -28,6 +29,8 @@ declare global {
     | undefined;
   // eslint-disable-next-line no-var
   var __itbApplyScene: ((raw: unknown) => { ok: boolean; issues: string[] }) | undefined;
+  // eslint-disable-next-line no-var
+  var __itbSceneFile: string | undefined;
 }
 
 /** 把 scene 实例化进 world，并发布运行时快照（编辑器/调试可读）。 */
@@ -49,13 +52,18 @@ export function instantiateSceneState(
   return { loaded: { scene, entities: instance.entities, assets: instance.assets }, issues: instance.issues };
 }
 
+/** 运行时当前 scene 地址（含 URL/编辑器选择）。 */
+export function currentSceneUrl(): string {
+  return sceneUrl(currentSceneFile());
+}
+
 /** 运行时读 scene 文件并实例化；失败返回 issues，调用方保留旧路径降级。 */
 export async function loadSceneRuntime(
   world: World,
   lookup: (name: string) => ComponentDef | undefined,
 ): Promise<{ loaded: LoadedScene | null; issues: readonly SceneIssue[] }> {
   try {
-    const raw: unknown = await (await fetch('/scenes/demo.scene.json')).json();
+    const raw: unknown = await (await fetch(currentSceneUrl())).json();
     const parsed = parseScene(raw);
     if (!parsed.ok) {
       return { loaded: null, issues: parsed.issues };

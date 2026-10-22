@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Scene } from '@itb/engine/scene';
+import { currentSceneFile, saveScene } from '../scene-file.js';
 
 type SaveState = { kind: 'idle' } | { kind: 'saving' } | { kind: 'ok'; bytes: number } | { kind: 'error'; message: string };
 
@@ -9,25 +10,21 @@ export function SaveButton(props: { getScene: () => Scene | null; onSaved?: () =
     const scene = props.getScene();
     if (scene === null) return;
     setState({ kind: 'saving' });
-    fetch('/__scene/save', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ file: 'demo.scene.json', scene }),
-    })
-      .then(async (response) => {
-        const payload = (await response.json()) as { ok?: boolean; error?: string; bytes?: number };
-        if (response.ok && payload.ok === true) {
-          // 保存成功后直接应用到运行时；不依赖 watcher 事件是否到达。
-          const applied = globalThis.__itbApplyScene?.(scene);
-          if (applied !== undefined && !applied.ok) {
-            setState({ kind: 'error', message: applied.issues[0] ?? '运行时应用失败' });
-            return;
-          }
-          setState({ kind: 'ok', bytes: payload.bytes ?? 0 });
-          props.onSaved?.();
-        } else setState({ kind: 'error', message: payload.error ?? `HTTP ${response.status}` });
-      })
-      .catch((error: unknown) => setState({ kind: 'error', message: String(error) }));
+    const file = currentSceneFile();
+    void saveScene(file, scene).then((result) => {
+      if (!result.ok) {
+        setState({ kind: 'error', message: result.error ?? '保存失败' });
+        return;
+      }
+      // 保存成功后直接应用到运行时；不依赖 watcher 事件是否到达。
+      const applied = globalThis.__itbApplyScene?.(scene);
+      if (applied !== undefined && !applied.ok) {
+        setState({ kind: 'error', message: applied.issues[0] ?? '运行时应用失败' });
+        return;
+      }
+      setState({ kind: 'ok', bytes: result.bytes ?? 0 });
+      props.onSaved?.();
+    });
   };
   const label = state.kind === 'saving' ? '保存中…' : state.kind === 'ok' ? '已保存' : state.kind === 'error' ? '保存失败' : '保存';
   return (

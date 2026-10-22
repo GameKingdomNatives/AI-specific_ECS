@@ -54,6 +54,7 @@
 | 元数据表单 + Storybook（D4） | `scene/meta` + `component-meta` 驱动检查器；editor stories | engine+app | D4 已具备（ADR-033） |
 | 编辑器实时同步 | 保存直接 apply + 实时预览开关 + JSON 去重 | app | 已具备（ADR-034） |
 | 系统参数 schema | `scene/meta` ParamField/SystemMeta + 校验/收敛；调度表单；createSystems 消费 | engine+app | 已具备（ADR-036） |
+| 多 scene 文件 | `?scene=` + `/__scene/list` + 编辑器下拉/另存 + watcher 文件名 | app | 已具备（ADR-037） |
 | 接触事件桥 | `bridge/contacts.ts`（enter/exit + 每 tick 上限） | bridge | 已具备（ADR-023） |
 | 资源清单 | `parseAssetManifest`（zod）+ `loadTextureUrls` | data+app | 已具备（ADR-022） |
 | schema 指纹 | `World.schemaFingerprint()` + HMR `schemaGuard` | core+app | 已具备（ADR-022） |

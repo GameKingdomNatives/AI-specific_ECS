@@ -23,6 +23,7 @@
 | 16 | 保存/编辑同步（D6） | 保存成功直接 apply（不依赖 watcher）；「实时」300ms 防抖预览；JSON 去重；浏览器：64→10 未保存生效、10→20 保存后文件/运行时均 20、marker 存活 | ✅ |
 | 17 | 同 tick 操作一致（P0-1） | 文档/选中引用同步写；保存读 `getScene()`；浏览器同一 eval 内删除 target+保存 → 文件与运行时均 3 节点、树 3 | ✅（ADR-035） |
 | 18 | 系统参数 schema（P0-2） | `ParamField/SystemMeta` + `validateSystemParams` + `coerceParamValue`；调度页显示「冷却 tick/弹速」；`cooldownTicks:999` 被拒绝，10 保存进文件；createSystems 消费 player/weapon 参数 | ✅（ADR-036） |
+| 19 | 多 scene 文件（P0-3） | `/__scene/list` + `?scene=` + 编辑器下拉/另存；浏览器：另存 test.scene.json→同页加载，test count 8 保存后 demo 仍 64，切回 demo 恢复 64；测试文件已删 | ✅（ADR-037） |
 
 ## 相关审计
 

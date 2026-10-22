@@ -23,7 +23,8 @@ import { createBrowserInput } from './input.js';
 import { parseInputMap } from '@itb/engine/data';
 import inputMapRaw from './data/input-map.json' with { type: 'json' };
 import { createSceneSystems } from './system-registry.js';
-import { instantiateSceneState, loadSceneRuntime } from './scene-runtime.js';
+import { currentSceneFile } from './scene-file.js';
+import { currentSceneUrl, instantiateSceneState, loadSceneRuntime } from './scene-runtime.js';
 import { pickSystems, resolvePlayer } from './scene-bootstrap.js';
 import { validateSceneSystemParams } from './editor/system-meta.js';
 import { parseScene, type Scene } from '@itb/engine/scene';
@@ -165,21 +166,21 @@ function applySceneDocument(raw: unknown): { ok: boolean; issues: string[] } {
 }
 async function reloadSceneLive(): Promise<void> {
   try {
-    const raw: unknown = await (await fetch('/scenes/demo.scene.json')).json();
+    const raw: unknown = await (await fetch(currentSceneUrl())).json();
     const result = applySceneDocument(raw);
     if (!result.ok) dataStatus = `scene invalid: ${result.issues[0] ?? 'unknown'}`;
   } catch (error) {
     dataStatus = `scene reload failed: ${String(error)}`;
   }
 }
-
 globalThis.__itbApplyScene = applySceneDocument;
 if (import.meta.hot !== undefined) {
-  import.meta.hot.on('itb:scene-changed', () => { void reloadSceneLive(); });
+  import.meta.hot.on('itb:scene-changed', (data: unknown) => {
+    const file = typeof data === 'object' && data !== null && 'file' in data && typeof data.file === 'string' ? data.file : undefined;
+    if (file === undefined || file === currentSceneFile()) void reloadSceneLive();
+  });
 }
-
 const saveStore = createSaveStore<SavePayload>(storage, { key: 'save', targetVersion: 1 });
-
 const uiStore = createUiStore({
   tick: 0,
   entities: world.aliveCount,
@@ -194,7 +195,6 @@ const uiStore = createUiStore({
   mode: probe === null ? 'run' : `probe ${probe}`,
   note: '就绪 · 按住左键射击',
 });
-
 function quarantinedCount(): number {
   return storage.keys().filter((key) => key.startsWith('save:quarantine:')).length;
 }

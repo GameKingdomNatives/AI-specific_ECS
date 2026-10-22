@@ -19,6 +19,7 @@ import type { ApplyResult, PreviewApi } from './use-preview.js';
 import { scheduleActions } from './schedule-actions.js';
 import type { ScheduleActions } from './schedule-actions.js';
 import { validateSceneSystemParams } from './system-meta.js';
+import { currentSceneFile, sceneUrl } from '../scene-file.js';
 
 export interface EditorApi {
   readonly scene: Scene | null;
@@ -44,7 +45,7 @@ type Apply = (next: Scene, select?: string | null) => void;
 
 async function loadSceneDoc(): Promise<{ scene: Scene | null; issue: string | null }> {
   try {
-    const raw: unknown = await (await fetch('/scenes/demo.scene.json')).json();
+    const raw: unknown = await (await fetch(sceneUrl(currentSceneFile()))).json();
     const parsed = parseScene(raw);
     return parsed.ok ? { scene: parsed.value, issue: null } : { scene: null, issue: parsed.issues[0]?.message ?? '场景不合法' };
   } catch (error) {

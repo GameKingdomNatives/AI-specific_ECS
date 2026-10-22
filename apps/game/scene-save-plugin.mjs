@@ -1,5 +1,5 @@
-import { renameSync, writeFileSync } from 'node:fs';
-import { resolve, sep } from 'node:path';
+import { readdirSync, renameSync, writeFileSync } from 'node:fs';
+import { basename, resolve, sep } from 'node:path';
 import { parseScene } from '@itb/engine/scene';
 
 const MAX_BODY_BYTES = 1_000_000;
@@ -48,8 +48,16 @@ export function sceneSavePlugin() {
       server.watcher.add(sceneDir);
       server.watcher.on('change', (file) => {
         if (file.endsWith('.scene.json')) {
-          server.ws.send({ type: 'custom', event: 'itb:scene-changed', data: {} });
+          server.ws.send({ type: 'custom', event: 'itb:scene-changed', data: { file: basename(file) } });
         }
+      });
+      server.middlewares.use('/__scene/list', (request, response) => {
+        if (request.method !== 'GET') {
+          send(response, 405, { ok: false, error: '只接受 GET' });
+          return;
+        }
+        const files = readdirSync(sceneDir).filter((file) => /^[A-Za-z0-9._-]+[.]scene[.]json$/.test(file)).sort();
+        send(response, 200, { ok: true, files });
       });
       server.middlewares.use('/__scene/save', (request, response) => {
         if (request.method !== 'POST') {
