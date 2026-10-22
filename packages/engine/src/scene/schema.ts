@@ -6,10 +6,16 @@ const FIELD_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
 const scalarValue = z.union([z.number().finite(), z.boolean(), z.string().max(256)]);
 
+export const sceneAssetsSchema = z.object({
+  texture: z.string().min(1).max(200).optional(),
+  audio: z.string().min(1).max(200).optional(),
+});
+
 export const sceneNodeSchema = z.object({
   id: z.string().min(1).max(64).regex(ID_PATTERN, '节点 id 只能使用字母/数字/._-，且以字母开头'),
   name: z.string().min(1).max(64),
   parentId: z.string().min(1).max(64).nullable().optional(),
+  assets: sceneAssetsSchema.optional(),
   components: z.record(
     z.string().regex(ID_PATTERN, '组件名不合法'),
     z.record(z.string().regex(FIELD_PATTERN, '字段名不合法'), scalarValue),
@@ -34,6 +40,7 @@ export const sceneSchema = z.object({
 
 export type SceneNode = z.infer<typeof sceneNodeSchema>;
 export type SceneSystem = z.infer<typeof sceneSystemSchema>;
+export type SceneAssets = z.infer<typeof sceneAssetsSchema>;
 export type Scene = z.infer<typeof sceneSchema>;
 
 export interface SceneIssue {
@@ -45,7 +52,7 @@ export type SceneResult =
   | { readonly ok: true; readonly value: Scene; readonly issues: readonly [] }
   | { readonly ok: false; readonly value: null; readonly issues: readonly SceneIssue[] };
 
-function validateNodes(nodes: readonly SceneNode[]): SceneIssue[] {
+function validateNodes(nodes: readonly SceneNode[], resources: Readonly<Record<string, string>> | undefined): SceneIssue[] {
   const issues: SceneIssue[] = [];
   const ids = new Set<string>();
   const parents = new Map<string, string | null>();
@@ -55,6 +62,11 @@ function validateNodes(nodes: readonly SceneNode[]): SceneIssue[] {
     }
     ids.add(node.id);
     parents.set(node.id, node.parentId ?? null);
+    for (const [slot, alias] of Object.entries(node.assets ?? {})) {
+      if (alias !== undefined && (resources === undefined || resources[alias] === undefined)) {
+        issues.push({ path: `nodes.${index}.assets.${slot}`, message: `资源别名不存在：${alias}` });
+      }
+    }
   });
   nodes.forEach((node, index) => {
     const parent = node.parentId ?? null;
@@ -120,7 +132,7 @@ export function parseScene(raw: unknown): SceneResult {
     };
   }
   const semantic = [
-    ...validateNodes(parsed.data.nodes),
+    ...validateNodes(parsed.data.nodes, parsed.data.resources),
     ...validateSystems(parsed.data.systems ?? []),
   ];
   if (semantic.length > 0) {

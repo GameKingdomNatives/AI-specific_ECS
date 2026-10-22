@@ -25,6 +25,12 @@
 - package 子路径导出生效；全量门禁 PASS（保护路径 `package.json` 改动记录于本 ADR）。
 - 文档：计划、本 ADR、capabilities/handoff 同步。
 
+## S1 实现补充（2026-10-22）
+
+- 节点新增可选 `assets: { texture?, audio? }`，值必须是 `resources` 里存在的别名；S1 解析为 manifest 资源名并随实例化结果返回，不写入 ECS（ECS 列仍只支持 number/boolean）。
+- 父子关系写入 `SceneParent` 组件（`parent: f64` 存父 EntityId，可被 options.parent 替换）；变换合成留给场景层。
+- 实例化遇到未知组件/字段、字符串字段、缺失别名时记录 issue 并跳过该字段，不抛异常、不中断其它节点。
+
 ## 后果
 
 - 正面：场景/资源/调度有单一数据契约；编辑器与运行时共享校验；后续可做保存闭环与调度图。

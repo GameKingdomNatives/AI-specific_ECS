@@ -21,11 +21,10 @@
 - `scene` 模块：zod schema、`parseScene`（重复 id、父节点缺失、父子环、系统阶段、`after` 引用、重复系统）。
 - 单测；`packages/engine` 增加 `./scene` 子路径（保护路径，记录 ADR）。
 
-### S1 · 运行时场景加载
-- `instantiateScene(world, scene, registry)`：节点→实体；组件值→组件写入；父关系→`Parent` 组件（或场景变换层）。
-- 资源引用：node 的 `texture`/`audio` 等字段经 manifest 名字解析；缺失→占位并记录 issue。
-- 失败降级：schema 错误 → 保留旧场景并展示问题清单；加载失败不阻塞主循环。
-- 单测：实体数量、组件值、父子关系、资源缺失降级。
+### S1 · 运行时场景加载（已完成）
+- `instantiateScene(world, scene, {lookup, parent?})`：节点→实体；组件值→组件写入；父关系→`SceneParent` 组件（可覆盖）；`node.assets` 别名→manifest 资源名。
+- 失败降级：未知组件/字段、字符串写 ECS、缺失别名进 `issues`，不中断其它节点。
+- 单测：实体数量、组件值、父子关系、资源解析、issue 不阻断、可替换父组件。
 
 ### S2 · 调度数据化
 - 系统清单驱动 `Scheduler`：id→工厂注册表、phase、enabled、after、params。
