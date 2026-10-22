@@ -31,14 +31,15 @@ function EditorBody(props: { tab: 'scene' | 'schedule'; editor: EditorApi; entri
   return <ScheduleEditor scene={props.editor.scene} actions={props.editor.schedule} />;
 }
 
-export function EditorPanel() {
-  const editor = useEditor();
-  const [entries, setEntries] = useState<readonly AssetEntry[]>([]);
+export function EditorPanel(props: { editor: EditorApi; entries?: readonly AssetEntry[] }) {
+  const { editor } = props;
+  const [entries, setEntries] = useState<readonly AssetEntry[]>(props.entries ?? []);
   const [open, setOpen] = useState(true);
   const [tab, setTab] = useState<'scene' | 'schedule'>('scene');
   useEffect(() => {
+    if (props.entries !== undefined) return;
     void loadAssetEntries().then(setEntries);
-  }, []);
+  }, [props.entries]);
   if (!open) return null;
   return (
     <aside className="fixed right-3 top-3 bottom-3 z-50 w-[380px] overflow-auto rounded-lg border border-neutral-300 bg-neutral-50/95 p-3 text-xs shadow-xl">
@@ -67,4 +68,10 @@ export function EditorPanel() {
       <footer className="mt-3 border-t border-neutral-200 pt-2 text-[10px] text-neutral-400">内存编辑 · 保存接口在 S5 接入（Vite 插件写回 scenes/*.json）</footer>
     </aside>
   );
+}
+
+/** 运行时挂载：编辑器状态来自 useEditor；展示层 EditorPanel 可被 Storybook 直接复用。 */
+export function EditorPanelLive() {
+  const editor = useEditor();
+  return <EditorPanel editor={editor} />;
 }

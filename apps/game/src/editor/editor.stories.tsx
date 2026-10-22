@@ -5,6 +5,8 @@ import { SceneTree } from './SceneTree.js';
 import { Inspector } from './Inspector.js';
 import { ScheduleEditor } from './ScheduleEditor.js';
 import { AssetBrowser } from './AssetBrowser.js';
+import { EditorPanel } from './EditorPanel.js';
+import type { EditorApi } from './use-editor.js';
 
 const scene: Scene = {
   schemaVersion: 1,
@@ -45,6 +47,26 @@ const inspectorNode: SceneNode = {
   components: { Position: { x: 960, y: 540 }, Box: { size: 22 } },
 };
 
+const fakeEditor: EditorApi = {
+  scene,
+  selected: 'player',
+  issue: null,
+  select: noop,
+  getScene: () => scene,
+  addChild: noop,
+  removeSelected: noop,
+  renameSelected: noop,
+  moveSelected: noop,
+  setField: noop,
+  addComp: noop,
+  attach: noop,
+  schedule: scheduleActions,
+  preview: true,
+  setPreview: noop,
+  applyNow: () => ({ ok: true, issues: [] }),
+  reload: noop,
+};
+
 const meta = {
   title: 'Editor/场景编辑器部件',
   parameters: { layout: 'padded' },
@@ -74,4 +96,9 @@ export const ScheduleEditorView: StoryObj<typeof meta> = {
 export const AssetBrowserView: StoryObj<typeof meta> = {
   name: '资源浏览器',
   render: () => <div className="w-80"><AssetBrowser entries={entries} onAttach={noop} /></div>,
+};
+
+export const FullPanelView: StoryObj<typeof meta> = {
+  name: '完整编辑器面板',
+  render: () => <div className="h-[760px] w-[400px]"><EditorPanel editor={fakeEditor} entries={entries} /></div>,
 };

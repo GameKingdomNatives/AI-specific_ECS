@@ -41,11 +41,11 @@
 | §15 执行策略 | 🟡 | hooks 版本化、stamp、保护路径、禁用标记扫描、测试数基线、drill 有；偏差：本地提交因沙箱使用 `--no-verify`（每次都手动全量 gate）；无 origin，push 期门禁无法实测；waivers 机制存在但当前为空 |
 | §16 治理面板 | ✅ | `tools/panel` 有状态/门禁/改动凭证/趋势/诊断/命令/批阅台等块；数据来自 git/门禁采集 |
 | §17 权限矩阵 | ✅ | AGENTS.md 明确 AUTO/SOFT/HARD；保护路径门禁 |
-| §18 文档流程 | 🟡 | capabilities/ADR/handoff/quality-log 存在；偏差：缺「系统卡」目录与《如何新增一个系统》操作指南；`docs/quality-log.md` 只记到 v0.3.3（39 个测试/58 模块未更新） |
+| §18 文档流程 | ✅ | capabilities/ADR/handoff/quality-log、`docs/systems/` 9 张系统卡与 `07-如何新增系统.md` 已补；quality-log 更新到 v0.10.0（40 测试/181 用例/60 源文件） |
 | §19 验收 | ✅ | 面板、全量门禁、dev、HMR/熔断、replay、3000 实体 bench、engine standalone、drill 均有证据 |
 | §20 三批交付 | ✅ | 骨架/渲染物理数据/确定性均落地，后有 scene 编辑器扩展 |
 | §21 禁止事项 | ✅ | 无 any/ts-ignore（门禁）；无游戏内容（技术夹具）；无平行物理真值 |
-| §22 UI 工具链 | 🟡 | Pixi canvas + DOM 覆盖层、只读 UiSnapshot、Storybook 10.6.3（含 editor stories）均符合；偏差：UI store 用自定义 subscribe + root.render，而非规范写的 `useSyncExternalStore` |
+| §22 UI 工具链 | 🟡 | Pixi canvas + DOM 覆盖层、只读 UiSnapshot、Storybook 10.6.3（含完整 EditorPanel story）符合；偏差仍是 UI store 用自定义 subscribe + root.render，而非 `useSyncExternalStore` |
 
 ## 3. 偏差清单（按优先级）
 
@@ -65,14 +65,14 @@
 11. 无超预算告警（§12）——用已有 `systemTimings`/frame stats 加阈值。
 12. 门禁逐系统契约测试/测试数（§14）——注册表增强。
 13. UI 未用 `useSyncExternalStore`（§22）——改为 `useSyncExternalStore` 包装现有 store。
-14. 缺系统卡与《如何新增系统》（§18）——纯文档，优先补。
-15. quality-log 过期（§18）——补当前批次读数。
+14. 缺系统卡与《如何新增系统》（§18）——**已补（docs/systems + runbook 07）**。
+15. quality-log 过期（§18）——**已更新到 v0.10.0**。
 
 ### P2（体验/后续）
 16. 资产管理缺口（此前审计）：音频未纳入 manifest、无预载、404 重试、无完整性校验。
-17. Storybook 只覆盖展示部件，完整 EditorPanel 依赖 fetch/hook。
+17. Storybook 只覆盖展示部件，完整 EditorPanel 依赖 fetch/hook。——**已补完整面板 story（EditorPanel 纯展示 + EditorPanelLive）**。
 18. 预览开关不持久化；编辑器无撤销/多选/拖拽。
-19. `docs/quality-log.md`、`docs/systems/`、`docs/runbooks/07-如何新增系统.md` 缺失。
+19. ~~`docs/quality-log.md`、`docs/systems/`、`docs/runbooks/07-如何新增系统.md` 缺失。~~ **已补**。
 
 ## 4. 结论
 

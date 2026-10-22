@@ -56,6 +56,7 @@
 | 系统参数 schema | `scene/meta` ParamField/SystemMeta + 校验/收敛；调度表单；createSystems 消费 | engine+app | 已具备（ADR-036） |
 | 多 scene 文件 | `?scene=` + `/__scene/list` + 编辑器下拉/另存 + watcher 文件名 | app | 已具备（ADR-037） |
 | 组件级轻量应用 | Position/Box 原地写列；结构变化整重建 | app | 已具备（ADR-038） |
+| 文档配套 | `docs/systems/` 9 张系统卡 + 07-如何新增系统；quality-log v0.10.0 | docs | 已具备 |
 | 接触事件桥 | `bridge/contacts.ts`（enter/exit + 每 tick 上限） | bridge | 已具备（ADR-023） |
 | 资源清单 | `parseAssetManifest`（zod）+ `loadTextureUrls` | data+app | 已具备（ADR-022） |
 | schema 指纹 | `World.schemaFingerprint()` + HMR `schemaGuard` | core+app | 已具备（ADR-022） |
