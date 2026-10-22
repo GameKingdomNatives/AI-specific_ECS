@@ -1,5 +1,7 @@
 export { defineComponent, isBoolField } from './types.js';
 export type { ComponentDef, EntityId, FieldKind, FieldMap, Values } from './types.js';
+export { clamp01, interpolatePoint, lerp } from './interpolate.js';
+export type { Point } from './interpolate.js';
 export { FixedClock } from './clock.js';
 export { Random, stream } from './random.js';
 export { entityGeneration, entityIndex, World } from './world.js';

@@ -1,4 +1,4 @@
-﻿# 下一步方向（R5 及之后）
+# 下一步方向（R5 及之后）
 
 - 日期：2026-10-22
 - 依据：`docs/00-最终指令.md` §7/§9/§11/§12/§13/§19/§20 对照源码与门禁实测；`docs/capabilities.md`、`docs/audits/engine-diff-and-progress.md`

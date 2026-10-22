@@ -1,5 +1,6 @@
 import { Application, Container, Graphics } from 'pixi.js';
 import type { IRenderer, RenderItem } from '../ports/index.js';
+import { shakeOffset } from './camera-shake.js';
 import { createFrameStats } from './frame-stats.js';
 import type { FrameTiming } from './frame-stats.js';
 import { computeViewBounds, isVisible } from './render-cull.js';
@@ -39,6 +40,8 @@ export interface RenderStats {
 export interface PixiRenderer extends IRenderer {
   stats(): RenderStats;
   setCulling(enabled: boolean): void;
+  /** 相机抖动（屏幕像素、毫秒），只影响渲染，不影响逻辑。 */
+  shake(amplitude: number, durationMs: number): void;
 }
 
 function createLayers(app: Application): Container[] {
@@ -60,14 +63,20 @@ function createCamera(layers: Container[]): {
   set: (x: number, y: number, zoom: number) => void;
   get: () => { x: number; y: number; zoom: number };
   apply: () => void;
+  shake: (amplitude: number, durationMs: number) => void;
 } {
   let camera = { x: 0, y: 0, zoom: 1 };
+  let shake = { amplitude: 0, duration: 0, startedAt: 0 };
   const apply = (): void => {
     const fit = Math.min(window.innerWidth / LOGICAL_WIDTH, window.innerHeight / LOGICAL_HEIGHT);
     const scale = fit * camera.zoom;
+    const offset = shakeOffset(performance.now() - shake.startedAt, shake.duration, shake.amplitude);
     for (const layer of layers) {
       layer.scale.set(scale);
-      layer.position.set(window.innerWidth / 2 - camera.x * scale, window.innerHeight / 2 - camera.y * scale);
+      layer.position.set(
+        window.innerWidth / 2 - camera.x * scale + offset.x,
+        window.innerHeight / 2 - camera.y * scale + offset.y,
+      );
     }
   };
   return {
@@ -77,6 +86,14 @@ function createCamera(layers: Container[]): {
     },
     get: () => camera,
     apply,
+    shake: (amplitude, durationMs) => {
+      shake = {
+        amplitude: Math.max(0, Math.min(64, amplitude)),
+        duration: Math.max(0, Math.min(2000, durationMs)),
+        startedAt: performance.now(),
+      };
+      apply();
+    },
   };
 }
 
@@ -204,6 +221,9 @@ export async function createPixiRenderer(
       culling.enabled = enabled;
     },
     debugDraw,
+    shake(amplitude: number, durationMs: number): void {
+      camera.shake(amplitude, durationMs);
+    },
     resize(width: number, height: number): void {
       app.renderer.resize(width, height);
       camera.apply();

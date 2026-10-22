@@ -1,4 +1,4 @@
-﻿# ADR-015 合批验证：ParticleContainer 对照探针
+# ADR-015 合批验证：ParticleContainer 对照探针
 
 - 状态：验证完成，实施待做（R5c）
 - 日期：2026-10-22

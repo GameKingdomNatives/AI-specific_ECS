@@ -20,6 +20,14 @@ export class FixedClock {
     return this.paused;
   }
 
+  /** 渲染插值系数：当前累计时间占一个逻辑步的比例（0..1）。 */
+  get alpha(): number {
+    if (this.paused) {
+      return 0;
+    }
+    return Math.min(1, Math.max(0, this.accumulated / this.stepMs));
+  }
+
   /** 返回本次应执行的逻辑步数；超过上限的部分直接丢弃，避免「死亡螺旋」。 */
   advance(realMs: number): number {
     if (this.paused) {

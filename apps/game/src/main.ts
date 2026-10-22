@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 import './ui/app.css';
-import { CommandBuffer, EventBus, FixedClock, Scheduler, World } from '@itb/engine/core';
+import { CommandBuffer, EventBus, FixedClock, interpolatePoint, Scheduler, World } from '@itb/engine/core';
 import type { EntityId, SystemDef } from '@itb/engine/core';
 import type { BoxSpec } from '@itb/engine/data';
 import { hashHex, Recorder, serialize, worldHashGroups } from '@itb/engine/determinism';
@@ -10,6 +10,7 @@ import { createGameAudio } from './sound.js';
 import { createUiIntents } from './ui-intents.js';
 import { createRunState } from './validity.js';
 import { createDebugView } from './debug-view.js';
+import { capturePoses } from './interpolation.js';
 import { createDumpSink } from '@itb/engine/diagnostics';
 import { createMemoryLogger } from '@itb/engine/logger';
 import { createPhysicsPort, PhysicsWorld } from '@itb/engine/physics';
@@ -102,6 +103,7 @@ applySystems(createSystems(deps));
 let kills = 0;
 bus.on('demo.hit', () => {
   kills += 1;
+  renderer.shake(10, 180);
 });
 
 const initial = initialContent();
@@ -176,7 +178,7 @@ renderer.setCamera(WIDTH / 2, HEIGHT / 2, 1);
 let last = performance.now();
 let lastHash = hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]]));
 
-function renderTable(): RenderItem[] {
+function renderTable(alpha: number, previous: Map<EntityId, { x: number; y: number }>): RenderItem[] {
   const items: RenderItem[] = [];
   for (const entity of world.query(Position, Box)) {
     const position = world.get(entity, Position);
@@ -184,10 +186,11 @@ function renderTable(): RenderItem[] {
     if (position === undefined || box === undefined) {
       continue;
     }
+    const point = interpolatePoint(previous.get(entity), position, alpha);
     items.push({
       id: entity,
-      x: position.x,
-      y: position.y,
+      x: point.x,
+      y: point.y,
       rot: 0,
       sx: box.size,
       sy: box.size,
@@ -204,10 +207,11 @@ function renderTable(): RenderItem[] {
     if (position === undefined) {
       continue;
     }
+    const point = interpolatePoint(previous.get(entity), position, alpha);
     items.push({
       id: entity,
-      x: position.x,
-      y: position.y,
+      x: point.x,
+      y: point.y,
       rot: 0,
       sx: 14,
       sy: 14,
@@ -226,6 +230,7 @@ function frame(now: number): void {
   const delta = now - last;
   last = now;
   const startTick = clock.tick;
+  const frameStart = capturePoses(world);
   const steps = clock.advance(delta);
   for (let index = 0; index < steps; index += 1) {
     const tick = startTick + index + 1;
@@ -239,26 +244,15 @@ function frame(now: number): void {
     }
   }
   if (clock.tick % 60 === 0) lastHash = hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]]));
-  renderer.submit(renderTable());
+  renderer.submit(renderTable(clock.alpha, frameStart));
   renderer.debugDraw(debugView.enabled ? scheduler.collectDebug(world, bus, commands, clock.tick) : []);
   if (hud !== null && clock.tick % 10 === 0) {
     const mode = probe === null ? 'run' : `probe ${probe}`;
     const bullets = world.query(Position, Bullet).length;
     const bodies = deps.physics.stats().bodies;
     const renderStats = renderer.stats();
-    hud.textContent = `${mode} · tick ${clock.tick} · entities ${world.aliveCount} · bullets ${bullets} · kills ${kills} · bodies ${bodies} · vis ${renderStats.submitted}/${renderStats.total} · sub ${renderStats.submitAvgMs.toFixed(2)}ms · rec ${recorder.count} · err ${dumpSink.list().length} · ${lastHash} · ${dataStatus}`;
-    uiStore.update({
-      tick: clock.tick,
-      entities: world.aliveCount,
-      bullets,
-      kills,
-      bodies,
-      recordingTicks: recorder.count,
-      dumps: dumpSink.list().length,
-      audioPlays: audio.stats().plays,
-      hash: lastHash,
-      dataStatus,
-    });
+    hud.textContent = `${mode} · tick ${clock.tick} · entities ${world.aliveCount} · bullets ${bullets} · kills ${kills} · bodies ${bodies} · vis ${renderStats.submitted}/${renderStats.total} · a ${clock.alpha.toFixed(2)} · sub ${renderStats.submitAvgMs.toFixed(2)}ms · rec ${recorder.count} · err ${dumpSink.list().length} · ${lastHash} · ${dataStatus}`;
+    uiStore.update({ tick: clock.tick, entities: world.aliveCount, bullets, kills, bodies, recordingTicks: recorder.count, dumps: dumpSink.list().length, audioPlays: audio.stats().plays, hash: lastHash, dataStatus });
   }
   requestAnimationFrame(frame);
 }
@@ -283,6 +277,7 @@ Object.assign(globalThis, {
     systems: () => scheduler.orderNames,
     valid: () => runState.valid,
     debugLines: () => scheduler.collectDebug(world, bus, commands, clock.tick),
+    shake: (amplitude = 10, durationMs = 180) => renderer.shake(amplitude, durationMs),
   },
 });
 

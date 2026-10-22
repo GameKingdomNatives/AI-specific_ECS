@@ -1,4 +1,4 @@
-﻿# 能力注册表
+# 能力注册表
 
 实现新系统前先查这里；已有能力就复用，不重复造。新增能力需同时补系统卡与契约测试。
 （2026-10-22 校正：端口 10 个；删除 Onlook 与「待第三批」旧项；补事件级回放、世界快照、输入映射、渲染剔除/池化、覆盖率、音效与 UI 组件。）
@@ -19,6 +19,8 @@
 | 方块运动夹具 | `demo.movement` | demo | 已具备 |
 | 渲染表提交 | `IRenderer.submit`（Pixi 实现） | impl | 已具备 |
 | 相机剔除 + 渲染统计 + 提交计时 | `impl/render-cull.ts`、`impl/frame-stats.ts`、`PixiRenderer.stats()/setCulling()` | impl | 已具备（submitMs/avg/p95） |
+| 相机抖动 | `PixiRenderer.shake` + `impl/camera-shake.ts`（命中事件触发） | impl+app | 已具备（ADR-019） |
+| 渲染插值 | `core/interpolate.ts` + `FixedClock.alpha` + `capturePoses` | core+app | 已具备（ADR-019） |
 | 贴图合批（默认开） | `impl/particle-batch.ts`、`?batch=0` 回退 | impl+app | 已具备（3000 项 avg 0.49ms；真实场景验收通过） |
 | 系统自绘叠加层 | `SystemDef.debugDraw` + `Scheduler.collectDebug` + `?debug=1`/F3 | core+app | 已具备（ADR-017，line 命令） |
 | 视图池化 + 代际清理 | `impl/view-pool.ts`、`pixi-views.ts` | impl | 已具备 |

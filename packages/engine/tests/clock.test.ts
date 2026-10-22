@@ -9,6 +9,14 @@ test('按固定步长推进，零头留到下一次', () => {
   assert.equal(clock.tick, 1);
 });
 
+test('alpha 反映累计零头，暂停时为 0', () => {
+  const clock = new FixedClock(10);
+  clock.advance(4);
+  assert.ok(Math.abs(clock.alpha - 0.4) < 1e-9);
+  clock.setPaused(true);
+  assert.equal(clock.alpha, 0);
+});
+
 test('单帧步数有上限，避免死亡螺旋', () => {
   const clock = new FixedClock(10, 4);
   assert.equal(clock.advance(1000), 4);
