@@ -41,10 +41,9 @@
 - `ScheduleEditor`：按 `PHASES` 分组的阶段泳道、系统卡片（id/phase/after/禁用标记）；新增系统、删除、改阶段、启停、after（逗号、失焦提交）、params key/value 增删。
 - 引擎 `schedule-edit.ts` 纯函数 + `parseScene` 复验；浏览器验证 5→6 系统、after=demo.player、禁用标记；ADR-027。
 
-### S5 · 保存闭环与验收
-- Vite 插件：`POST /__scene/save`（校验→临时文件→rename 原子写），路径限定 `apps/game/scenes/`。
-- 浏览器 E2E：改节点/系统→保存→重载场景→断言组件/资源/顺序生效；截图。
-- 验收矩阵：资源引用、场景树、检查器、调度图、保存、失败降级、热加载逐项证据。
+### S5 · 保存闭环与验收（S5a 已完成，S5b 待做）
+- **S5a（已完成）**：Vite 插件 `POST /__scene/save`（1MB 上限、文件名/路径守卫、`parseScene` 校验、临时文件 + rename 原子写）；客户端 SaveButton + 保存后从磁盘重载。API 验证：合法 200、路径越界 400、schema 非法 400；浏览器：加节点→保存→文件 3→4、面板「已保存」并重载为 4 节点（ADR-028）。
+- **S5b（待做）**：应用运行时读 scene，经 `instantiateScene` + `buildSchedule` 建世界与系统（当前仍走代码路径）；保存后重建运行世界；最终验收矩阵（资源引用、场景树、检查器、调度图、保存、失败降级、热加载逐项证据）。
 
 ## 3. 数据模型（S0 定稿）
 

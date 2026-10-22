@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { AssetEntry } from '@itb/engine/data';
 import { SceneEditorBody } from './SceneEditorBody.js';
 import { ScheduleEditor } from './ScheduleEditor.js';
+import { SaveButton } from './SaveButton.js';
 import { loadAssetEntries } from './asset-entries.js';
 import { useEditor } from './use-editor.js';
 
@@ -45,7 +46,10 @@ export function EditorPanel() {
           <strong className="text-sm text-neutral-900">场景编辑器</strong>
           <span className="ml-2 text-[11px] text-neutral-500">{editor.scene?.name ?? '加载中'}</span>
         </div>
-        <button type="button" onClick={() => setOpen(false)} className="rounded border border-neutral-300 px-1.5 py-0.5 text-[11px]">收起</button>
+        <div className="flex items-center gap-1">
+          <SaveButton scene={editor.scene} onSaved={editor.reload} />
+          <button type="button" onClick={() => setOpen(false)} className="rounded border border-neutral-300 px-1.5 py-0.5 text-[11px]">收起</button>
+        </div>
       </header>
       <nav className="mt-2 flex gap-1">
         <button type="button" onClick={() => setTab('scene')} className={`rounded px-2 py-0.5 text-[11px] ${tab === 'scene' ? 'bg-neutral-800 text-white' : 'border border-neutral-300 text-neutral-600'}`}>场景</button>

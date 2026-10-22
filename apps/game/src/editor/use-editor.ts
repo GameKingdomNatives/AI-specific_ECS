@@ -29,9 +29,20 @@ export interface EditorApi {
   addComp(component: string): void;
   attach(slot: 'texture' | 'audio', assetName: string): void;
   readonly schedule: ScheduleActions;
+  reload(): void;
 }
 
 type Apply = (next: Scene, select?: string | null) => void;
+
+async function loadSceneDoc(): Promise<{ scene: Scene | null; issue: string | null }> {
+  try {
+    const raw: unknown = await (await fetch('/scenes/demo.scene.json')).json();
+    const parsed = parseScene(raw);
+    return parsed.ok ? { scene: parsed.value, issue: null } : { scene: null, issue: parsed.issues[0]?.message ?? '场景不合法' };
+  } catch (error) {
+    return { scene: null, issue: String(error) };
+  }
+}
 
 function defaultsFor(component: string): Record<string, number | boolean> {
   const values: Record<string, number | boolean> = {};
@@ -87,17 +98,11 @@ export function useEditor(): EditorApi {
 
   useEffect(() => {
     let alive = true;
-    fetch('/scenes/demo.scene.json')
-      .then((response) => response.json())
-      .then((raw: unknown) => {
-        if (!alive) return;
-        const parsed = parseScene(raw);
-        if (parsed.ok) {
-          setScene(parsed.value);
-          setSelected(parsed.value.nodes[0]?.id ?? null);
-        } else setIssue(parsed.issues[0]?.message ?? '场景不合法');
-      })
-      .catch((error: unknown) => { if (alive) setIssue(String(error)); });
+    void loadSceneDoc().then((result) => {
+      if (!alive) return;
+      if (result.scene === null) setIssue(result.issue);
+      else { setScene(result.scene); setSelected(result.scene.nodes[0]?.id ?? null); }
+    });
     return () => { alive = false; };
   }, []);
 
@@ -112,11 +117,19 @@ export function useEditor(): EditorApi {
     if (select !== undefined) setSelected(select);
   };
 
+  const reload = (): void => {
+    void loadSceneDoc().then((result) => {
+      if (result.scene === null) setIssue(result.issue);
+      else { setIssue(null); setScene(result.scene); setSelected(result.scene.nodes[0]?.id ?? null); }
+    });
+  };
+
   return {
     scene,
     selected,
     issue,
     select: setSelected,
+    reload,
     ...nodeActions(scene, selected, apply, setIssue),
     ...dataActions(scene, selected, apply),
     schedule: scheduleActions(scene, apply),
