@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { defaultsFor, parseScene } from '@itb/engine/scene';
 import type { Scene } from '@itb/engine/scene';
 import {
@@ -13,6 +13,7 @@ import {
   setComponentField,
 } from '@itb/engine/scene';
 import { COMPONENT_META_BY_NAME } from './component-meta.js';
+import type { SceneDocRef, SelectionRef } from './doc-ref.js';
 import { usePreview } from './use-preview.js';
 import type { ApplyResult, PreviewApi } from './use-preview.js';
 import { scheduleActions } from './schedule-actions.js';
@@ -23,6 +24,7 @@ export interface EditorApi {
   readonly selected: string | null;
   readonly issue: string | null;
   select(id: string | null): void;
+  getScene(): Scene | null;
   addChild(): void;
   removeSelected(): void;
   renameSelected(name: string): void;
@@ -54,50 +56,99 @@ function defaultsForComponent(component: string): Record<string, number | boolea
   return meta === undefined ? {} : defaultsFor(meta);
 }
 
-function nodeActions(scene: Scene | null, selected: string | null, apply: Apply, setIssue: (issue: string) => void) {
+function nodeActions(doc: SceneDocRef, selected: SelectionRef, apply: Apply, setIssue: (issue: string) => void) {
   return {
     addChild(): void {
+      const scene = doc.current;
       if (scene === null) return;
-      apply(addNode(scene, selected, 'node'), nextNodeId(scene));
+      apply(addNode(scene, selected.current, 'node'), nextNodeId(scene));
     },
     removeSelected(): void {
-      if (scene === null || selected === null) return;
-      const next = removeNode(scene, selected);
+      const scene = doc.current;
+      if (scene === null || selected.current === null) return;
+      const next = removeNode(scene, selected.current);
       apply(next, next.nodes[0]?.id ?? null);
     },
     renameSelected(name: string): void {
-      if (scene !== null && selected !== null) apply(renameNode(scene, selected, name));
+      const scene = doc.current;
+      if (scene !== null && selected.current !== null) apply(renameNode(scene, selected.current, name));
     },
     moveSelected(parentId: string | null): void {
-      if (scene === null || selected === null) return;
-      const moved = moveNode(scene, selected, parentId);
+      const scene = doc.current;
+      if (scene === null || selected.current === null) return;
+      const moved = moveNode(scene, selected.current, parentId);
       if (moved.issue !== null) setIssue(moved.issue);
       else apply(moved.scene);
     },
   };
 }
 
-function dataActions(scene: Scene | null, selected: string | null, apply: Apply) {
+function dataActions(doc: SceneDocRef, selected: SelectionRef, apply: Apply) {
   return {
     setField(component: string, field: string, value: number | boolean): void {
-      if (scene !== null && selected !== null) apply(setComponentField(scene, selected, component, field, value));
+      const scene = doc.current;
+      if (scene !== null && selected.current !== null) apply(setComponentField(scene, selected.current, component, field, value));
     },
     addComp(component: string): void {
-      if (scene !== null && selected !== null) apply(addComponent(scene, selected, component, defaultsForComponent(component)));
+      const scene = doc.current;
+      if (scene !== null && selected.current !== null) apply(addComponent(scene, selected.current, component, defaultsForComponent(component)));
     },
     attach(slot: 'texture' | 'audio', assetName: string): void {
-      if (scene === null || selected === null) return;
+      const scene = doc.current;
+      if (scene === null || selected.current === null) return;
       const ensured = ensureResource(scene, assetName);
-      apply(setAsset(ensured.scene, selected, slot, ensured.alias));
+      apply(setAsset(ensured.scene, selected.current, slot, ensured.alias));
     },
   };
 }
 
-function makeApplyNow(scene: Scene | null, previewApi: PreviewApi, setIssue: (issue: string | null) => void) {
+function makeApplyNow(doc: SceneDocRef, previewApi: PreviewApi, setIssue: (issue: string | null) => void) {
   return (): ApplyResult => {
-    const result = previewApi.applyNow(scene);
+    const result = previewApi.applyNow(doc.current);
     setIssue(result.ok ? null : (result.issues[0] ?? '运行时应用失败'));
     return result;
+  };
+}
+
+function makeApply(doc: SceneDocRef, selected: SelectionRef, setters: {
+  setScene: (scene: Scene) => void;
+  setSelected: (id: string | null) => void;
+  setIssue: (issue: string | null) => void;
+}, previewApi: PreviewApi): Apply {
+  return (next, select) => {
+    const parsed = parseScene(next);
+    if (!parsed.ok) {
+      setters.setIssue(parsed.issues[0]?.message ?? '场景不合法');
+      return;
+    }
+    setters.setIssue(null);
+    doc.current = parsed.value;
+    setters.setScene(parsed.value);
+    if (select !== undefined) {
+      selected.current = select;
+      setters.setSelected(select);
+    }
+    previewApi.schedule(parsed.value);
+  };
+}
+
+function makeReload(doc: SceneDocRef, selected: SelectionRef, setters: {
+  setScene: (scene: Scene) => void;
+  setSelected: (id: string | null) => void;
+  setIssue: (issue: string | null) => void;
+}): () => void {
+  return () => {
+    void loadSceneDoc().then((result) => {
+      if (result.scene === null) {
+        setters.setIssue(result.issue);
+        return;
+      }
+      setters.setIssue(null);
+      doc.current = result.scene;
+      selected.current = result.scene.nodes[0]?.id ?? null;
+      setters.setScene(result.scene);
+      setters.setSelected(selected.current);
+    });
   };
 }
 
@@ -105,6 +156,8 @@ export function useEditor(): EditorApi {
   const [scene, setScene] = useState<Scene | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [issue, setIssue] = useState<string | null>(null);
+  const doc = useRef<Scene | null>(null);
+  const selectedRef = useRef<string | null>(null);
   const previewApi = usePreview();
 
   useEffect(() => {
@@ -112,41 +165,36 @@ export function useEditor(): EditorApi {
     void loadSceneDoc().then((result) => {
       if (!alive) return;
       if (result.scene === null) setIssue(result.issue);
-      else { setScene(result.scene); setSelected(result.scene.nodes[0]?.id ?? null); }
+      else {
+        doc.current = result.scene;
+        selectedRef.current = result.scene.nodes[0]?.id ?? null;
+        setScene(result.scene);
+        setSelected(selectedRef.current);
+      }
     });
     return () => { alive = false; };
   }, []);
 
-  const apply: Apply = (next, select) => {
-    const parsed = parseScene(next);
-    if (!parsed.ok) {
-      setIssue(parsed.issues[0]?.message ?? '场景不合法');
-      return;
-    }
-    setIssue(null);
-    setScene(parsed.value);
-    previewApi.schedule(parsed.value);
-    if (select !== undefined) setSelected(select);
+  const setters = { setScene, setSelected, setIssue };
+  const apply = makeApply(doc, selectedRef, setters, previewApi);
+  const select = (id: string | null): void => {
+    selectedRef.current = id;
+    setSelected(id);
   };
-
-  const reload = (): void => {
-    void loadSceneDoc().then((result) => {
-      if (result.scene === null) setIssue(result.issue);
-      else { setIssue(null); setScene(result.scene); setSelected(result.scene.nodes[0]?.id ?? null); }
-    });
-  };
+  const reload = makeReload(doc, selectedRef, setters);
 
   return {
     scene,
     selected,
     issue,
-    select: setSelected,
+    select,
+    getScene: () => doc.current,
     reload,
     preview: previewApi.preview,
     setPreview: previewApi.setPreview,
-    applyNow: makeApplyNow(scene, previewApi, setIssue),
-    ...nodeActions(scene, selected, apply, setIssue),
-    ...dataActions(scene, selected, apply),
-    schedule: scheduleActions(scene, apply),
+    applyNow: makeApplyNow(doc, previewApi, setIssue),
+    ...nodeActions(doc, selectedRef, apply, setIssue),
+    ...dataActions(doc, selectedRef, apply),
+    schedule: scheduleActions(doc, apply),
   };
 }

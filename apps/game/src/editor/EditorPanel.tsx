@@ -52,7 +52,7 @@ export function EditorPanel() {
             实时
           </label>
           <button type="button" onClick={() => editor.applyNow()} className="rounded border border-neutral-300 px-1.5 py-0.5 text-[10px]">应用</button>
-          <SaveButton scene={editor.scene} onSaved={editor.reload} />
+          <SaveButton getScene={editor.getScene} onSaved={editor.reload} />
           <button type="button" onClick={() => setOpen(false)} className="rounded border border-neutral-300 px-1.5 py-0.5 text-[11px]">收起</button>
         </div>
       </header>

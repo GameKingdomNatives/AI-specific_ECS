@@ -3,21 +3,22 @@ import type { Scene } from '@itb/engine/scene';
 
 type SaveState = { kind: 'idle' } | { kind: 'saving' } | { kind: 'ok'; bytes: number } | { kind: 'error'; message: string };
 
-export function SaveButton(props: { scene: Scene | null; onSaved?: () => void }) {
+export function SaveButton(props: { getScene: () => Scene | null; onSaved?: () => void }) {
   const [state, setState] = useState<SaveState>({ kind: 'idle' });
   const save = (): void => {
-    if (props.scene === null) return;
+    const scene = props.getScene();
+    if (scene === null) return;
     setState({ kind: 'saving' });
     fetch('/__scene/save', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ file: 'demo.scene.json', scene: props.scene }),
+      body: JSON.stringify({ file: 'demo.scene.json', scene }),
     })
       .then(async (response) => {
         const payload = (await response.json()) as { ok?: boolean; error?: string; bytes?: number };
         if (response.ok && payload.ok === true) {
           // 保存成功后直接应用到运行时；不依赖 watcher 事件是否到达。
-          const applied = globalThis.__itbApplyScene?.(props.scene);
+          const applied = globalThis.__itbApplyScene?.(scene);
           if (applied !== undefined && !applied.ok) {
             setState({ kind: 'error', message: applied.issues[0] ?? '运行时应用失败' });
             return;
