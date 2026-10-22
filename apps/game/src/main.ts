@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 import './ui/app.css';
-import { CommandBuffer, EventBus, FixedClock, Scheduler, World, type EntityId, type SystemDef } from '@itb/engine/core';
+import { CommandBuffer, EventBus, FixedClock, Scheduler, World, findBudgetBreach, type EntityId, type SystemDef } from '@itb/engine/core';
 import type { BoxSpec } from '@itb/engine/data';
 import { hashHex, Recorder, serialize, worldHashGroups } from '@itb/engine/determinism';
 import { Box, BoxSpawner, Bullet, Position, spawnBoxes } from '@itb/engine/demo';
@@ -87,7 +87,6 @@ function onSystemError(system: string, error: unknown, tick: number): void {
 function createScheduler(): Scheduler {
   return new Scheduler({ maxConsecutiveFailures: 3, onSystemError, enforceWrites: new URLSearchParams(location.search).has('guard') });
 }
-
 function applySystems(list: readonly SystemDef[]): void {
   scheduler.dispose();
   scheduler = createScheduler();
@@ -98,7 +97,6 @@ function applySystems(list: readonly SystemDef[]): void {
   }
   scheduler.build();
 }
-
 let deps = {
   width: WIDTH,
   height: HEIGHT,
@@ -107,32 +105,25 @@ let deps = {
   physics: createPhysicsPort(new PhysicsWorld()),
 };
 applySystems(pickSystems(sceneSystems(), sceneResult.loaded));
-
 let kills = 0;
 bus.on('demo.hit', () => { kills += 1; renderer.shake(10, 180); });
-
 const initial = initialContent();
 let dataStatus = `${initial.ok ? 'data ok' : `data fallback: ${initial.issue ?? 'invalid'}`} · scene ${sceneResult.loaded === null ? 'fallback' : sceneResult.loaded.scene.name} · player ${player < 0 ? 'missing' : 'ok'}`;
-
 function spawnSpec(spec: BoxSpec): EntityId[] {
   const count = probe === null ? (stress > 0 ? stress : spec.count) : Math.min(8, spec.count);
   return spawnBoxes(world, count, WIDTH, HEIGHT, spec.minSize, spec.maxSize, spec.speed);
 }
-
 let boxes = sceneResult.loaded !== null ? [] : spawnSpec(initial.spec);
 let recorder = new Recorder(20261020, hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]])));
-
 function sceneLabel(): string {
   return sceneResult.loaded === null ? 'fallback' : sceneResult.loaded.scene.name;
 }
-
 function playerLabel(): string {
   return player < 0 ? 'missing' : 'ok';
 }
 function depsFor(playerId: number) {
   return { width: WIDTH, height: HEIGHT, player: playerId, getInput: (): typeof current => current, physics: createPhysicsPort(new PhysicsWorld()) };
 }
-
 function sceneSystems(): SystemDef[] {
   return createSceneSystems(deps, sceneResult.loaded?.scene ?? null);
 }
@@ -208,7 +199,6 @@ const uiStore = createUiStore({
 function quarantinedCount(): number {
   return storage.keys().filter((key) => key.startsWith('save:quarantine:')).length;
 }
-
 function setNote(message: string): void {
   uiStore.update({ note: `${message} · 隔离 ${quarantinedCount()}` });
 }
@@ -231,6 +221,7 @@ watchContent((state) => {
   boxes = spawnSpec(state.spec);
 });
 const captureMode = new URLSearchParams(location.search).has('capture');
+const budgetLimit = Number(new URLSearchParams(location.search).get('budget') ?? '2');
 const batching = new URLSearchParams(location.search).get('batch') !== '0';
 const debugView = createDebugView(new URLSearchParams(location.search).has('debug'));
 const renderer = await createPixiRenderer(canvas, { preserveDrawingBuffer: captureMode, debugGlobal: captureMode, batching });
@@ -239,6 +230,14 @@ let last = performance.now();
 let lastHash = hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]]));
 function updateHud(): void {
   if (hud === null || clock.tick % 10 !== 0) return;
+  if (clock.tick % 60 === 0) {
+    const breach = findBudgetBreach(scheduler.systemTimings(), budgetLimit);
+    if (breach !== null) {
+      logger.warn('system over budget', { system: breach.system, p95: breach.p95, limit: breach.limit });
+      dumpSink.record({ system: breach.system, tick: clock.tick, message: `p95 ${breach.p95.toFixed(2)}ms > ${breach.limit}ms`, stack: '' });
+      dumpSink.persist();
+    }
+  }
   const mode = probe === null ? 'run' : `probe ${probe}`;
   const bullets = world.query(Position, Bullet).length;
   const bodies = deps.physics.stats().bodies;

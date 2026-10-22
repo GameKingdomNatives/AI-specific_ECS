@@ -12,3 +12,5 @@ export type { EventPayload, EventRecord } from './events.js';
 export { PHASES, Scheduler } from './scheduler.js';
 export type { Phase, SystemContext, SystemDef } from './scheduler.js';
 export type { SchedulerOptions, SystemFailure } from './scheduler-types.js';
+export { findBudgetBreach } from './perf-budget.js';
+export type { BudgetBreach } from './perf-budget.js';

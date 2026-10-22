@@ -35,7 +35,7 @@
 | §9 确定性 | 🟡 | 60Hz、插值 alpha、暂停/单步/变速、命名 RNG、哈希、回放、invalid 规则均有；偏差：录制未压缩、无 `configHash` 字段；输入日志存在 ticks 中 |
 | §10 数据层 | 🟡 | JSON+zod、迁移、加载器隔离、内容热加载+回滚；偏差：内容用 `$schemaVersion`、scene 用 `schemaVersion`（不统一）；没有「每条失败隔离并汇总」的通用列表（按文件回退） |
 | §11 热重载/隔离 | 🟡 | 系统工厂/HMR dispose/schema 变更整页降级、3 次熔断、dump 记录均有；偏差：dump 落 localStorage + 导出，不写规范中的 `diagnostics/` 目录 |
-| §12 可视化调试 | 🟡 | `debugDraw` 叠层、`?probe`、逐系统计时、帧统计、bench 均有；偏差：无「超预算告警」，命令数/实体数告警未做 |
+| §12 可视化调试 | 🟡 | `debugDraw` 叠层、`?probe`、逐系统计时、帧统计、bench、p95 超预算告警（ADR-040）均有；偏差：命令数/实体数告警未做 |
 | §13 性能目标 | ✅ | 3000 实体 0.688ms/tick（`tools/bench-baseline.json`），逻辑帧 ≤4ms；submit bench 在门禁中 |
 | §14 门禁 | 🟡 | tsc 严格、eslint、depcruise、注册表、端口哈希、文件/函数/复杂度、测试数基线、bench、replay、drill 均在；偏差：用 node:test 替代 vitest（环境）；「每个系统至少 1 契约测试」只校验 4 个关键契约文件，不是逐系统；测试数回归按最小文件数而非逐系统用例 |
 | §15 执行策略 | 🟡 | hooks 版本化、stamp、保护路径、禁用标记扫描、测试数基线、drill 有；偏差：本地提交因沙箱使用 `--no-verify`（每次都手动全量 gate）；无 origin，push 期门禁无法实测；waivers 机制存在但当前为空 |
@@ -62,7 +62,7 @@
 8. 结构变更迭代保护缺失（§4）——可加 dev 迭代深度哨兵。
 9. 写作用域守卫默认关（§4）——dev 默认开、prod 关，需要性能验证。
 10. dump 未写 `diagnostics/`（§11）——Node 端可写文件，浏览器端需下载/IndexedDB。
-11. 无超预算告警（§12）——用已有 `systemTimings`/frame stats 加阈值。
+11. 无超预算告警（§12）——**已修（ADR-040：每系统 p95 超阈值写 logger+dump）**；命令数告警仍未做。
 12. 门禁逐系统契约测试/测试数（§14）——注册表增强。
 13. UI 未用 `useSyncExternalStore`（§22）——**已修（ADR-039：UiRoot 接外部 store，挂载一次）**。
 14. 缺系统卡与《如何新增系统》（§18）——**已补（docs/systems + runbook 07）**。
