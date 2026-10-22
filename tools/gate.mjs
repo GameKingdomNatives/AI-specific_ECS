@@ -60,6 +60,7 @@ function runTests() {
 }
 
 step('tsc', process.execPath, ['node_modules/typescript/bin/tsc', '-b']);
+step('engine-standalone', process.execPath, ['node_modules/typescript/bin/tsc', '-p', 'packages/engine/tsconfig.json', '--noEmit']);
 step('eslint', process.execPath, ['node_modules/eslint/bin/eslint.js', '.', '-f', 'json', '-o', join(RUN, 'eslint.json')]);
 step('registry', process.execPath, ['tools/checks/registry.mjs']);
 runTests();

@@ -1,21 +1,22 @@
 import { spawnSync } from 'node:child_process';
-import { existsSync, unlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 
 /**
- * 违规演练：故意制造三种「绕过门禁」的现场，确认门禁真的会红。
+ * 违规演练：故意制造「绕过门禁」的现场，确认门禁真的会红。
  * 全部在 finally 里清理，不把脏文件留在工作区。
  */
+const GATE = 'tools/gate.mjs';
+const GATE_ORIGINAL = readFileSync(GATE, 'utf8');
+const TEST = 'packages/engine/tests/hit.contract.test.ts';
+const HIDDEN_TEST = 'packages/engine/tests/__drill_hidden.ts.bak';
+const DRILL_RUN = 'artifacts/gate/__drill';
+
 const DRILLS = [
   {
     name: '越界 import：core → impl',
     file: 'packages/engine/src/core/__drill_violation.ts',
     content: "import { PhysicsWorld } from '../impl/physics.js';\n\nexport const drill = PhysicsWorld;\n",
-    command: [
-      'node_modules/dependency-cruiser/bin/dependency-cruiser.mjs',
-      '-T',
-      'err',
-      '.',
-    ],
+    command: ['tools/checks/depcruise.mjs', DRILL_RUN],
     expect: '依赖边界',
   },
   {
@@ -32,26 +33,58 @@ const DRILLS = [
     command: ['node_modules/eslint/bin/eslint.js', 'packages/engine/src/demo/__drill_any.ts'],
     expect: 'no-explicit-any',
   },
+  {
+    name: '删测试：移走契约测试',
+    mutate: () => {
+      renameSync(TEST, HIDDEN_TEST);
+    },
+    restore: () => {
+      if (existsSync(HIDDEN_TEST)) {
+        renameSync(HIDDEN_TEST, TEST);
+      }
+    },
+    command: ['tools/checks/registry.mjs'],
+    expect: '少于基线',
+  },
+  {
+    name: '改阈值：动受保护脚本',
+    mutate: () => {
+      mkdirSync(DRILL_RUN, { recursive: true });
+      writeFileSync(GATE, `${GATE_ORIGINAL}\n// drill threshold\n`);
+    },
+    restore: () => {
+      writeFileSync(GATE, GATE_ORIGINAL);
+    },
+    command: ['tools/checks/gitfacts.mjs', DRILL_RUN],
+    expect: '受保护路径',
+  },
 ];
 
 const results = [];
 const env = { ...process.env };
 delete env.GATE_RUN;
+delete env.ALLOW_PROTECTED;
 for (const drill of DRILLS) {
-  const existed = existsSync(drill.file);
+  const existed = drill.file === undefined ? false : existsSync(drill.file);
   try {
-    writeFileSync(drill.file, drill.content);
+    if (drill.mutate === undefined) {
+      writeFileSync(drill.file, drill.content);
+    } else {
+      drill.mutate();
+    }
     const run = spawnSync(process.execPath, drill.command, { encoding: 'utf8', env });
-    const caught = run.status !== 0;
-    results.push({ name: drill.name, caught, exit: run.status });
+    results.push({ name: drill.name, caught: run.status !== 0, expect: drill.expect, text: `${run.stdout ?? ''}${run.stderr ?? ''}` });
   } finally {
-    if (existsSync(drill.file) && !existed) {
+    if (drill.restore !== undefined) {
+      drill.restore();
+    } else if (drill.file !== undefined && existsSync(drill.file) && !existed) {
       unlinkSync(drill.file);
     }
   }
 }
 
 for (const result of results) {
-  console.log(`${result.name.padEnd(28)} ${result.caught ? '拦住了 PASS' : '漏过去了 FAIL'}（exit=${result.exit}）`);
+  const matched = result.caught && result.text.includes(result.expect);
+  console.log(`${result.name.padEnd(28)} ${matched ? '拦住了 PASS' : '漏过去了 FAIL'}（命中「${result.expect}」=${matched}）`);
 }
-process.exit(results.every((result) => result.caught) ? 0 : 1);
+process.exit(results.every((result) => result.caught && result.text.includes(result.expect)) ? 0 : 1);

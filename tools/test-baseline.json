@@ -1,0 +1,9 @@
+{
+  "minTestFiles": 24,
+  "contractTests": [
+    "bridge.contract.test.ts",
+    "demo.contract.test.ts",
+    "hit.contract.test.ts",
+    "weapon.contract.test.ts"
+  ]
+}

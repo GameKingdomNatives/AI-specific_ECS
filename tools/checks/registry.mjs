@@ -96,6 +96,22 @@ function checkSystemContractTests() {
   }
 }
 
+/** 测试基线：测试文件只许增不许减，关键契约测试必须存在（§19「删测试」演练的拦截点）。 */
+function checkTestBaseline() {
+  const baselinePath = join(ROOT, 'tools/test-baseline.json');
+  const baseline = JSON.parse(readFileSync(baselinePath, 'utf8'));
+  const files = readdirSync(join(ROOT, 'packages/engine/tests')).filter((file) => file.endsWith('.test.ts'));
+  if (files.length < baseline.minTestFiles) {
+    add('test-baseline', 'packages/engine/tests', 1, 0,
+      `测试文件数 ${files.length} 少于基线 ${baseline.minTestFiles}：删除测试需同步更新 tools/test-baseline.json 并在 ADR 说明`);
+  }
+  for (const required of baseline.contractTests) {
+    if (!files.includes(required)) {
+      add('test-baseline', `packages/engine/tests/${required}`, 1, 0, `关键契约测试缺失：${required}`);
+    }
+  }
+}
+
 const files = SCAN_DIRS.flatMap((dir) => walk(join(ROOT, dir)));
 for (const file of files) checkBudgets(file, safeRelative(file));
 checkBannedMarkers(files);
@@ -106,6 +122,7 @@ if (process.argv.includes('--accept-ports')) {
   checkPortContract();
 }
 checkSystemContractTests();
+checkTestBaseline();
 
 const runDir = process.env.GATE_RUN;
 if (runDir !== undefined) {

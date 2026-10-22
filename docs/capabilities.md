@@ -47,7 +47,9 @@
 | 日志端口 | `createMemoryLogger` | impl | 已具备 |
 | 故障 dump | `createDumpSink`（环形、持久化、导出） | impl | 已具备 |
 | 重复重演校验 | `replay --self-test --repeat 3` | tools | 已具备（进门禁） |
-| 违规演练 | `tools/drill.mjs`（越界 import / 超预算 / `as any`） | tools | 已具备（§19 的删测试、改阈值待补，见 R6） |
+| 违规演练（5 类） | `tools/drill.mjs`（越界 import / 超预算 / `as any` / 删测试 / 改阈值） | tools | 已具备（ADR-016） |
+| 测试基线 | `tools/test-baseline.json` + registry `checkTestBaseline` | tools | 已具备（测试只增不减） |
+| engine 独立构建 | 门禁 `engine-standalone`（`tsc -p packages/engine --noEmit`） | tools | 已具备 |
 | 覆盖率门禁 | `tools/coverage.mjs`（阈值 70%，实测 81.7%） | tools | 已具备（近似口径，ADR-013） |
 | UI 覆盖层 | React 19 + `UiSnapshot` 只读 + `UiIntents`（10Hz） | apps/ui | 已具备 |
 | UI 组件 | `ControlBar/Button/StatusText/InfoRow` | apps/ui | 已具备 |
