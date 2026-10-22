@@ -79,10 +79,10 @@
 
 **验收**：单测 + 浏览器截图；调试开销只在开关打开时产生。
 
-### B4 · 数据与热更
+### B4 · 数据与热更（已完成，ADR-022）
 
-10. **PG-09 manifest 接入**：`parseAssetManifest`（zod，版本/重复名/尺寸校验），加载器按清单预载；应用资源来源走清单；测试 + 浏览器 200 校验。
-11. **PG-10 schema 指纹降级**：`World.schemaFingerprint()`；应用启动记录；HMR 前后不一致 → 打印原因并 `location.reload()`；单测指纹稳定性/变化检测。
+10. ~~**PG-09 manifest 接入**~~（已完成）：`assets-manifest.ts` zod（版本/尺寸/重复名）+ `parseAssetManifest`；应用 `loadTextureUrls` 启动校验并映射名字→URL，失败回退同名约定；浏览器 manifest 200、3 资源。
+11. ~~**PG-10 schema 指纹降级**~~（已完成）：`schemaFingerprint` + `World.schemaFingerprint()`；`createSchemaGuard` 在系统 HMR 前比对，变化则打印原因并整页 reload；单测覆盖顺序无关与三类变化。
 
 **验收**：测试 + 浏览器（改 schema 的模拟路径可断言 reload 条件）。
 

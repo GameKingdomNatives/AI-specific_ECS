@@ -1,5 +1,7 @@
 export { createAssetLoader } from './assets.js';
 export type { AssetFetcher, AssetLoader, AssetOutcome, AssetResponse } from './assets.js';
+export { assetManifestSchema, assetUrl, parseAssetManifest } from './assets-manifest.js';
+export type { AssetEntry, AssetManifest, ManifestIssue, ManifestResult } from './assets-manifest.js';
 export { inputBindingSchema, inputMapSchema, parseInputMap, resolveActions } from './input-map.js';
 export type { InputBinding, InputMap, InputMapResult } from './input-map.js';
 export { FALLBACK_BOXES, loadContent, parseContent, parseContentMigrated } from './content.js';

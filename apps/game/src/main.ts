@@ -11,6 +11,8 @@ import { createUiIntents } from './ui-intents.js';
 import { createRunState } from './validity.js';
 import { createDebugView } from './debug-view.js';
 import { capturePoses } from './interpolation.js';
+import { loadTextureUrls } from './assets.js';
+import { createSchemaGuard } from './hmr-guard.js';
 import { createDumpSink } from '@itb/engine/diagnostics';
 import { createMemoryLogger } from '@itb/engine/logger';
 import { createPhysicsPort, PhysicsWorld } from '@itb/engine/physics';
@@ -38,6 +40,8 @@ const probe = new URLSearchParams(location.search).get('probe');
 const stress = Number(new URLSearchParams(location.search).get('stress') ?? '0');
 
 const world = new World();
+const textures = await loadTextureUrls();
+const schemaGuard = createSchemaGuard(world);
 const bus = new EventBus();
 bus.startRecording();
 const commands = new CommandBuffer();
@@ -199,7 +203,7 @@ function renderTable(alpha: number, previous: Map<EntityId, { x: number; y: numb
       tint: entity === player ? 0xffaa66 : 0xf0f0f0,
       alpha: 0.92,
       visible: true,
-      texture: entity === player ? '/assets/player.png' : '/assets/box.png',
+      texture: entity === player ? textures.url('player') : textures.url('box'),
     });
   }
   for (const entity of world.query(Position, Bullet)) {
@@ -220,7 +224,7 @@ function renderTable(alpha: number, previous: Map<EntityId, { x: number; y: numb
       tint: 0xffffff,
       alpha: 1,
       visible: true,
-      texture: '/assets/bullet.png',
+      texture: textures.url('bullet'),
     });
   }
   items.push({ id: -1, x: WIDTH / 2, y: 70, rot: 0, sx: 1, sy: 1, layer: 5, shape: 'rect', tint: 0xffaa66, alpha: 1, visible: true, text: `KILLS ${kills}`, font: 'monospace', fontSize: 28 });
@@ -230,8 +234,7 @@ function renderTable(alpha: number, previous: Map<EntityId, { x: number; y: numb
 function frame(now: number): void {
   const delta = now - last;
   last = now;
-  const startTick = clock.tick;
-  const frameStart = capturePoses(world);
+  const startTick = clock.tick; const frameStart = capturePoses(world);
   const steps = clock.advance(delta);
   for (let index = 0; index < steps; index += 1) {
     const tick = startTick + index + 1;
@@ -285,9 +288,7 @@ Object.assign(globalThis, {
 
 if (import.meta.hot !== undefined) {
   import.meta.hot.accept('./system-registry.ts', (module) => {
-    if (module !== undefined) {
-      applySystems(module.createSystems(deps));
-    }
+    if (module !== undefined && schemaGuard()) applySystems(module.createSystems(deps));
   });
 }
 

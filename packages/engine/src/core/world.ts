@@ -11,6 +11,7 @@ import {
   writeCell,
 } from './world-state.js';
 import type { Column, StoreView, WorldSnapshot } from './world-state.js';
+import { schemaFingerprint } from './schema-fingerprint.js';
 
 export { entityGeneration, entityIndex } from './world-state.js';
 export type { ComponentSnapshot, WorldSnapshot } from './world-state.js';
@@ -155,6 +156,11 @@ export class World {
       }
       writeCell(column, slot, value);
     }
+  }
+
+  /** 组件定义指纹（HMR 前后比对；schema 变化即整页降级）。 */
+  schemaFingerprint(): string {
+    return schemaFingerprint([...this.stores.values()].map((store) => store.def));
   }
 
   /** 导出可 JSON 化的完整状态；随机流状态需单独快照。 */
