@@ -121,8 +121,9 @@ export function createWeaponSystem(options: WeaponOptions): SystemDef {
       }
       const arm = 28;
       return [
-        `line ${position.x - arm},${position.y},${position.x + arm},${position.y}`,
-        `line ${position.x},${position.y - arm},${position.x},${position.y + arm}`,
+        `circle ${position.x},${position.y},42 #ff5a3c`,
+        `line ${position.x - arm},${position.y},${position.x + arm},${position.y} #ffaa66`,
+        `line ${position.x},${position.y - arm},${position.x},${position.y + arm} #ffaa66`,
       ];
     },
   };

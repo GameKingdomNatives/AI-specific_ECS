@@ -72,10 +72,10 @@
 
 **验收**：截图/读数；插值纯函数测试；提交耗时无明显回退。
 
-### B3 · 观测与调试
+### B3 · 观测与调试（已完成，ADR-021）
 
-8. **PG-07 逐系统计时**：`Scheduler` 记录每个系统最近 N 次耗时（环形），`timings()` 暴露；HUD/探针读取；单测结构。
-9. **PG-08 debug 命令集**：抽出纯解析器 `impl/debug-commands.ts`（line/circle/rect + 可选 color），渲染器消费；单测解析；截图验证。
+8. ~~**PG-07 逐系统计时**~~（已完成）：`system-stats` 环形窗口 + `TimingBook` + `Scheduler.systemTimings()`；`__itb.timings()` 实测 7 系统 / count 60，`physics.bodySync` avg≈0.16ms。
+9. ~~**PG-08 debug 命令集**~~（已完成）：`impl/debug-commands.ts` 纯解析 line/circle/rect + 颜色；渲染器逐条 stroke；夹具圆环+十字；截图确认。
 
 **验收**：单测 + 浏览器截图；调试开销只在开关打开时产生。
 

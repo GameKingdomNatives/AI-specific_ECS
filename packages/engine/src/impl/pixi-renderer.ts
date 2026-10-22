@@ -1,6 +1,7 @@
 import { Application, Container, Graphics } from 'pixi.js';
 import type { IRenderer, RenderItem } from '../ports/index.js';
 import { shakeOffset } from './camera-shake.js';
+import { parseDebugCommands } from './debug-commands.js';
 import { createFrameStats } from './frame-stats.js';
 import type { FrameTiming } from './frame-stats.js';
 import { computeViewBounds, isVisible } from './render-cull.js';
@@ -105,16 +106,16 @@ function createDebugDraw(layers: Container[]): (commands: readonly string[]) => 
       layerAt(layers, LAYER_COUNT - 1).addChild(debug);
     }
     debug.clear();
-    for (const command of commands) {
-      if (!command.startsWith('line ')) {
-        continue;
+    for (const op of parseDebugCommands(commands)) {
+      if (op.kind === 'line') {
+        debug.moveTo(op.x1, op.y1).lineTo(op.x2, op.y2);
+      } else if (op.kind === 'circle') {
+        debug.circle(op.x, op.y, op.radius);
+      } else {
+        debug.rect(op.x, op.y, op.width, op.height);
       }
-      const parts = command.slice(5).split(',').map(Number);
-      if (parts.length === 4) {
-        debug.moveTo(parts[0] as number, parts[1] as number).lineTo(parts[2] as number, parts[3] as number);
-      }
+      debug.stroke({ width: 1, color: op.color, alpha: 0.8 });
     }
-    debug.stroke({ width: 1, color: 0xff5a3c, alpha: 0.8 });
   };
 }
 

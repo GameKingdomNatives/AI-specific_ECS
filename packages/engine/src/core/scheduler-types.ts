@@ -5,6 +5,8 @@ export interface SchedulerOptions {
   readonly onSystemError?: (systemName: string, error: unknown, tick: number) => void;
   /** §4 所有权守卫：开启后系统只能写声明过的组件（默认关，dev/测试开启）。 */
   readonly enforceWrites?: boolean;
+  /** 每系统耗时环形窗口大小，默认 60。 */
+  readonly timingCapacity?: number;
 }
 
 export interface SystemFailure {

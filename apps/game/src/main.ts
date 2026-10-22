@@ -279,6 +279,7 @@ Object.assign(globalThis, {
     valid: () => runState.valid,
     debugLines: () => scheduler.collectDebug(world, bus, commands, clock.tick),
     shake: (amplitude = 10, durationMs = 180) => renderer.shake(amplitude, durationMs),
+    timings: () => scheduler.systemTimings(),
   },
 });
 

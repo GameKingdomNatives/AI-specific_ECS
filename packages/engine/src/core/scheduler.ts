@@ -3,6 +3,8 @@ import type { World } from './world.js';
 import type { CommandBuffer } from './commands.js';
 import type { EventBus } from './events.js';
 import type { SchedulerOptions } from './scheduler-types.js';
+import { TimingBook, type SystemTimingEntry } from './scheduler-timings.js';
+import { collectDebugCommands } from './debug-collect.js';
 
 export const PHASES = ['input', 'ai', 'movement', 'collision', 'damage', 'cleanup', 'renderSync'] as const;
 
@@ -43,11 +45,13 @@ export class Scheduler {
   private readonly maxFailures: number;
   private readonly onError: SchedulerOptions['onSystemError'];
   private readonly enforceWrites: boolean;
+  private readonly timingBook: TimingBook;
 
   constructor(options: SchedulerOptions = {}) {
     this.maxFailures = options.maxConsecutiveFailures ?? 3;
     this.onError = options.onSystemError;
     this.enforceWrites = options.enforceWrites === true;
+    this.timingBook = new TimingBook(options.timingCapacity ?? 60);
   }
 
   /** 已熔断的系统名：隔离发生在系统边界，其余系统照常运行。 */
@@ -102,7 +106,13 @@ export class Scheduler {
     return this.ordered.map((system) => system.name);
   }
 
-  run(world: World, bus: EventBus, commands: CommandBuffer, tick: number): void {    if (!this.ready) {
+  /** 每系统最近 N 次耗时（毫秒）；未运行过的系统不出现。 */
+  systemTimings(): readonly SystemTimingEntry[] {
+    return this.timingBook.report(this.orderNames);
+  }
+
+  run(world: World, bus: EventBus, commands: CommandBuffer, tick: number): void {
+    if (!this.ready) {
       this.build();
     }
     bus.setTick(tick);
@@ -115,12 +125,14 @@ export class Scheduler {
         if (this.enforceWrites) {
           world.beginWriteScope(system.writes);
         }
+        const startedAt = performance.now();
         try {
           system.update(ctx);
           this.failures.set(system.name, 0);
         } catch (error) {
           this.registerFailure(system, error, tick);
         } finally {
+          this.timingBook.record(system.name, performance.now() - startedAt);
           if (this.enforceWrites) {
             world.endWriteScope();
           }
@@ -136,19 +148,7 @@ export class Scheduler {
     if (!this.ready) {
       this.build();
     }
-    const ctx: SystemContext = { world, commands, bus, tick };
-    const out: string[] = [];
-    for (const system of this.ordered) {
-      if (this.disabled.has(system.name) || system.debugDraw === undefined) {
-        continue;
-      }
-      try {
-        out.push(...system.debugDraw(ctx));
-      } catch {
-        // 调试绘制失败不影响运行与其它系统的叠加层。
-      }
-    }
-    return out;
+    return collectDebugCommands(this.ordered, this.disabled, { world, commands, bus, tick });
   }
 
   private registerFailure(system: SystemDef, error: unknown, tick: number): void {

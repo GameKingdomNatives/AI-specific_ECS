@@ -82,6 +82,25 @@ test('阶段内按顺序执行，阶段末统一 flush 命令', () => {
   assert.equal(commands.size, 0);
 });
 
+test('systemTimings 记录每系统耗时，未运行不出现', () => {
+  const world = new World();
+  const bus = new EventBus();
+  const commands = new CommandBuffer();
+  const scheduler = new Scheduler();
+  scheduler.add(system('one', 'ai', { update: () => undefined }));
+  scheduler.add(system('two', 'movement', { update: () => undefined }));
+  assert.deepEqual(scheduler.systemTimings(), []);
+  scheduler.run(world, bus, commands, 1);
+  scheduler.run(world, bus, commands, 2);
+  const timings = scheduler.systemTimings();
+  assert.deepEqual(timings.map((entry) => entry.system), ['one', 'two']);
+  for (const entry of timings) {
+    assert.equal(entry.count, 2);
+    assert.ok(entry.last >= 0);
+    assert.ok(entry.avg >= 0);
+  }
+});
+
 test('enforceWrites 拦截未声明的写入，合法声明放行', () => {
   const world = new World();
   const bus = new EventBus();
