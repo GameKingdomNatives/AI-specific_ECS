@@ -12,8 +12,8 @@ export interface SavePayload {
 }
 
 export interface ControlsDeps {
-  readonly world: World;
-  readonly player: EntityId;
+  readonly world: () => World;
+  readonly player: () => EntityId;
   readonly clock: FixedClock;
   readonly recorder: Recorder;
   readonly saveStore: SaveStore<SavePayload>;
@@ -43,7 +43,7 @@ function positionOf(world: World, entity: EntityId): { x: number; y: number } {
 export function createControls(deps: ControlsDeps): UiIntents {
   return {
     save(): void {
-      deps.saveStore.save({ tick: deps.clock.tick, player: positionOf(deps.world, deps.player) });
+      deps.saveStore.save({ tick: deps.clock.tick, player: positionOf(deps.world(), deps.player()) });
       deps.setNote(`已存档 @ tick ${deps.clock.tick}`);
     },
     load(): void {
@@ -52,7 +52,7 @@ export function createControls(deps: ControlsDeps): UiIntents {
         deps.setNote(`读档失败：${outcome.issue ?? '未知'}`);
         return;
       }
-      deps.world.set(deps.player, Position, {
+      deps.world().set(deps.player(), Position, {
         x: outcome.payload.player.x,
         y: outcome.payload.player.y,
       });

@@ -48,7 +48,7 @@ export function sceneSavePlugin() {
       server.watcher.add(sceneDir);
       server.watcher.on('change', (file) => {
         if (file.endsWith('.scene.json')) {
-          server.ws.send({ type: 'full-reload' });
+          server.ws.send({ type: 'custom', event: 'itb:scene-changed', data: {} });
         }
       });
       server.middlewares.use('/__scene/save', (request, response) => {

@@ -19,10 +19,10 @@
 - 示例 scene 增加 spawner 节点（64/8/14/1）与系统；scene 可用时不再走 `spawnSpec`，内容 JSON 仅降级。
 - 浏览器：`spawned={"spawner":64}`、entities 68；删除 spawner 节点保存后 entities 3、spawned {}（ADR-031）。
 
-## D3 · 原地重建（保留编辑器状态）
-- 把运行时装配抽成 `createGameRuntime()`，暴露 `rebuild(scene)`：清空世界/调度器、重新实例化/调度、保持 renderer/UI/输入；编辑器「应用」调用它而不是整页 reload。
-- 失败保留旧世界并显示 issues；watcher 外部改动仍可整页 reload。
-- 验收：编辑器不关闭、删除玩家后立即消失、系统顺序即时生效。
+## D3 · 原地重建（已完成）
+- main 运行时字段改 `let`；`rebuild(scene)` 新世界/调度器/物理/recorder，renderer/UI/editor 保持；`ControlsDeps` 改 getter；`render-table.ts` 抽出。
+- Vite watcher 改发 `itb:scene-changed` 自定义事件，客户端 `__itbApplyScene` 路径解析后原地重建；失败保留旧世界。
+- 浏览器：删除 player 保存 → marker 存活、编辑器不关闭、nodes 3/player null；恢复文件 → 同页 player 恢复（ADR-032）。
 
 ## D4 · 元数据驱动表单 + Storybook
 - 组件元数据注册表（字段、类型、默认值、min/max）替代硬编码 `COMPONENT_KINDS`；检查器/调度参数表单由元数据生成。

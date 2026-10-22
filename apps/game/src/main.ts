@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 import './ui/app.css';
-import { CommandBuffer, EventBus, FixedClock, interpolatePoint, Scheduler, World } from '@itb/engine/core';
+import { CommandBuffer, EventBus, FixedClock, Scheduler, World } from '@itb/engine/core';
 import type { EntityId, SystemDef } from '@itb/engine/core';
 import type { BoxSpec } from '@itb/engine/data';
 import { hashHex, Recorder, serialize, worldHashGroups } from '@itb/engine/determinism';
@@ -11,21 +11,24 @@ import { createUiIntents } from './ui-intents.js';
 import { createRunState } from './validity.js';
 import { createDebugView } from './debug-view.js';
 import { capturePoses } from './interpolation.js';
+import { renderTable } from './render-table.js';
 import { loadTextureUrls } from './assets.js';
 import { createSchemaGuard } from './hmr-guard.js';
 import { createDumpSink } from '@itb/engine/diagnostics';
 import { createMemoryLogger } from '@itb/engine/logger';
 import { createPhysicsPort, PhysicsWorld } from '@itb/engine/physics';
 import { createLocalStorage, createSaveStore } from '@itb/engine/storage';
-import type { RenderItem } from '@itb/engine/ports';
 import { initialContent, watchContent } from './content.js';
 import { createControls } from './controls.js';
+import type { SavePayload } from './controls.js';
 import { createBrowserInput } from './input.js';
 import { parseInputMap } from '@itb/engine/data';
 import inputMapRaw from './data/input-map.json' with { type: 'json' };
 import { createSystems } from './system-registry.js';
-import { loadSceneRuntime } from './scene-runtime.js';
+import { instantiateSceneState, loadSceneRuntime } from './scene-runtime.js';
 import { pickSystems, resolvePlayer } from './scene-bootstrap.js';
+import { parseScene } from '@itb/engine/scene';
+import type { Scene } from '@itb/engine/scene';
 import { mountUi } from './ui/mount.js';
 import { createUiStore } from './ui/snapshot.js';
 
@@ -40,7 +43,7 @@ if (!(canvas instanceof HTMLCanvasElement)) {
 const hud = document.getElementById('hud');
 const probe = new URLSearchParams(location.search).get('probe');
 const stress = Number(new URLSearchParams(location.search).get('stress') ?? '0');
-const world = new World();
+let world = new World();
 const textures = await loadTextureUrls();
 const schemaGuard = createSchemaGuard(world);
 const bus = new EventBus();
@@ -65,12 +68,13 @@ const input = createBrowserInput(canvas, {
   ...(inputMapParsed.value === null ? {} : { map: inputMapParsed.value }),
 });
 
-const sceneResult = await loadSceneRuntime(world, (name) => (name === 'Position' ? Position : name === 'Box' ? Box : name === 'BoxSpawner' ? BoxSpawner : undefined));
-const player = resolvePlayer(world, sceneResult.loaded, { position: Position, box: Box }, WIDTH, HEIGHT) ?? -1;
+const componentLookup = (name: string) => (name === 'Position' ? Position : name === 'Box' ? Box : name === 'BoxSpawner' ? BoxSpawner : undefined);
+let sceneResult: Awaited<ReturnType<typeof loadSceneRuntime>> = await loadSceneRuntime(world, componentLookup);
+let player = resolvePlayer(world, sceneResult.loaded, { position: Position, box: Box }, WIDTH, HEIGHT) ?? -1;
 let current = input.sample(0);
 
 let scheduler = createScheduler();
-const runState = createRunState();
+let runState = createRunState();
 
 function onSystemError(system: string, error: unknown, tick: number): void {
   const stack = error instanceof Error ? (error.stack ?? '') : '';
@@ -95,7 +99,7 @@ function applySystems(list: readonly SystemDef[]): void {
   scheduler.build();
 }
 
-const deps = {
+let deps = {
   width: WIDTH,
   height: HEIGHT,
   player,
@@ -108,7 +112,7 @@ applySystems(pickSystems(baseSystems, sceneResult.loaded));
 let kills = 0;
 bus.on('demo.hit', () => { kills += 1; renderer.shake(10, 180); });
 
-const initial = initialContent(); const sceneOwnsAmbient = sceneResult.loaded !== null;
+const initial = initialContent();
 let dataStatus = `${initial.ok ? 'data ok' : `data fallback: ${initial.issue ?? 'invalid'}`} · scene ${sceneResult.loaded === null ? 'fallback' : sceneResult.loaded.scene.name} · player ${player < 0 ? 'missing' : 'ok'}`;
 
 function spawnSpec(spec: BoxSpec): EntityId[] {
@@ -116,12 +120,60 @@ function spawnSpec(spec: BoxSpec): EntityId[] {
   return spawnBoxes(world, count, WIDTH, HEIGHT, spec.minSize, spec.maxSize, spec.speed);
 }
 
-let boxes = sceneOwnsAmbient ? [] : spawnSpec(initial.spec);
-const recorder = new Recorder(20261020, hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]])));
+let boxes = sceneResult.loaded !== null ? [] : spawnSpec(initial.spec);
+let recorder = new Recorder(20261020, hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]])));
 
-interface SavePayload {
-  readonly tick: number;
-  readonly player: { readonly x: number; readonly y: number };
+function sceneLabel(): string {
+  return sceneResult.loaded === null ? 'fallback' : sceneResult.loaded.scene.name;
+}
+
+function playerLabel(): string {
+  return player < 0 ? 'missing' : 'ok';
+}
+
+function depsFor(playerId: number) {
+  return { width: WIDTH, height: HEIGHT, player: playerId, getInput: (): typeof current => current, physics: createPhysicsPort(new PhysicsWorld()) };
+}
+
+/** 原地重建：新世界/调度器/物理端口，renderer 与编辑器保持不变。 */
+function rebuild(scene: Scene | null): { ok: boolean; issues: string[] } {
+  scheduler.dispose();
+  world = new World();
+  const state = scene === null ? null : instantiateSceneState(world, scene, componentLookup);
+  sceneResult = { loaded: state?.loaded ?? null, issues: state?.issues ?? [] };
+  player = resolvePlayer(world, sceneResult.loaded, { position: Position, box: Box }, WIDTH, HEIGHT) ?? -1;
+  deps = depsFor(player);
+  scheduler = createScheduler();
+  applySystems(pickSystems(createSystems(deps), sceneResult.loaded));
+  boxes = sceneResult.loaded === null ? spawnSpec(initial.spec) : [];
+  runState = createRunState();
+  kills = 0;
+  const hash = hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]]));
+  recorder = new Recorder(20261020, hash);
+  lastHash = hash;
+  dataStatus = `scene ${sceneLabel()} · player ${playerLabel()}`;
+  return { ok: sceneResult.loaded !== null && sceneResult.issues.length === 0, issues: sceneResult.issues.map((issue) => issue.message) };
+}
+
+function applySceneDocument(raw: unknown): { ok: boolean; issues: string[] } {
+  const parsed = parseScene(raw);
+  if (!parsed.ok) return { ok: false, issues: parsed.issues.map((issue) => issue.message) };
+  return rebuild(parsed.value);
+}
+
+async function reloadSceneLive(): Promise<void> {
+  try {
+    const raw: unknown = await (await fetch('/scenes/demo.scene.json')).json();
+    const result = applySceneDocument(raw);
+    if (!result.ok) dataStatus = `scene invalid: ${result.issues[0] ?? 'unknown'}`;
+  } catch (error) {
+    dataStatus = `scene reload failed: ${String(error)}`;
+  }
+}
+
+globalThis.__itbApplyScene = applySceneDocument;
+if (import.meta.hot !== undefined) {
+  import.meta.hot.on('itb:scene-changed', () => { void reloadSceneLive(); });
 }
 
 const saveStore = createSaveStore<SavePayload>(storage, { key: 'save', targetVersion: 1 });
@@ -150,8 +202,8 @@ function setNote(message: string): void {
 }
 
 const controls = createControls({
-  world,
-  player,
+  world: () => world,
+  player: () => player,
   clock,
   recorder,
   saveStore,
@@ -162,9 +214,7 @@ mountUi(uiStore, createUiIntents(controls, audio));
 
 watchContent((state) => {
   dataStatus = state.ok ? 'data ok (hot)' : `data fallback: ${state.issue ?? 'invalid'}`;
-  if (!state.ok || sceneOwnsAmbient) {
-    return;
-  }
+  if (!state.ok || sceneResult.loaded !== null) return;
   for (const entity of boxes) {
     world.despawn(entity);
   }
@@ -180,59 +230,14 @@ renderer.setCamera(WIDTH / 2, HEIGHT / 2, 1);
 let last = performance.now();
 let lastHash = hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]]));
 
-function textureFor(entity: EntityId): string {
-  const sceneTexture = sceneResult.loaded?.assets.get(entity)?.texture;
-  if (sceneTexture !== undefined) return textures.url(sceneTexture);
-  return entity === player ? textures.url('player') : textures.url('box');
-}
-
-function renderTable(alpha: number, previous: Map<EntityId, { x: number; y: number }>): RenderItem[] {
-  const items: RenderItem[] = [];
-  for (const entity of world.query(Position, Box)) {
-    const position = world.get(entity, Position);
-    const box = world.get(entity, Box);
-    if (position === undefined || box === undefined) {
-      continue;
-    }
-    const point = interpolatePoint(previous.get(entity), position, alpha);
-    items.push({
-      id: entity,
-      x: point.x,
-      y: point.y,
-      rot: 0,
-      sx: box.size,
-      sy: box.size,
-      layer: 4,
-      shape: 'rect',
-      tint: entity === player ? 0xffaa66 : 0xf0f0f0,
-      alpha: 0.92,
-      visible: true,
-      texture: textureFor(entity),
-    });
-  }
-  for (const entity of world.query(Position, Bullet)) {
-    const position = world.get(entity, Position);
-    if (position === undefined) {
-      continue;
-    }
-    const point = interpolatePoint(previous.get(entity), position, alpha);
-    items.push({
-      id: entity,
-      x: point.x,
-      y: point.y,
-      rot: 0,
-      sx: 14,
-      sy: 14,
-      layer: 3,
-      shape: 'circle',
-      tint: 0xffffff,
-      alpha: 1,
-      visible: true,
-      texture: textures.url('bullet'),
-    });
-  }
-  items.push({ id: -1, x: WIDTH / 2, y: 70, rot: 0, sx: 1, sy: 1, layer: 5, shape: 'rect', tint: 0xffaa66, alpha: 1, visible: true, text: `KILLS ${kills}`, font: 'monospace', fontSize: 28 });
-  return items;
+function updateHud(): void {
+  if (hud === null || clock.tick % 10 !== 0) return;
+  const mode = probe === null ? 'run' : `probe ${probe}`;
+  const bullets = world.query(Position, Bullet).length;
+  const bodies = deps.physics.stats().bodies;
+  const renderStats = renderer.stats();
+  hud.textContent = `${mode} · tick ${clock.tick} · entities ${world.aliveCount} · bullets ${bullets} · kills ${kills} · bodies ${bodies} · vis ${renderStats.submitted}/${renderStats.total} · a ${clock.alpha.toFixed(2)} · sub ${renderStats.submitAvgMs.toFixed(2)}ms · rec ${recorder.count} · err ${dumpSink.list().length} · ${lastHash} · ${dataStatus}`;
+  uiStore.update({ tick: clock.tick, entities: world.aliveCount, bullets, kills, bodies, recordingTicks: recorder.count, dumps: dumpSink.list().length, audioPlays: audio.stats().plays, hash: lastHash, dataStatus });
 }
 
 function frame(now: number): void {
@@ -252,16 +257,9 @@ function frame(now: number): void {
     }
   }
   if (clock.tick % 60 === 0) lastHash = hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]]));
-  renderer.submit(renderTable(clock.alpha, frameStart));
+  renderer.submit(renderTable(world, clock.alpha, frameStart, { player, kills, width: WIDTH, assets: sceneResult.loaded?.assets, url: textures.url }));
   renderer.debugDraw(debugView.enabled ? scheduler.collectDebug(world, bus, commands, clock.tick) : []);
-  if (hud !== null && clock.tick % 10 === 0) {
-    const mode = probe === null ? 'run' : `probe ${probe}`;
-    const bullets = world.query(Position, Bullet).length;
-    const bodies = deps.physics.stats().bodies;
-    const renderStats = renderer.stats();
-    hud.textContent = `${mode} · tick ${clock.tick} · entities ${world.aliveCount} · bullets ${bullets} · kills ${kills} · bodies ${bodies} · vis ${renderStats.submitted}/${renderStats.total} · a ${clock.alpha.toFixed(2)} · sub ${renderStats.submitAvgMs.toFixed(2)}ms · rec ${recorder.count} · err ${dumpSink.list().length} · ${lastHash} · ${dataStatus}`;
-    uiStore.update({ tick: clock.tick, entities: world.aliveCount, bullets, kills, bodies, recordingTicks: recorder.count, dumps: dumpSink.list().length, audioPlays: audio.stats().plays, hash: lastHash, dataStatus });
-  }
+  updateHud();
   requestAnimationFrame(frame);
 }
 
