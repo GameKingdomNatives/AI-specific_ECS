@@ -43,6 +43,7 @@
 | 系统探针页 | `?probe=<system>` | app | 已具备 |
 | 场景数据契约 | `scene` zod schema + `parseScene`（节点树/资源别名/系统清单） | scene | S0 已具备（ADR-024） |
 | 场景实例化 | `instantiateScene`（节点→实体、组件、父子、资源别名） | scene | S1 已具备（ADR-024） |
+| 调度数据化 | `buildSchedule`（scene 系统清单→SystemDef[]，phase/after/params） | scene | S2 已具备（ADR-025） |
 | 接触事件桥 | `bridge/contacts.ts`（enter/exit + 每 tick 上限） | bridge | 已具备（ADR-023） |
 | 资源清单 | `parseAssetManifest`（zod）+ `loadTextureUrls` | data+app | 已具备（ADR-022） |
 | schema 指纹 | `World.schemaFingerprint()` + HMR `schemaGuard` | core+app | 已具备（ADR-022） |

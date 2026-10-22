@@ -3,3 +3,5 @@ export type { Scene, SceneAssets, SceneIssue, SceneNode, SceneResult, SceneSyste
 export { SceneParent } from './components.js';
 export { instantiateScene } from './instantiate.js';
 export type { ComponentLookup, SceneInstantiation, SceneInstantiationOptions } from './instantiate.js';
+export { buildSchedule } from './schedule.js';
+export type { SceneSchedule, SystemBuilder, SystemParams } from './schedule.js';

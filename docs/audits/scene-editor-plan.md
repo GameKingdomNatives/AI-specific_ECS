@@ -26,11 +26,11 @@
 - 失败降级：未知组件/字段、字符串写 ECS、缺失别名进 `issues`，不中断其它节点。
 - 单测：实体数量、组件值、父子关系、资源解析、issue 不阻断、可替换父组件。
 
-### S2 · 调度数据化
-- 系统清单驱动 `Scheduler`：id→工厂注册表、phase、enabled、after、params。
-- 校验：未知系统 id、phase 非法、after 成环、参数 schema（每个系统自带 zod 参数校验）。
-- 与现有 `system-registry.ts` 兼容：先双轨（代码注册 + scene 覆盖顺序/启用），再切默认。
-- 单测：顺序、禁用、参数传递、错误报告。
+### S2 · 调度数据化（已完成）
+- `buildSchedule(scene, build)`：系统清单→`SystemDef[]`；phase 以 scene 为准、after 合并、enabled=false 保留但不入调度、params 透传给工厂。
+- 校验：未注册 id、工厂 name 不一致、scene 内 after 环进 issues；环存在时不返回半套调度。
+- 单测：phase/after/disabled/params、错误报告、构造结果可直接交给 `Scheduler` 执行（ADR-025）。
+- 应用接入保持双轨：现有 `system-registry.ts` 仍为默认路径，S5 接场景默认关卡。
 
 ### S3 · 编辑器：场景树 + 检查器 + 资源浏览器
 - 面板布局：左场景树（增删/重命名/拖拽父子）、中节点检查器（组件字段编辑）、右资源浏览器（manifest 资源拖入节点）。
