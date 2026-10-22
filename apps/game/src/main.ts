@@ -4,7 +4,7 @@ import { CommandBuffer, EventBus, FixedClock, interpolatePoint, Scheduler, World
 import type { EntityId, SystemDef } from '@itb/engine/core';
 import type { BoxSpec } from '@itb/engine/data';
 import { hashHex, Recorder, serialize, worldHashGroups } from '@itb/engine/determinism';
-import { Box, Bullet, Position, spawnBoxes } from '@itb/engine/demo';
+import { Box, BoxSpawner, Bullet, Position, spawnBoxes } from '@itb/engine/demo';
 import { createPixiRenderer } from '@itb/engine/impl';
 import { createGameAudio } from './sound.js';
 import { createUiIntents } from './ui-intents.js';
@@ -65,7 +65,7 @@ const input = createBrowserInput(canvas, {
   ...(inputMapParsed.value === null ? {} : { map: inputMapParsed.value }),
 });
 
-const sceneResult = await loadSceneRuntime(world, (name) => (name === 'Position' ? Position : name === 'Box' ? Box : undefined));
+const sceneResult = await loadSceneRuntime(world, (name) => (name === 'Position' ? Position : name === 'Box' ? Box : name === 'BoxSpawner' ? BoxSpawner : undefined));
 const player = resolvePlayer(world, sceneResult.loaded, { position: Position, box: Box }, WIDTH, HEIGHT) ?? -1;
 let current = input.sample(0);
 
@@ -108,7 +108,7 @@ applySystems(pickSystems(baseSystems, sceneResult.loaded));
 let kills = 0;
 bus.on('demo.hit', () => { kills += 1; renderer.shake(10, 180); });
 
-const initial = initialContent();
+const initial = initialContent(); const sceneOwnsAmbient = sceneResult.loaded !== null;
 let dataStatus = `${initial.ok ? 'data ok' : `data fallback: ${initial.issue ?? 'invalid'}`} · scene ${sceneResult.loaded === null ? 'fallback' : sceneResult.loaded.scene.name} · player ${player < 0 ? 'missing' : 'ok'}`;
 
 function spawnSpec(spec: BoxSpec): EntityId[] {
@@ -116,7 +116,7 @@ function spawnSpec(spec: BoxSpec): EntityId[] {
   return spawnBoxes(world, count, WIDTH, HEIGHT, spec.minSize, spec.maxSize, spec.speed);
 }
 
-let boxes = spawnSpec(initial.spec);
+let boxes = sceneOwnsAmbient ? [] : spawnSpec(initial.spec);
 const recorder = new Recorder(20261020, hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]])));
 
 interface SavePayload {
@@ -162,7 +162,7 @@ mountUi(uiStore, createUiIntents(controls, audio));
 
 watchContent((state) => {
   dataStatus = state.ok ? 'data ok (hot)' : `data fallback: ${state.issue ?? 'invalid'}`;
-  if (!state.ok) {
+  if (!state.ok || sceneOwnsAmbient) {
     return;
   }
   for (const entity of boxes) {

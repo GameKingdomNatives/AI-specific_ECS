@@ -1,7 +1,7 @@
 import type { EntityId, SystemDef } from '@itb/engine/core';
 import type { InputSnapshot, IPhysics } from '@itb/engine/ports';
 import { createContactEvents, createPhysicsBridge } from '@itb/engine/bridge';
-import { Box, createBulletCleanupSystem,
+import { Box, createBoxSpawnerSystem, createBulletCleanupSystem,
   createBulletMovementSystem,
   createHitSystem,
   createMovementSystem,
@@ -45,6 +45,16 @@ export function createSystems(deps: SystemDeps): SystemDef[] {
     },
   };
   return [
+    createBoxSpawnerSystem({
+      width: deps.width,
+      height: deps.height,
+      onSpawn: (node, count) => {
+        const scene = globalThis.__itbScene;
+        if (scene === undefined) return;
+        const nodeId = Object.entries(scene.entities).find(([, entity]) => entity === node)?.[0] ?? String(node);
+        scene.spawned[nodeId] = count;
+      },
+    }),
     createMovementSystem(deps.width, deps.height),
     createBulletMovementSystem(deps.width, deps.height, { after: ['demo.movement'] }),
     playerSystem,

@@ -14,11 +14,10 @@
 - `__itbScene` 增加 `entities/player/spawned`；HUD 显示 `player missing`；场景树显示 `E<id>`。
 - 浏览器证据：player 节点存在时 `entities={root:0,player:1,target:2}`；编辑器删除 player 并保存 → 重载后 `nodes=2、player=null、entities 66`、HUD `player missing`；恢复文件后 `player ok`。
 
-## D2 · spawner 组件与 ambient 迁移
-- scene 组件增加 `BoxSpawner { count,minSize,maxSize,speed }`；系统 `scene.spawner` 在首 tick 通过 CommandBuffer 生成，归属 spawner 节点。
-- 内容 JSON 的 ambient 箱子迁移到 scene 的 spawner 节点；`spawnSpec` 只作为降级路径。
-- 编辑器可编辑 spawner 数量/尺寸/速度；运行时快照 `spawned` 记录数量。
-- 测试：spawner 生成数量、确定性、禁用 spawner 后无 ambient。
+## D2 · spawner 组件与 ambient 迁移（已完成）
+- 引擎 demo 新增 `BoxSpawner` + `scene.spawner` 系统：首 tick 经 CommandBuffer 生成、count 夹 0..2000、onSpawn 上报；单测 2 组。
+- 示例 scene 增加 spawner 节点（64/8/14/1）与系统；scene 可用时不再走 `spawnSpec`，内容 JSON 仅降级。
+- 浏览器：`spawned={"spawner":64}`、entities 68；删除 spawner 节点保存后 entities 3、spawned {}（ADR-031）。
 
 ## D3 · 原地重建（保留编辑器状态）
 - 把运行时装配抽成 `createGameRuntime()`，暴露 `rebuild(scene)`：清空世界/调度器、重新实例化/调度、保持 renderer/UI/输入；编辑器「应用」调用它而不是整页 reload。

@@ -10,4 +10,10 @@ export const COMPONENT_KINDS: Readonly<Record<string, readonly FieldSpec[]>> = {
     { key: 'y', kind: 'number' },
   ],
   Box: [{ key: 'size', kind: 'number' }],
+  BoxSpawner: [
+    { key: 'count', kind: 'number' },
+    { key: 'minSize', kind: 'number' },
+    { key: 'maxSize', kind: 'number' },
+    { key: 'speed', kind: 'number' },
+  ],
 };

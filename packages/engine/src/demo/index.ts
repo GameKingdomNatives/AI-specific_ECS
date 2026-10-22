@@ -71,6 +71,51 @@ export function spawnBoxes(
   return spawned;
 }
 
+/** 场景 spawner 组件：ambient 箱子由节点数据生成，而不是代码写死数量。 */
+export const BoxSpawner = defineComponent('BoxSpawner', {
+  count: 'f64',
+  minSize: 'f64',
+  maxSize: 'f64',
+  speed: 'f64',
+});
+
+export interface BoxSpawnerOptions {
+  readonly width: number;
+  readonly height: number;
+  readonly onSpawn?: (node: EntityId, count: number) => void;
+}
+
+/**
+ * 首个 tick 按 BoxSpawner 生成 ambient 箱子（CommandBuffer 阶段末 flush）。
+ * 生成后不再重复；数量夹在 0..2000，避免坏数据拖垮世界。
+ */
+export function createBoxSpawnerSystem(options: BoxSpawnerOptions): SystemDef {
+  let spawned = false;
+  return {
+    name: 'scene.spawner',
+    phase: 'ai',
+    reads: [BoxSpawner],
+    writes: [],
+    update: (ctx) => {
+      if (spawned) return;
+      spawned = true;
+      for (const node of ctx.world.query(BoxSpawner)) {
+        const spec = ctx.world.get(node, BoxSpawner);
+        if (spec === undefined) continue;
+        const count = Math.max(0, Math.min(2000, Math.floor(spec.count)));
+        for (let index = 0; index < count; index += 1) {
+          ctx.commands.spawn([
+            [Position, { x: (index * 37) % options.width, y: (index * 61) % options.height }],
+            [Velocity, { x: (1 + (index % 3)) * spec.speed, y: (0.5 + (index % 2)) * spec.speed }],
+            [Box, { size: Math.min(spec.maxSize, spec.minSize + (index % 3) * 2), tint: 0xffffff }],
+          ]);
+        }
+        options.onSpawn?.(node, count);
+      }
+    },
+  };
+}
+
 export interface WeaponOptions {
   readonly player: EntityId;
   readonly getInput: () => InputSnapshot;
