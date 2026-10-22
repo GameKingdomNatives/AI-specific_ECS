@@ -70,12 +70,13 @@
 4. ~~**脏局规则**~~（已完成）：`Scheduler.invalid` + `RunState`；失效后停录制、写日志/dump，`__itb.valid()` 可读。
 5. **验收**：门禁步骤新增 3 条且全绿；drill 输出 5 类全拦；HMR 测试通过。
 
-### R7 · 可选（按需）
+### R7 · 进行中（R7a 已完成）
 
-- per-system `debugView` 注册与开关（§12）；
-- 资产清单/图集（ADR-010 门槛：>32 贴图或 >2000 Sprite）；
-- 鼠标按钮→动作映射（HARD：改 `InputSnapshot.buttons`，需 ADR + 端到端回放验证）；
-- 覆盖率读数精确化（source map 映射）。
+- ~~per-system `debugView` 注册与开关~~（已完成，ADR-017）：`SystemDef.debugDraw` + `Scheduler.collectDebug` + `?debug=1`/F3；渲染器目前只解析 `line` 命令。
+- 资产清单/图集：**暂缓**（ADR-010 门槛 >32 贴图或 >2000 Sprite 未到）。
+- 鼠标按钮→动作映射：**HARD 提案待裁定**（改 `InputSnapshot.buttons` 语义，需 ADR + 端到端回放验证）。
+- 覆盖率读数精确化（source map 映射）：待做，优先级低（当前近似读数已能防下降）。
+- debug 命令集扩展（circle/rect/按系统配色）：待做，与探针页一起评估。
 
 ## 3. 顺序与依赖
 

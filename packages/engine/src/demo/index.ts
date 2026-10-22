@@ -114,6 +114,17 @@ export function createWeaponSystem(options: WeaponOptions): SystemDef {
         [Bullet, { damage: 1 }],
       ]);
     },
+    debugDraw: (ctx) => {
+      const position = ctx.world.get(options.player, Position);
+      if (position === undefined) {
+        return [];
+      }
+      const arm = 28;
+      return [
+        `line ${position.x - arm},${position.y},${position.x + arm},${position.y}`,
+        `line ${position.x},${position.y - arm},${position.x},${position.y + arm}`,
+      ];
+    },
   };
 }
 

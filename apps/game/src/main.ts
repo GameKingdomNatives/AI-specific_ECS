@@ -9,6 +9,7 @@ import { createPixiRenderer } from '@itb/engine/impl';
 import { createGameAudio } from './sound.js';
 import { createUiIntents } from './ui-intents.js';
 import { createRunState } from './validity.js';
+import { createDebugView } from './debug-view.js';
 import { createDumpSink } from '@itb/engine/diagnostics';
 import { createMemoryLogger } from '@itb/engine/logger';
 import { createPhysicsPort, PhysicsWorld } from '@itb/engine/physics';
@@ -167,12 +168,9 @@ watchContent((state) => {
 });
 
 const captureMode = new URLSearchParams(location.search).has('capture');
-const batching = new URLSearchParams(location.search).get('batch') === '1';
-const renderer = await createPixiRenderer(canvas, {
-  preserveDrawingBuffer: captureMode,
-  debugGlobal: captureMode,
-  batching,
-});
+const batching = new URLSearchParams(location.search).get('batch') !== '0';
+const debugView = createDebugView(new URLSearchParams(location.search).has('debug'));
+const renderer = await createPixiRenderer(canvas, { preserveDrawingBuffer: captureMode, debugGlobal: captureMode, batching });
 renderer.setCamera(WIDTH / 2, HEIGHT / 2, 1);
 
 let last = performance.now();
@@ -239,10 +237,9 @@ function frame(now: number): void {
       dumpSink.persist();
     }
   }
-  if (clock.tick % 60 === 0) {
-    lastHash = hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]]));
-  }
+  if (clock.tick % 60 === 0) lastHash = hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]]));
   renderer.submit(renderTable());
+  renderer.debugDraw(debugView.enabled ? scheduler.collectDebug(world, bus, commands, clock.tick) : []);
   if (hud !== null && clock.tick % 10 === 0) {
     const mode = probe === null ? 'run' : `probe ${probe}`;
     const bullets = world.query(Position, Bullet).length;
@@ -284,6 +281,7 @@ Object.assign(globalThis, {
     camera: (x: number, y: number, zoom: number) => renderer.setCamera(x, y, zoom),
     systems: () => scheduler.orderNames,
     valid: () => runState.valid,
+    debugLines: () => scheduler.collectDebug(world, bus, commands, clock.tick),
   },
 });
 

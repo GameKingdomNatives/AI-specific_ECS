@@ -23,6 +23,8 @@ export interface SystemDef {
   readonly after?: readonly string[];
   readonly before?: readonly string[];
   readonly update: (ctx: SystemContext) => void;
+  /** 自绘叠加层命令（`line x1,y1,x2,y2`），只在调试开关打开时被收集。 */
+  readonly debugDraw?: (ctx: SystemContext) => readonly string[];
   /** 热替换或卸载时回收系统资源；调用方保证在停止 update 后执行。 */
   readonly dispose?: () => void;
 }
@@ -98,8 +100,7 @@ export class Scheduler {
     return this.ordered.map((system) => system.name);
   }
 
-  run(world: World, bus: EventBus, commands: CommandBuffer, tick: number): void {
-    if (!this.ready) {
+  run(world: World, bus: EventBus, commands: CommandBuffer, tick: number): void {    if (!this.ready) {
       this.build();
     }
     bus.setTick(tick);
@@ -119,6 +120,26 @@ export class Scheduler {
       commands.flush(world);
       bus.flushDeferred();
     }
+  }
+
+  /** 收集启用系统的自绘命令；单个系统抛错只丢弃它的命令。 */
+  collectDebug(world: World, bus: EventBus, commands: CommandBuffer, tick: number): readonly string[] {
+    if (!this.ready) {
+      this.build();
+    }
+    const ctx: SystemContext = { world, commands, bus, tick };
+    const out: string[] = [];
+    for (const system of this.ordered) {
+      if (this.disabled.has(system.name) || system.debugDraw === undefined) {
+        continue;
+      }
+      try {
+        out.push(...system.debugDraw(ctx));
+      } catch {
+        // 调试绘制失败不影响运行与其它系统的叠加层。
+      }
+    }
+    return out;
   }
 
   private registerFailure(system: SystemDef, error: unknown, tick: number): void {

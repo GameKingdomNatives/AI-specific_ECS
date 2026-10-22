@@ -82,6 +82,32 @@ test('阶段内按顺序执行，阶段末统一 flush 命令', () => {
   assert.equal(commands.size, 0);
 });
 
+test('collectDebug 只收集启用系统的命令，单个抛错不影响其它', () => {
+  const world = new World();
+  const bus = new EventBus();
+  const commands = new CommandBuffer();
+  const scheduler = new Scheduler({ maxConsecutiveFailures: 1 });
+  scheduler.add(
+    system('aim', 'ai', {
+      debugDraw: () => ['line 0,0,10,10'],
+    }),
+  );
+  scheduler.add(
+    system('broken', 'ai', {
+      debugDraw: () => {
+        throw new Error('debug failed');
+      },
+      update: () => {
+        throw new Error('boom');
+      },
+    }),
+  );
+  scheduler.add(system('quiet', 'movement'));
+  scheduler.run(world, bus, commands, 1);
+  assert.deepEqual(scheduler.collectDebug(world, bus, commands, 1), ['line 0,0,10,10']);
+  assert.deepEqual(scheduler.disabledSystems, ['broken']);
+});
+
 test('dispose 逆序调用并清空系统', () => {
   const calls: string[] = [];
   const scheduler = new Scheduler();
