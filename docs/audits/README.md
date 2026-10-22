@@ -10,6 +10,7 @@
 | [next-direction.md](<E:\个人游戏项目\IntoTheBattlefiel深入战火\docs\audits\next-direction.md>) | 源码取证后的方向判定（R1 渲染规模化 → R2 确定性快照 → R3 端口补全），含范围、验收、风险与暂缓项 |
 | [next-direction-r5.md](<E:\个人游戏项目\IntoTheBattlefiel深入战火\docs\audits\next-direction-r5.md>) | 2026-10-22 规格 × 现状对照：P0 文档一致性、R5 渲染收尾（合批/提交计时）、R6 验收补齐（演练 3 类/HMR dispose/脏局）、R7 可选 |
 | [gap-review-2026-10-22.md](<E:\个人游戏项目\IntoTheBattlefiel深入战火\docs\audits\gap-review-2026-10-22.md>) | git 现实 × 规划复核：已关闭 8 项、剩余 P1（文本/抖动/接触事件/schema 降级/invalid 入档/图集/GPU）与 P2 工具债、下一步顺序 |
+| [engine-parity-plan.md](<E:\个人游戏项目\IntoTheBattlefiel深入战火\docs\audits\engine-parity-plan.md>) | 2026-10-22 二次复核后的 parity 计划：PG-01…PG-12 差距清单、B1–B5 批次、完成定义与风险；目标为「无未解释的功能差距」 |
 
 ## 怎么刷新（每次里程碑或收尾）
 
