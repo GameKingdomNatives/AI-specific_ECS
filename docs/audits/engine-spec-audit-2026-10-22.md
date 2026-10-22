@@ -45,7 +45,7 @@
 | §19 验收 | ✅ | 面板、全量门禁、dev、HMR/熔断、replay、3000 实体 bench、engine standalone、drill 均有证据 |
 | §20 三批交付 | ✅ | 骨架/渲染物理数据/确定性均落地，后有 scene 编辑器扩展 |
 | §21 禁止事项 | ✅ | 无 any/ts-ignore（门禁）；无游戏内容（技术夹具）；无平行物理真值 |
-| §22 UI 工具链 | 🟡 | Pixi canvas + DOM 覆盖层、只读 UiSnapshot、Storybook 10.6.3（含完整 EditorPanel story）符合；偏差仍是 UI store 用自定义 subscribe + root.render，而非 `useSyncExternalStore` |
+| §22 UI 工具链 | ✅ | Pixi canvas + DOM 覆盖层、只读 UiSnapshot、`useSyncExternalStore`（ADR-039）、Storybook 10.6.3（含完整 EditorPanel story）均符合 |
 
 ## 3. 偏差清单（按优先级）
 
@@ -64,7 +64,7 @@
 10. dump 未写 `diagnostics/`（§11）——Node 端可写文件，浏览器端需下载/IndexedDB。
 11. 无超预算告警（§12）——用已有 `systemTimings`/frame stats 加阈值。
 12. 门禁逐系统契约测试/测试数（§14）——注册表增强。
-13. UI 未用 `useSyncExternalStore`（§22）——改为 `useSyncExternalStore` 包装现有 store。
+13. UI 未用 `useSyncExternalStore`（§22）——**已修（ADR-039：UiRoot 接外部 store，挂载一次）**。
 14. 缺系统卡与《如何新增系统》（§18）——**已补（docs/systems + runbook 07）**。
 15. quality-log 过期（§18）——**已更新到 v0.10.0**。
 
