@@ -25,6 +25,8 @@ export interface Recording {
   readonly startHash?: string;
   /** 脏局标记：true 时 replay 拒收，不进入哈希回归（§9）。 */
   readonly invalid?: boolean;
+  /** 运行时配置指纹（scene/系统/资源摘要）；用于区分不同配置的录制。 */
+  readonly configHash?: string;
   readonly ticks: readonly SerializedInput[];
   /** 仅 version 2 存在；空数组表示「明确录制了零事件」。 */
   readonly events?: readonly SerializedEvent[];
@@ -57,12 +59,14 @@ export class Recorder {
   private readonly ticks: SerializedInput[] = [];
   private readonly seed: number;
   private readonly startHash: string | undefined;
+  private readonly configHash: string | undefined;
   private events: SerializedEvent[] | null = null;
   private invalid = false;
 
-  constructor(seed: number, startHash?: string) {
+  constructor(seed: number, startHash?: string, configHash?: string) {
     this.seed = seed >>> 0;
     this.startHash = startHash;
+    this.configHash = configHash;
   }
 
   record(tick: number, input: InputSnapshot): void {
@@ -95,6 +99,7 @@ export class Recorder {
     const base = {
       seed: this.seed,
       ...(this.startHash === undefined ? {} : { startHash: this.startHash }),
+      ...(this.configHash === undefined ? {} : { configHash: this.configHash }),
       ...(this.invalid ? { invalid: true } : {}),
       ticks: [...this.ticks],
     };
@@ -111,6 +116,7 @@ export function serialize(recording: Recording): string {
     version: recording.version,
     seed: recording.seed,
     ...(recording.startHash === undefined ? {} : { startHash: recording.startHash }),
+    ...(recording.configHash === undefined ? {} : { configHash: recording.configHash }),
     ...(recording.invalid === true ? { invalid: true } : {}),
     ticks: recording.ticks.map((tick) => ({
       tick: tick.tick,
@@ -144,6 +150,14 @@ function parseEvents(record: Partial<Recording>): SerializedEvent[] {
   return Array.isArray(record.events) ? record.events.map(parseEvent) : [];
 }
 
+function optionalMeta(record: Partial<Recording>): Pick<Recording, 'startHash' | 'configHash' | 'invalid'> {
+  return {
+    ...(typeof record.startHash === 'string' ? { startHash: record.startHash } : {}),
+    ...(typeof record.configHash === 'string' ? { configHash: record.configHash } : {}),
+    ...(record.invalid === true ? { invalid: true } : {}),
+  };
+}
+
 export function deserialize(text: string): Recording {
   const parsed: unknown = JSON.parse(text);
   if (typeof parsed !== 'object' || parsed === null) {
@@ -156,8 +170,7 @@ export function deserialize(text: string): Recording {
   return {
     version: record.version,
     seed: record.seed >>> 0,
-    ...(typeof record.startHash === 'string' ? { startHash: record.startHash } : {}),
-    ...(record.invalid === true ? { invalid: true } : {}),
+    ...optionalMeta(record),
     ticks: record.ticks.map((tick) => ({
       tick: tick.tick,
       keys: [...tick.keys],

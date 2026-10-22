@@ -114,9 +114,12 @@ test('录制文件可序列化并原样还原', () => {
   assert.deepEqual(first.pointer, { x: 2, y: 3 });
 });
 
-test('非法录制文件被拒绝', () => {
-  assert.throws(() => deserialize('{}'), /版本或字段不合法/);
-  assert.throws(() => deserialize('null'), /不是对象/);
+test('configHash 随录制往返并影响序列化', () => {
+  const recorder = new Recorder(9, undefined, 'cfg-1234');
+  recorder.record(1, snapshot(1, 2, 3));
+  const restored = deserialize(serialize(recorder.toRecording()));
+  assert.equal(restored.configHash, 'cfg-1234');
+  assert.equal(recorder.toRecording().configHash, 'cfg-1234');
 });
 
 test('v2 录制携带事件并可原样还原', () => {

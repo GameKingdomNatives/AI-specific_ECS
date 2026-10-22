@@ -31,6 +31,7 @@ import { validateSceneSystemParams } from './editor/system-meta.js';
 import { parseScene, type Scene } from '@itb/engine/scene';
 import { mountUi } from './ui/mount.js';
 import { createUiStore } from './ui/snapshot.js';
+import { configHashFor } from './runtime-config.js';
 
 const WIDTH = 1920;
 const HEIGHT = 1080;
@@ -140,7 +141,7 @@ function rebuild(scene: Scene | null): { ok: boolean; issues: string[] } {
   runState = createRunState();
   kills = 0;
   const hash = hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]]));
-  recorder = new Recorder(20261020, hash);
+  recorder = new Recorder(20261020, hash, configHashFor(sceneResult.loaded === null ? null : sceneResult.loaded.scene));
   lastHash = hash;
   dataStatus = `scene ${sceneLabel()} · player ${playerLabel()}`;
   return { ok: sceneResult.loaded !== null && sceneResult.issues.length === 0, issues: sceneResult.issues.map((issue) => issue.message) };
@@ -158,7 +159,7 @@ function applySceneDocument(raw: unknown): { ok: boolean; issues: string[] } {
     sceneResult = { loaded: light, issues: [] };
     lastAppliedScene = json;
     lastHash = hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]]));
-    recorder = new Recorder(20261020, lastHash);
+    recorder = new Recorder(20261020, lastHash, configHashFor(light.scene));
     dataStatus = `scene ${sceneLabel()} · player ${playerLabel()}`;
     return { ok: true, issues: [] };
   }

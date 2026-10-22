@@ -32,7 +32,7 @@
 | §6 十个端口 | ✅ | 10 个端口 + 冻结哈希；IModHost 仅占位 |
 | §7 渲染 | 🟡 | 图层/相机/缩放/文本 Canvas 纹理/批处理/剔除/调试通道均实现；偏差：渲染表是 `RenderItem[]` 对象数组（非 SoA 列），且缺规范中的 `anchor/frame` 字段；未做 Pixi 级 diff 脏标记（按视图池/贴图键同步） |
 | §8 物理 | ✅ | 圆/AABB/胶囊/凸多边形 SAT、射线/扫掠/锥、空间网格、接触对排序并事件化；不涉及受力/关节/CCD（规范明确不做） |
-| §9 确定性 | 🟡 | 60Hz、插值 alpha、暂停/单步/变速、命名 RNG、哈希、回放、invalid 规则均有；偏差：录制未压缩、无 `configHash` 字段；输入日志存在 ticks 中 |
+| §9 确定性 | 🟡 | 60Hz、插值 alpha、暂停/单步/变速、命名 RNG、哈希、回放、invalid 规则均有；录制已带 `configHash`（ADR-041）；偏差：录制未压缩 |
 | §10 数据层 | 🟡 | JSON+zod、迁移、加载器隔离、内容热加载+回滚；偏差：内容用 `$schemaVersion`、scene 用 `schemaVersion`（不统一）；没有「每条失败隔离并汇总」的通用列表（按文件回退） |
 | §11 热重载/隔离 | 🟡 | 系统工厂/HMR dispose/schema 变更整页降级、3 次熔断、dump 记录均有；偏差：dump 落 localStorage + 导出，不写规范中的 `diagnostics/` 目录 |
 | §12 可视化调试 | 🟡 | `debugDraw` 叠层、`?probe`、逐系统计时、帧统计、bench、p95 超预算告警（ADR-040）均有；偏差：命令数/实体数告警未做 |
@@ -58,7 +58,7 @@
 ### P1（契约/规范偏差，需裁定或补实现）
 5. 渲染表非 SoA、缺 anchor/frame（§7）——改动 IRenderer 属 HARD，需 ADR。
 6. EventBus 无类型映射（§5）——可用泛型 `EventMap` 增量实现，不破坏端口形状。
-7. 录制无压缩/configHash（§9）——先测体积再决定。
+7. 录制无压缩/configHash（§9）——**configHash 已加（ADR-041）**；压缩仍待测体积后决定。
 8. 结构变更迭代保护缺失（§4）——可加 dev 迭代深度哨兵。
 9. 写作用域守卫默认关（§4）——dev 默认开、prod 关，需要性能验证。
 10. dump 未写 `diagnostics/`（§11）——Node 端可写文件，浏览器端需下载/IndexedDB。
