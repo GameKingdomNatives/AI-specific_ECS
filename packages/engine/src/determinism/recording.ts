@@ -10,6 +10,8 @@ export interface SerializedInput {
 
 /** 事件级录制：只保留可 JSON 化的字段，顺序即发生顺序。 */
 export interface SerializedEvent {
+  /** 事件序号（单调递增）；旧版 v2 文件可能缺失。 */
+  readonly seq?: number;
   readonly tick: number;
   readonly type: string;
   readonly payload: unknown;
@@ -21,6 +23,8 @@ export interface Recording {
   readonly seed: number;
   /** 开局世界哈希：用于判断录制是否来自「干净开局」。 */
   readonly startHash?: string;
+  /** 脏局标记：true 时 replay 拒收，不进入哈希回归（§9）。 */
+  readonly invalid?: boolean;
   readonly ticks: readonly SerializedInput[];
   /** 仅 version 2 存在；空数组表示「明确录制了零事件」。 */
   readonly events?: readonly SerializedEvent[];
@@ -45,7 +49,7 @@ export function toSnapshot(input: SerializedInput): InputSnapshot {
 }
 
 function toSerializedEvents(records: readonly EventRecord[]): SerializedEvent[] {
-  return records.map((record) => ({ tick: record.tick, type: record.type, payload: record.payload }));
+  return records.map((record) => ({ seq: record.seq, tick: record.tick, type: record.type, payload: record.payload }));
 }
 
 /** 录制器：只收输入与 tick；世界由重放端用同一 seed 重算。 */
@@ -54,6 +58,7 @@ export class Recorder {
   private readonly seed: number;
   private readonly startHash: string | undefined;
   private events: SerializedEvent[] | null = null;
+  private invalid = false;
 
   constructor(seed: number, startHash?: string) {
     this.seed = seed >>> 0;
@@ -77,10 +82,20 @@ export class Recorder {
     return this.events?.length ?? 0;
   }
 
+  /** 标记脏局：之后导出的录制会带 invalid，回放器拒收。 */
+  markInvalid(): void {
+    this.invalid = true;
+  }
+
+  get isInvalid(): boolean {
+    return this.invalid;
+  }
+
   toRecording(): Recording {
     const base = {
       seed: this.seed,
       ...(this.startHash === undefined ? {} : { startHash: this.startHash }),
+      ...(this.invalid ? { invalid: true } : {}),
       ticks: [...this.ticks],
     };
     if (this.events === null) {
@@ -96,6 +111,7 @@ export function serialize(recording: Recording): string {
     version: recording.version,
     seed: recording.seed,
     ...(recording.startHash === undefined ? {} : { startHash: recording.startHash }),
+    ...(recording.invalid === true ? { invalid: true } : {}),
     ticks: recording.ticks.map((tick) => ({
       tick: tick.tick,
       keys: tick.keys,
@@ -104,7 +120,7 @@ export function serialize(recording: Recording): string {
     })),
     ...(recording.events === undefined
       ? {}
-      : { events: recording.events.map((event) => ({ tick: event.tick, type: event.type, payload: event.payload })) }),
+      : { events: recording.events.map((event) => ({ seq: event.seq, tick: event.tick, type: event.type, payload: event.payload })) }),
   });
 }
 
@@ -116,7 +132,16 @@ function parseEvent(value: unknown): SerializedEvent {
   if (typeof record.tick !== 'number' || typeof record.type !== 'string') {
     throw new Error('录制事件字段不合法');
   }
-  return { tick: record.tick, type: record.type, payload: record.payload };
+  return {
+    ...(typeof record.seq === 'number' ? { seq: record.seq } : {}),
+    tick: record.tick,
+    type: record.type,
+    payload: record.payload,
+  };
+}
+
+function parseEvents(record: Partial<Recording>): SerializedEvent[] {
+  return Array.isArray(record.events) ? record.events.map(parseEvent) : [];
 }
 
 export function deserialize(text: string): Recording {
@@ -132,14 +157,13 @@ export function deserialize(text: string): Recording {
     version: record.version,
     seed: record.seed >>> 0,
     ...(typeof record.startHash === 'string' ? { startHash: record.startHash } : {}),
+    ...(record.invalid === true ? { invalid: true } : {}),
     ticks: record.ticks.map((tick) => ({
       tick: tick.tick,
       keys: [...tick.keys],
       buttons: [...tick.buttons],
       pointer: { x: tick.pointer.x, y: tick.pointer.y },
     })),
-    ...(record.version === 2
-      ? { events: Array.isArray(record.events) ? record.events.map(parseEvent) : [] }
-      : {}),
+    ...(record.version === 2 ? { events: parseEvents(record) } : {}),
   };
 }

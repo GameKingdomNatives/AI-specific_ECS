@@ -125,8 +125,35 @@ test('v2 录制携带事件并可原样还原', () => {
   recorder.captureEvents([{ seq: 1, tick: 1, type: 'hit', payload: { id: 7 } }]);
   const recording = recorder.toRecording();
   assert.equal(recording.version, 2);
-  assert.deepEqual(recording.events, [{ tick: 1, type: 'hit', payload: { id: 7 } }]);
+  assert.deepEqual(recording.events, [{ seq: 1, tick: 1, type: 'hit', payload: { id: 7 } }]);
   assert.deepEqual(deserialize(serialize(recording)), recording);
+});
+
+test('脏局录制带 invalid，重演拒收且不执行 tick', () => {
+  const recorder = new Recorder(3);
+  recorder.record(1, snapshot(1, 0, 0));
+  recorder.markInvalid();
+  const recording = recorder.toRecording();
+  assert.equal(recording.invalid, true);
+  assert.equal(recorder.isInvalid, true);
+  assert.equal(deserialize(serialize(recording)).invalid, true);
+  let stepped = 0;
+  const result = replay(recording, {
+    step: () => {
+      stepped += 1;
+    },
+    hash: () => 0,
+  });
+  assert.equal(result.invalid, true);
+  assert.equal(result.ticks, 0);
+  assert.deepEqual(result.hashes, []);
+  assert.equal(stepped, 0);
+});
+
+test('事件序号不同也算偏离', () => {
+  const left = [{ seq: 1, tick: 1, type: 'hit', payload: { id: 1 } }];
+  const right = [{ seq: 2, tick: 1, type: 'hit', payload: { id: 1 } }];
+  assert.deepEqual(firstEventDivergence(left, right), { index: 0, tick: 1 });
 });
 
 test('空事件段表示「明确录制了零事件」', () => {

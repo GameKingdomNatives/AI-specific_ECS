@@ -63,6 +63,7 @@ function createScenario() {
       },
       hash: () => worldHash(world, [Position]),
       events: () => bus.drainRecording().map((record) => ({
+        seq: record.seq,
         tick: record.tick,
         type: record.type,
         payload: record.payload,
@@ -138,11 +139,16 @@ function replayApp(file, expectedHash) {
     },
     hash: () => worldHashGroups(world, [[Position, Box], [Position, Bullet]]),
     events: () => bus.drainRecording().map((record) => ({
+      seq: record.seq,
       tick: record.tick,
       type: record.type,
       payload: record.payload,
     })),
   });
+  if (result.invalid === true) {
+    console.log('录制       invalid（脏局被拒收，不进入哈希回归）');
+    return 2;
+  }
   const final = hashHex(result.finalHash);
   console.log(`ticks      ${result.ticks}`);
   console.log(`final      ${final}`);

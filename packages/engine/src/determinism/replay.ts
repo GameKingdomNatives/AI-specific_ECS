@@ -20,10 +20,15 @@ export interface ReplayResult {
   readonly startHashMatches: boolean | null;
   /** 重演过程中收集到的事件（未提供 events 钩子时为空）。 */
   readonly events: readonly SerializedEvent[];
+  /** 脏局录制被拒收：true 时 ticks/hashes 均为空，不参与哈希回归。 */
+  readonly invalid?: boolean;
 }
 
 /** 按录制逐 tick 重演；同一录制必须产出同一串哈希与同一串事件。 */
 export function replay(recording: Recording, hooks: ReplayHooks): ReplayResult {
+  if (recording.invalid === true) {
+    return { ticks: 0, hashes: [], finalHash: 0, startHashMatches: null, events: [], invalid: true };
+  }
   const startHashMatches = recording.startHash === undefined
     ? null
     : hashHex(hooks.hash()) === recording.startHash;
@@ -60,12 +65,14 @@ function sameEvent(left: SerializedEvent | undefined, right: SerializedEvent | u
   if (left === undefined || right === undefined) {
     return left === right;
   }
-  return left.tick === right.tick
+  const sameSeq = left.seq === undefined || right.seq === undefined || left.seq === right.seq;
+  return sameSeq
+    && left.tick === right.tick
     && left.type === right.type
     && JSON.stringify(left.payload) === JSON.stringify(right.payload);
 }
 
-/** 事件级比对：类型或 payload（JSON 口径）任一不同即算偏离。 */
+/** 事件级比对：seq（两边都有时）、类型或 payload（JSON 口径）任一不同即算偏离。 */
 export function firstEventDivergence(
   actual: readonly SerializedEvent[],
   expected: readonly SerializedEvent[],

@@ -76,7 +76,7 @@ function onSystemError(system: string, error: unknown, tick: number): void {
 }
 
 function createScheduler(): Scheduler {
-  return new Scheduler({ maxConsecutiveFailures: 3, onSystemError });
+  return new Scheduler({ maxConsecutiveFailures: 3, onSystemError, enforceWrites: new URLSearchParams(location.search).has('guard') });
 }
 
 function applySystems(list: readonly SystemDef[]): void {
@@ -233,6 +233,7 @@ function frame(now: number): void {
     if (runState.valid) recorder.record(tick, current);
     scheduler.run(world, bus, commands, tick);
     if (scheduler.invalid && runState.markInvalid()) {
+      recorder.markInvalid();
       logger.error('game invalid', { tick, disabled: scheduler.disabledSystems });
       dumpSink.persist();
     }

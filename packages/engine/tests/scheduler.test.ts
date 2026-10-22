@@ -82,6 +82,44 @@ test('阶段内按顺序执行，阶段末统一 flush 命令', () => {
   assert.equal(commands.size, 0);
 });
 
+test('enforceWrites 拦截未声明的写入，合法声明放行', () => {
+  const world = new World();
+  const bus = new EventBus();
+  const commands = new CommandBuffer();
+  const entity = world.spawn();
+  world.add(entity, Position, { x: 0, y: 0 });
+  const errors: string[] = [];
+  let rogueTicks = 0;
+  let legalTicks = 0;
+  const scheduler = new Scheduler({
+    enforceWrites: true,
+    maxConsecutiveFailures: 5,
+    onSystemError: (name) => errors.push(name),
+  });
+  scheduler.add(
+    system('rogue', 'ai', {
+      update: (ctx) => {
+        rogueTicks += 1;
+        ctx.world.set(entity, Position, { x: 99, y: 99 });
+      },
+    }),
+  );
+  scheduler.add(
+    system('legal', 'movement', {
+      writes: [Position],
+      update: (ctx) => {
+        legalTicks += 1;
+        ctx.world.set(entity, Position, { x: 1, y: 2 });
+      },
+    }),
+  );
+  scheduler.run(world, bus, commands, 1);
+  assert.deepEqual(errors, ['rogue']);
+  assert.equal(rogueTicks, 1);
+  assert.equal(legalTicks, 1);
+  assert.deepEqual(world.get(entity, Position), { x: 1, y: 2 });
+});
+
 test('collectDebug 只收集启用系统的命令，单个抛错不影响其它', () => {
   const world = new World();
   const bus = new EventBus();

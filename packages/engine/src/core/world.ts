@@ -35,6 +35,8 @@ export class World {
   private nextIndex = 0;
   private readonly stores = new Map<string, Store>();
   private liveCount = 0;
+  /** 非 null 时启用写入守卫：只允许声明过的组件被写（§4 所有权）。 */
+  private writeScope: Set<string> | null = null;
 
   get aliveCount(): number {
     return this.liveCount;
@@ -46,6 +48,21 @@ export class World {
       return false;
     }
     return this.alive[index] === 1 && this.generations[index] === entityGeneration(entity);
+  }
+
+  /** 开启写入作用域（调度器在调用系统前设置）；只允许声明的组件被写。 */
+  beginWriteScope(defs: readonly ComponentDef[]): void {
+    this.writeScope = new Set(defs.map((def) => def.name));
+  }
+
+  endWriteScope(): void {
+    this.writeScope = null;
+  }
+
+  private assertWritable(def: ComponentDef): void {
+    if (this.writeScope !== null && !this.writeScope.has(def.name)) {
+      throw new Error(`系统未声明写入组件 ${def.name}（enforceWrites）`);
+    }
   }
 
   spawn(): EntityId {
@@ -83,6 +100,7 @@ export class World {
 
   /** @internal 命令缓冲使用：绕过字段级类型，仍走同一条写入路径。 */
   addRow(entity: EntityId, def: ComponentDef, values: RowValues): void {
+    this.assertWritable(def);
     if (!this.isAlive(entity)) {
       throw new Error(`实体已失效，无法添加组件 ${def.name}`);
     }
@@ -94,6 +112,7 @@ export class World {
   }
 
   remove<F extends FieldMap>(entity: EntityId, def: ComponentDef<F>): boolean {
+    this.assertWritable(def);
     const store = this.stores.get(def.name);
     if (store === undefined) {
       return false;
@@ -123,6 +142,7 @@ export class World {
 
   /** @internal 命令缓冲使用。 */
   setRow(entity: EntityId, def: ComponentDef, values: RowValues): void {
+    this.assertWritable(def);
     const store = this.stores.get(def.name);
     const slot = store?.slots.get(entity);
     if (store === undefined || slot === undefined) {

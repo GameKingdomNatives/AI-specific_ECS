@@ -11,6 +11,8 @@
 | 延迟结构变更 | `CommandBuffer` + 阶段末 flush | core | 已具备 |
 | 依赖图调度 | `Scheduler.add/build/run` | core | 已具备 |
 | 事件广播（同步/延迟/录制） | `EventBus` | core | 已具备 |
+| 系统写入守卫（dev） | `SchedulerOptions.enforceWrites` + `World.beginWriteScope`（`?guard=1`） | core+app | 已具备（ADR-018） |
+| 脏局无效录制 | `Recording.invalid` + `Recorder.markInvalid` + replay 拒收 | determinism | 已具备（ADR-018） |
 | 世界快照 / 恢复 | `World.snapshot/restore` + `core/world-state.ts` | core | 已具备（JSON 可往返） |
 | 随机流状态快照 | `Random.snapshotState/restoreState` | core | 已具备 |
 | 端口契约（10 个） | `packages/engine/src/ports` | ports | 已冻结（ADR-006） |
@@ -29,7 +31,7 @@
 | 世界哈希 | `worldHash` / `worldHashGroups` / `hashHex` | determinism | 已具备 |
 | 录制与序列化（事件级 v2） | `Recorder` / `serialize` / `deserialize` | determinism | 已具备（`events` 可选段） |
 | 固定步长时钟 | `FixedClock`（上限防死亡螺旋、暂停/变速/单步） | core | 已具备 |
-| 回放执行器（哈希 + 事件） | `replay(recording, hooks)` / `firstDivergence` / `firstEventDivergence` | determinism | 已具备 |
+| 回放执行器（哈希 + 事件 + 序号） | `replay` / `firstDivergence` / `firstEventDivergence`（比较 seq） | determinism | 已具备 |
 | 无头回放 CLI | `node tools/replay.mjs`（自测/写录制/事件比对/`--app`） | tools | 已具备（实测 999 tick / 10 事件） |
 | 输入快照接入主循环 | `createBrowserInput`（app）＋每 tick 采样/录制 | app | 已具备 |
 | 输入映射（键位 → 动作） | `data/input-map.ts`、`apps/game/src/data/input-map.json` | data+app | 已具备（鼠标按钮重映射待 HARD） |

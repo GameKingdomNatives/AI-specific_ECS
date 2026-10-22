@@ -1,4 +1,4 @@
-# 引擎 parity 计划（目标：与规划无明显功能差距）
+﻿# 引擎 parity 计划（目标：与规划无明显功能差距）
 
 - 日期：2026-10-22
 - 基线：HEAD `a0ea7f1`，工作区干净（`clear/` 已忽略）
@@ -53,18 +53,18 @@
 
 ## 2. 目标范围（按批次）
 
-### B1 · 契约与确定性修补（先做，风险低）
+### B1 · 契约与确定性修补（已完成，ADR-018）
 
-1. **PG-01 写入守卫**：`SchedulerOptions.enforceWrites`（默认关，dev 开）；调度器在调用系统前设置写入作用域，`World.set/add/remove` 越界即抛错并走既有故障隔离。补单测（越界写触发 onSystemError，合法写不受影响）。
-2. **PG-02 invalid 入档**：`Recording.invalid?: boolean`；`Recorder.markInvalid()`；序列化/反序列化；`replay` 对 invalid 录制返回明确拒绝状态；CLI 打印原因并非零退出。补测试。
-3. **PG-03 事件序号校验**：`firstEventDivergence` 比较 seq；补「同内容不同 seq」测试。
-4. **§6 文档修正**：端口实现状态与现状一致。
+1. ~~**PG-01 写入守卫**~~（已完成）：`SchedulerOptions.enforceWrites`（默认关，dev 开）；调度器在调用系统前设置写入作用域，`World.set/add/remove` 越界即抛错并走既有故障隔离。补单测（越界写触发 onSystemError，合法写不受影响）。
+2. ~~**PG-02 invalid 入档**~~（已完成）：`Recording.invalid?: boolean`；`Recorder.markInvalid()`；序列化/反序列化；`replay` 对 invalid 录制返回明确拒绝状态；CLI 打印原因并非零退出。补测试。
+3. ~~**PG-03 事件序号校验**~~（已完成）：`firstEventDivergence` 比较 seq；补「同内容不同 seq」测试。
+4. ~~**§6 文档修正**~~（已完成）：IAudio/IStorage 端口表与实现一致。
 
 **验收**：新增测试通过；全量门禁 PASS；重演 CLI 对 invalid 录制给出可读拒绝。
 
 ### B2 · 表现能力（渲染/相机/插值）
 
-5. **PG-04 文本渲染**（HARD：`RenderItem.text/font/size`，更新 `port-contract.json` + ADR-018）：
+5. **PG-04 文本渲染**（HARD：`RenderItem.text/font/size`，更新 `port-contract.json` + ADR-019）：
    - 渲染表增可选文本字段；`PixiRenderer` 增加文本视图（Canvas 纹理缓存按 `(text,font,size,color)` 键复用），失败回退几何；
    - 单元：纯缓存键/命中级逻辑；浏览器：HUD 外的场景文本可见截图。
 6. **PG-05 相机抖动**：`PixiRenderer.shake(amp, ms)`（impl，不改端口），衰减由 tick/时间驱动；命中事件触发；浏览器验证。

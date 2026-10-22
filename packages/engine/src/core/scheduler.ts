@@ -42,10 +42,12 @@ export class Scheduler {
   private invalidGame = false;
   private readonly maxFailures: number;
   private readonly onError: SchedulerOptions['onSystemError'];
+  private readonly enforceWrites: boolean;
 
   constructor(options: SchedulerOptions = {}) {
     this.maxFailures = options.maxConsecutiveFailures ?? 3;
     this.onError = options.onSystemError;
+    this.enforceWrites = options.enforceWrites === true;
   }
 
   /** 已熔断的系统名：隔离发生在系统边界，其余系统照常运行。 */
@@ -110,11 +112,18 @@ export class Scheduler {
         if (system.phase !== phase || this.disabled.has(system.name)) {
           continue;
         }
+        if (this.enforceWrites) {
+          world.beginWriteScope(system.writes);
+        }
         try {
           system.update(ctx);
           this.failures.set(system.name, 0);
         } catch (error) {
           this.registerFailure(system, error, tick);
+        } finally {
+          if (this.enforceWrites) {
+            world.endWriteScope();
+          }
         }
       }
       commands.flush(world);

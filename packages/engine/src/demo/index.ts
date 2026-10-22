@@ -15,7 +15,7 @@ export function createMovementSystem(worldWidth: number, worldHeight: number): S
     name: 'demo.movement',
     phase: 'movement',
     reads: [Velocity],
-    writes: [Position],
+    writes: [Position, Velocity],
     update: (ctx) => {
       const entities = ctx.world.query(Position, Velocity, Box);
       for (const entity of entities) {

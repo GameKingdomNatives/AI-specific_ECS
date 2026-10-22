@@ -3,6 +3,8 @@ export interface SchedulerOptions {
   readonly maxConsecutiveFailures?: number;
   /** 每次系统抛错时回调；用于日志、诊断 dump 与面板展示。 */
   readonly onSystemError?: (systemName: string, error: unknown, tick: number) => void;
+  /** §4 所有权守卫：开启后系统只能写声明过的组件（默认关，dev/测试开启）。 */
+  readonly enforceWrites?: boolean;
 }
 
 export interface SystemFailure {
