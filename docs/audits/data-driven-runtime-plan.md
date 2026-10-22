@@ -24,10 +24,10 @@
 - Vite watcher 改发 `itb:scene-changed` 自定义事件，客户端 `__itbApplyScene` 路径解析后原地重建；失败保留旧世界。
 - 浏览器：删除 player 保存 → marker 存活、编辑器不关闭、nodes 3/player null；恢复文件 → 同页 player 恢复（ADR-032）。
 
-## D4 · 元数据驱动表单 + Storybook
-- 组件元数据注册表（字段、类型、默认值、min/max）替代硬编码 `COMPONENT_KINDS`；检查器/调度参数表单由元数据生成。
-- 拆出纯展示组件（SceneTree/Inspector/ScheduleEditor/AssetBrowser 接收 props），补 Storybook stories；为 Figma 式 UI 协作提供稳定 props 契约。
-- 测试：元数据 → 表单字段快照；Storybook 构建通过。
+## D4 · 元数据驱动表单 + Storybook（已完成）
+- 引擎 `scene/meta.ts`：ComponentMeta/MetaField + `defaultsFor`/`coerceFieldValue`（范围/步长/布尔收敛）+ 单测 3 组。
+- 应用 `component-meta.ts` 登记 Position/Box/BoxSpawner；检查器与“添加组件”完全由元数据渲染；删除 `component-kinds.ts`。
+- Storybook：`editor.stories.tsx` 展示 SceneTree/Inspector/ScheduleEditor/AssetBrowser（静态 props + noop 动作），glob 扩展；全量门禁 storybook 构建通过（ADR-033）。
 
 ## D5 · 收口
 - 更新 `docs/audits/scene-editor-acceptance.md`（新增所有权/玩家/spawner/原地重建/元数据/Storybook 项）。

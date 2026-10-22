@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { parseScene } from '@itb/engine/scene';
+import { defaultsFor, parseScene } from '@itb/engine/scene';
 import type { Scene } from '@itb/engine/scene';
 import {
   addComponent,
@@ -12,7 +12,7 @@ import {
   setAsset,
   setComponentField,
 } from '@itb/engine/scene';
-import { COMPONENT_KINDS } from './component-kinds.js';
+import { COMPONENT_META_BY_NAME } from './component-meta.js';
 import { scheduleActions } from './schedule-actions.js';
 import type { ScheduleActions } from './schedule-actions.js';
 
@@ -44,12 +44,9 @@ async function loadSceneDoc(): Promise<{ scene: Scene | null; issue: string | nu
   }
 }
 
-function defaultsFor(component: string): Record<string, number | boolean> {
-  const values: Record<string, number | boolean> = {};
-  for (const field of COMPONENT_KINDS[component] ?? []) {
-    values[field.key] = field.kind === 'boolean' ? false : 0;
-  }
-  return values;
+function defaultsForComponent(component: string): Record<string, number | boolean> {
+  const meta = COMPONENT_META_BY_NAME.get(component);
+  return meta === undefined ? {} : defaultsFor(meta);
 }
 
 function nodeActions(scene: Scene | null, selected: string | null, apply: Apply, setIssue: (issue: string) => void) {
@@ -81,7 +78,7 @@ function dataActions(scene: Scene | null, selected: string | null, apply: Apply)
       if (scene !== null && selected !== null) apply(setComponentField(scene, selected, component, field, value));
     },
     addComp(component: string): void {
-      if (scene !== null && selected !== null) apply(addComponent(scene, selected, component, defaultsFor(component)));
+      if (scene !== null && selected !== null) apply(addComponent(scene, selected, component, defaultsForComponent(component)));
     },
     attach(slot: 'texture' | 'audio', assetName: string): void {
       if (scene === null || selected === null) return;

@@ -1,5 +1,7 @@
 import type { Scene, SceneNode } from '@itb/engine/scene';
-import { COMPONENT_KINDS } from './component-kinds.js';
+import { coerceFieldValue } from '@itb/engine/scene';
+import type { ComponentMeta } from '@itb/engine/scene';
+import { COMPONENT_META } from './component-meta.js';
 
 function AssetSelect(props: {
   label: string;
@@ -26,6 +28,32 @@ function AssetSelect(props: {
   );
 }
 
+function ComponentFields(props: {
+  meta: ComponentMeta;
+  values: Readonly<Record<string, string | number | boolean>>;
+  onField: (component: string, field: string, value: number | boolean) => void;
+}) {
+  return (
+    <>
+      {props.meta.fields.map((field) => (
+        <label key={field.key} className="flex items-center justify-between gap-2 py-0.5">
+          <span className="text-neutral-500">{field.label}</span>
+          <input
+            type={field.kind === 'boolean' ? 'checkbox' : 'number'}
+            checked={field.kind === 'boolean' ? props.values[field.key] === true : undefined}
+            value={field.kind === 'boolean' ? undefined : String(props.values[field.key] ?? field.defaultValue)}
+            min={field.kind === 'number' ? field.min : undefined}
+            max={field.kind === 'number' ? field.max : undefined}
+            step={field.kind === 'number' ? field.step : undefined}
+            onChange={(event) => props.onField(props.meta.name, field.key, coerceFieldValue(field, field.kind === 'boolean' ? event.target.checked : Number(event.target.value)))}
+            className="w-24 rounded border border-neutral-300 px-1 py-0.5 text-xs"
+          />
+        </label>
+      ))}
+    </>
+  );
+}
+
 function ComponentSection(props: {
   scene: Scene;
   node: SceneNode;
@@ -33,35 +61,31 @@ function ComponentSection(props: {
   onAdd: (component: string) => void;
 }) {
   const owned = props.node.components ?? {};
+  const known = new Set(COMPONENT_META.map((meta) => meta.name));
+  const unknown = Object.keys(owned).filter((name) => !known.has(name));
   return (
     <div className="mt-2 space-y-2">
-      {Object.entries(COMPONENT_KINDS).map(([component, fields]) => {
-        const values = owned[component];
+      {COMPONENT_META.map((meta) => {
+        const values = owned[meta.name];
         if (values === undefined) {
           return (
-            <button key={component} type="button" onClick={() => props.onAdd(component)} className="mr-1 rounded border border-dashed border-neutral-300 px-1.5 py-0.5 text-[11px] text-neutral-500">
-              + {component}
+            <button key={meta.name} type="button" onClick={() => props.onAdd(meta.name)} className="mr-1 rounded border border-dashed border-neutral-300 px-1.5 py-0.5 text-[11px] text-neutral-500">
+              + {meta.label}
             </button>
           );
         }
         return (
-          <fieldset key={component} className="rounded border border-neutral-200 p-1.5">
-            <legend className="px-1 text-[11px] text-neutral-500">{component}</legend>
-            {fields.map((field) => (
-              <label key={field.key} className="flex items-center justify-between gap-2 py-0.5">
-                <span className="text-neutral-500">{field.key}</span>
-                <input
-                  type={field.kind === 'boolean' ? 'checkbox' : 'number'}
-                  checked={field.kind === 'boolean' ? values[field.key] === true : undefined}
-                  value={field.kind === 'boolean' ? undefined : String(values[field.key] ?? 0)}
-                  onChange={(event) => props.onField(component, field.key, field.kind === 'boolean' ? event.target.checked : Number(event.target.value))}
-                  className="w-24 rounded border border-neutral-300 px-1 py-0.5 text-xs"
-                />
-              </label>
-            ))}
+          <fieldset key={meta.name} className="rounded border border-neutral-200 p-1.5">
+            <legend className="px-1 text-[11px] text-neutral-500">{meta.label} · {meta.name}</legend>
+            <ComponentFields meta={meta} values={values} onField={props.onField} />
           </fieldset>
         );
       })}
+      {unknown.length > 0 ? (
+        <div className="rounded border border-dashed border-neutral-300 p-1.5 text-[10px] text-neutral-400">
+          未登记组件（只读）：{unknown.join('、')}
+        </div>
+      ) : null}
     </div>
   );
 }

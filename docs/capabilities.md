@@ -51,6 +51,7 @@
 | 所有权与玩家语义（D1） | 作者节点 1:1 实体映射、player 缺失不重建、HUD/编辑器可见 | app+scene | D1 已具备（ADR-030） |
 | 场景 spawner（D2） | `BoxSpawner` 组件 + `scene.spawner` 系统（首 tick 生成、归属节点） | demo+app | D2 已具备（ADR-031） |
 | 原地重建（D3） | `rebuild(scene)` + watcher 自定义事件；保存不刷新、编辑器不关闭 | app | D3 已具备（ADR-032） |
+| 元数据表单 + Storybook（D4） | `scene/meta` + `component-meta` 驱动检查器；editor stories | engine+app | D4 已具备（ADR-033） |
 | 接触事件桥 | `bridge/contacts.ts`（enter/exit + 每 tick 上限） | bridge | 已具备（ADR-023） |
 | 资源清单 | `parseAssetManifest`（zod）+ `loadTextureUrls` | data+app | 已具备（ADR-022） |
 | schema 指纹 | `World.schemaFingerprint()` + HMR `schemaGuard` | core+app | 已具备（ADR-022） |
