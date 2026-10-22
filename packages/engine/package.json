@@ -25,8 +25,8 @@
       "default": "./dist/src/impl/pixi-renderer.js"
     },
     "./bridge": {
-      "types": "./dist/src/bridge/physics.d.ts",
-      "default": "./dist/src/bridge/physics.js"
+      "types": "./dist/src/bridge/index.d.ts",
+      "default": "./dist/src/bridge/index.js"
     },
     "./logger": {
       "types": "./dist/src/impl/logger.d.ts",

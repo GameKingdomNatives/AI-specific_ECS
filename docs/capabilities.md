@@ -41,6 +41,7 @@
 | 单系统崩溃隔离 | `SchedulerOptions.maxConsecutiveFailures` / `disabledSystems` / `onSystemError` | core | 已具备 |
 | 脏局失效标记 | `Scheduler.invalid` + `RunState`（停录制） | core+app | 已具备（§9） |
 | 系统探针页 | `?probe=<system>` | app | 已具备 |
+| 接触事件桥 | `bridge/contacts.ts`（enter/exit + 每 tick 上限） | bridge | 已具备（ADR-023） |
 | 资源清单 | `parseAssetManifest`（zod）+ `loadTextureUrls` | data+app | 已具备（ADR-022） |
 | schema 指纹 | `World.schemaFingerprint()` + HMR `schemaGuard` | core+app | 已具备（ADR-022） |
 | 逐系统耗时 | `Scheduler.systemTimings()` + `impl/system-stats` 环形窗口 | core | 已具备（ADR-021） |
