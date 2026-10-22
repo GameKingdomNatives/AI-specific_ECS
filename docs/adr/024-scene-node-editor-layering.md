@@ -1,0 +1,32 @@
+# ADR-024 节点-场景数据契约与编辑器分层
+
+- 状态：已接受（S0）
+- 日期：2026-10-22
+- 相关：`docs/audits/scene-editor-plan.md`、§6/§9/§11
+
+## 背景
+
+当前场景与系统装配写死在 `apps/game/src/main.ts`、`system-registry.ts`：节点（实体）由代码生成，调度顺序由代码数组决定，资源只通过 manifest 名字硬编码。要做「类似传统节点-场景」的资源与调度管理，需要先冻结一份 scene 数据契约，并明确它和 ECS、资源清单、编辑器的边界。
+
+## 决策
+
+1. **scene JSON 是唯一数据源**：`schemaVersion: 1`，包含 `name`、`resources`（别名→manifest 资源名）、`nodes`（树）、`systems`（id/phase/enabled/after/params）。
+2. **节点=实体**：`nodes[].id` 在场景内唯一；运行时每个节点实例化为一个 ECS 实体。`components` 只允许扁平字段（number/boolean/string），由运行时组件注册表解析；不引入第二套组件定义。
+3. **父子关系是场景数据**：`parentId` 描述树；S1 实例化时写入引擎的父关系组件（变换合成由场景层负责），不改变 ECS 组件列模型。
+4. **资源两级引用**：scene 只写别名（`resources`），别名解析到 manifest 资源名；manifest 仍是资源真值与校验入口（ADR-022）。资源缺失不阻止解析，由加载器返回 issue 并由编辑器标红。
+5. **调度数据化但不重写核心**：scene 的 `systems` 只描述「哪些已注册系统、什么阶段、什么顺序/参数」；系统实现仍来自代码注册表。S2 由注册表 + scene 清单构造调度顺序；未知 id、非法 phase、after 环一律拒绝。
+6. **校验即 API**：`scene` 模块导出 zod schema 与 `parseScene(raw)`，返回 `{ok,value,issues}`（discriminated union），不抛异常；编辑器、保存 API、运行时共用同一入口。
+7. **编辑器分层**：浏览器面板只操作 scene 文档（内存中的 JSON）与保存 API；不直接写世界、不 import 引擎内部实现。保存由 Vite 插件校验后原子写回 `apps/game/scenes/*.json`。
+8. **模块路径**：新增 `packages/engine/src/scene`（schema + 校验 + 后续实例化），`packages/engine` 增加 `./scene` 子路径。`scene` 依赖 `core`（`PHASES`）与 `data`（zod 已由 data 层使用），`core` 不依赖 `scene`。
+
+## 验收（S0）
+
+- `parseScene` 单测覆盖：合法场景、重复节点 id、父节点缺失、父子环、未知 phase、重复系统 id、`after` 引用不存在、非有限数字、非对象输入。
+- package 子路径导出生效；全量门禁 PASS（保护路径 `package.json` 改动记录于本 ADR）。
+- 文档：计划、本 ADR、capabilities/handoff 同步。
+
+## 后果
+
+- 正面：场景/资源/调度有单一数据契约；编辑器与运行时共享校验；后续可做保存闭环与调度图。
+- 代价：节点组件值目前是扁平 JSON，复杂结构需组件级 schema（S2 参数校验时补）；父子变换合成需要场景层实现。
+- 回退：保留现有 `main.ts`/`system-registry.ts` 代码路径；scene 加载默认不启用，直到 S1 通过验收。

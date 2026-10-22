@@ -55,6 +55,10 @@
     "./determinism": {
       "types": "./dist/src/determinism/index.d.ts",
       "default": "./dist/src/determinism/index.js"
+    },
+    "./scene": {
+      "types": "./dist/src/scene/index.d.ts",
+      "default": "./dist/src/scene/index.js"
     }
   },
   "dependencies": {
