@@ -53,6 +53,7 @@ export function SceneTree(props: {
               className={`block w-full py-1 text-left text-xs ${node.id === props.selected ? 'bg-amber-100 text-neutral-900' : 'text-neutral-700 hover:bg-neutral-100'}`}
             >
               {node.name} <span className="text-[10px] text-neutral-400">{node.id}</span>
+              {globalThis.__itbScene?.entities[node.id] !== undefined ? <span className="ml-1 text-[10px] text-sky-700">E{globalThis.__itbScene.entities[node.id]}</span> : null}
               {node.assets?.texture !== undefined ? <span className="ml-1 text-[10px] text-emerald-700">贴图</span> : null}
             </button>
           </li>

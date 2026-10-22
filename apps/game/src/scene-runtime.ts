@@ -10,7 +10,17 @@ export interface LoadedScene {
 
 declare global {
   // eslint-disable-next-line no-var
-  var __itbScene: { name: string; nodes: number; systems: number; issues: number } | undefined;
+  var __itbScene:
+    | {
+        name: string;
+        nodes: number;
+        systems: number;
+        issues: number;
+        entities: Record<string, number>;
+        player: number | null;
+        spawned: Record<string, number>;
+      }
+    | undefined;
 }
 
 /** 运行时读 scene 文件并实例化；失败返回 issues，调用方保留旧路径降级。 */
@@ -30,6 +40,9 @@ export async function loadSceneRuntime(
       nodes: parsed.value.nodes.length,
       systems: parsed.value.systems?.length ?? 0,
       issues: instance.issues.length,
+      entities: Object.fromEntries(instance.entities),
+      player: instance.entities.get('player') ?? null,
+      spawned: {},
     };
     return { loaded: { scene: parsed.value, entities: instance.entities, assets: instance.assets }, issues: instance.issues };
   } catch (error) {

@@ -66,7 +66,7 @@ const input = createBrowserInput(canvas, {
 });
 
 const sceneResult = await loadSceneRuntime(world, (name) => (name === 'Position' ? Position : name === 'Box' ? Box : undefined));
-const player = resolvePlayer(world, sceneResult.loaded, { position: Position, box: Box }, WIDTH, HEIGHT);
+const player = resolvePlayer(world, sceneResult.loaded, { position: Position, box: Box }, WIDTH, HEIGHT) ?? -1;
 let current = input.sample(0);
 
 let scheduler = createScheduler();
@@ -109,7 +109,7 @@ let kills = 0;
 bus.on('demo.hit', () => { kills += 1; renderer.shake(10, 180); });
 
 const initial = initialContent();
-let dataStatus = `${initial.ok ? 'data ok' : `data fallback: ${initial.issue ?? 'invalid'}`} · scene ${sceneResult.loaded === null ? 'fallback' : sceneResult.loaded.scene.name}`;
+let dataStatus = `${initial.ok ? 'data ok' : `data fallback: ${initial.issue ?? 'invalid'}`} · scene ${sceneResult.loaded === null ? 'fallback' : sceneResult.loaded.scene.name} · player ${player < 0 ? 'missing' : 'ok'}`;
 
 function spawnSpec(spec: BoxSpec): EntityId[] {
   const count = probe === null ? (stress > 0 ? stress : spec.count) : Math.min(8, spec.count);
