@@ -5,3 +5,16 @@ export { instantiateScene } from './instantiate.js';
 export type { ComponentLookup, SceneInstantiation, SceneInstantiationOptions } from './instantiate.js';
 export { buildSchedule } from './schedule.js';
 export type { SceneSchedule, SystemBuilder, SystemParams } from './schedule.js';
+export {
+  addComponent,
+  addNode,
+  cloneScene,
+  ensureResource,
+  moveNode,
+  nextNodeId,
+  removeNode,
+  renameNode,
+  setAsset,
+  setComponentField,
+} from './edit.js';
+export type { MoveResult } from './edit.js';

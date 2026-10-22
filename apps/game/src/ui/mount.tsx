@@ -15,6 +15,9 @@ export function mountUi(store: UiStore, intents: UiIntents): () => void {
   };
   const unsubscribe = store.subscribe(render);
   render();
+  if (new URLSearchParams(location.search).has('editor')) {
+    void import('../editor/mount-editor.js').then((module) => module.mountEditor());
+  }
   return () => {
     unsubscribe();
     root.unmount();

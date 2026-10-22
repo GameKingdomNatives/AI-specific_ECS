@@ -44,6 +44,7 @@
 | 场景数据契约 | `scene` zod schema + `parseScene`（节点树/资源别名/系统清单） | scene | S0 已具备（ADR-024） |
 | 场景实例化 | `instantiateScene`（节点→实体、组件、父子、资源别名） | scene | S1 已具备（ADR-024） |
 | 调度数据化 | `buildSchedule`（scene 系统清单→SystemDef[]，phase/after/params） | scene | S2 已具备（ADR-025） |
+| 场景编辑器（S3） | `?editor=1` 面板：场景树/检查器/资源浏览器（内存编辑） | app | S3 已具备（ADR-026） |
 | 接触事件桥 | `bridge/contacts.ts`（enter/exit + 每 tick 上限） | bridge | 已具备（ADR-023） |
 | 资源清单 | `parseAssetManifest`（zod）+ `loadTextureUrls` | data+app | 已具备（ADR-022） |
 | schema 指纹 | `World.schemaFingerprint()` + HMR `schemaGuard` | core+app | 已具备（ADR-022） |
