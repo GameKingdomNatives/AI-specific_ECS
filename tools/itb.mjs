@@ -112,8 +112,8 @@ if (command === 'inspect') {
 } else if (command === 'impact') {
   impact();
 } else if (command === 'check') {
-  const result = run(['tools/gate.mjs', '--fast']);
-  console.log(`[itb] check --changed（当前实现为 fast gate）${result.code === 0 ? 'PASS' : 'FAIL'} · ${result.ms}ms`);
+  const result = run(['tools/check-changed.mjs']);
+  console.log(`[itb] check --changed ${result.code === 0 ? 'PASS' : 'FAIL'} · ${result.ms}ms`);
   code = result.code;
 } else if (command === 'gate') {
   const result = run(['tools/gate.mjs']);

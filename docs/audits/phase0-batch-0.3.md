@@ -25,9 +25,11 @@
 | `node tools/itb.mjs inspect` | 列出 10 规则/9 系统 |
 | `node tools/itb.mjs impact` | 输出 changed/affectedRules/suggestedTests/gateLevel |
 | `node tools/receipt.mjs` | 生成 `artifacts/receipts/e3c78470…json` |
-| `node tools/itb.mjs check --changed` | PASS，21,198ms（目标 ≤20s，未达标） |
+| `node tools/itb.mjs check --changed` | PASS，1,992ms（harness+registry+tsc；本轮无引擎源码改动，测试按影响跳过） |
 | `node tools/itb.mjs gate` | 因未设置 ALLOW_PROTECTED、工作区含 package.json/tools 修改而正确拒绝（保护路径生效） |
 | 全量 gate | 提交后跑；只有全量通过才写 stamp |
+
+补充：`check --changed` 已从 21.2s 的 fast gate 换成 `tools/check-changed.mjs`（2.0s）；有引擎源码改动时会按关键词选测试，无匹配则回退全部编译测试。性能达标，但选择粒度仍需后续打磨。
 
 ## 未完成
 
