@@ -13,9 +13,10 @@
 
 ## 执行记录
 
-- GitHub 可见性：待执行/见本轮结果。
-- npm：需要 npm 登录/组织权限；若 `npm whoami` 无认证，publish 会被拒绝，不能伪称已上传。
-- 实际 npm 包版本：`0.1.0`。
+- GitHub 可见性：**已公开** `https://github.com/GameKingdomNatives/AI-specific_ECS`（2026-10-24）。
+- npm dry-run：PASS；`@itb/engine@0.1.0`，188 files，93.2 kB。
+- npm 实际发布：**未完成**；`npm publish` 返回 `ENEEDAUTH`，本机未登录 `https://registry.npmjs.org/`。需要 `npm adduser`/token 与 `@itb` scope 权限后才能上传，不能伪称已发布。
+- 实际 npm 包版本：`0.1.0`（待认证后发布）。
 
 ## 边界
 
