@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import fc from 'fast-check';
 
-import { CommandBuffer, defineComponent, World } from '../src/core/index.js';
+import { CommandBuffer, defineComponent, EventBus, World } from '../src/core/index.js';
 import { createEngine } from '../src/engine.js';
 
 const Position = defineComponent('PropertyPosition', { x: 'f64', y: 'f64' });
@@ -78,6 +78,30 @@ test('CommandBuffer 不变量：按登记顺序 flush，最终值等于最后一
         if (last === undefined) throw new Error('values 最后一项不应为空');
         assert.deepEqual(world.get(entity, Position), { x: last, y: 0 });
       }
+    }),
+    { numRuns: 100 },
+  );
+});
+
+test('EventBus 不变量：同步按订阅顺序，deferred 按入队顺序', () => {
+  fc.assert(
+    fc.property(fc.array(fc.integer({ min: -100, max: 100 }), { maxLength: 30 }), (values) => {
+      const bus = new EventBus();
+      const seen: string[] = [];
+      bus.on('test', (payload) => seen.push(`a:${String(payload.value)}`));
+      bus.on('test', (payload) => seen.push(`b:${String(payload.value)}`));
+      for (const value of values) bus.emit('test', { value });
+      assert.deepEqual(
+        seen,
+        values.flatMap((value) => [`a:${value}`, `b:${value}`]),
+      );
+
+      const deferredSeen: number[] = [];
+      bus.on('deferred', (payload) => deferredSeen.push(Number(payload.value)));
+      for (const value of values) bus.emitDeferred('deferred', { value });
+      assert.equal(bus.flushDeferred(), values.length);
+      assert.deepEqual(deferredSeen, values);
+      assert.equal(bus.flushDeferred(), 0);
     }),
     { numRuns: 100 },
   );
