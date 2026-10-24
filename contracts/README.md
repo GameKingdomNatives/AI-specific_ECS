@@ -12,5 +12,5 @@
 - `status: implemented` 表示现有 gate 已覆盖；`planned` 表示本轮/后续要实现，**不能当成已执行**。
 - 每条规则必须同时有 guide、sensor、negativeTest；缺一不可，`QUAL-001` 负责检查。
 - 修改 `harness.json` 是 SOFT；修改 `tools/` 下的 sensor 或 gate 是 HARD。
-- 当前 `tools/itb.mjs`/`tools/checks/harness.mjs` 尚未创建；创建它们需要 `tools/` 保护路径批准。
+- `tools/checks/harness.mjs` 已作为 gate 步骤运行；`tools/itb.mjs` 已提供 inspect/impact/check/gate/receipt；`planned` 仍未接入完整闭环。
 - 规则 ID 稳定；新增规则先登记再实现，不允许匿名检查。

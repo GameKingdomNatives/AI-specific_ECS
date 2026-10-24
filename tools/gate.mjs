@@ -64,6 +64,7 @@ step('tsc', process.execPath, ['node_modules/typescript/bin/tsc', '-b']);
 step('engine-standalone', process.execPath, ['node_modules/typescript/bin/tsc', '-p', 'packages/engine/tsconfig.json', '--noEmit']);
 step('eslint', process.execPath, ['node_modules/eslint/bin/eslint.js', '.', '-f', 'json', '-o', join(RUN, 'eslint.json')]);
 step('registry', process.execPath, ['tools/checks/registry.mjs']);
+step('harness', process.execPath, ['tools/checks/harness.mjs']);
 runTests();
 step('coverage', process.execPath, ['tools/coverage.mjs', join(RUN, 'coverage'), '0.7']);
 step('replay', process.execPath, ['tools/replay.mjs', '--self-test', '--repeat', '3']);
