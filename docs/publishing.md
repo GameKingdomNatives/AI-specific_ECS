@@ -85,3 +85,16 @@ Alternative / 备选：GitHub Actions runner can reach npm; first publish still 
 
 中文备选：GitHub Actions runner 通常能访问 npm；首包仍需人工 2FA 批准，之后配置 OIDC 可信发布。GitHub Packages 只是备选，不是 npmjs。
 
+## Recovery-code hold / 恢复码安全冻结
+
+English: A successful sign-in with a recovery code triggers a **72-hour security hold** on the account. Publishing and security-sensitive writes are paused; browsing/installing still work. The hold expires automatically; do not burn more recovery codes trying to bypass it.
+
+中文：使用 recovery code 成功登录会触发账号 **72 小时安全冻结**；发布和安全敏感写入暂停，浏览/安装仍可用。冻结会自动到期，不要继续消耗恢复码试图绕过。
+
+- 触发时间：2026-10-25 00:34 +08（本次 approve 使用恢复码）
+- 预计解冻：2026-10-28 00:34 +08（72h）
+- 解冻后：`npm stage list` 检查暂存；若仍有效，用 TOTP approve；若过期，reject 后重新 stage。
+
+Reference: https://github.blog/changelog/2026-09-09-npm-extends-recovery-code-security-holds-to-all-accounts/
+
+
