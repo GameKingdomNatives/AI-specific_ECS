@@ -1,6 +1,8 @@
 {
   "name": "@itb/engine",
   "version": "0.1.0",
+  "description": "Agent-native, tool-agnostic 2D ECS runtime kernel. Prototype; not production-ready. 中文：agent 原生、工具无关的 2D ECS 运行时内核（原型，不建议生产使用）。",
+  "keywords": ["ecs", "agent-native", "tool-agnostic", "deterministic", "2d", "typescript"],
   "private": false,
   "license": "Apache-2.0",
   "publishConfig": {

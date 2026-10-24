@@ -1,6 +1,7 @@
 {
   "name": "into-the-battlefield",
   "version": "0.1.0",
+  "description": "Agent-native, tool-agnostic dual-kernel ECS codebase. Prototype; not production-ready. 中文：agent 原生、工具无关的双内核 ECS 代码库（原型，不建议生产使用）。",
   "private": true,
   "license": "Apache-2.0",
   "type": "module",
