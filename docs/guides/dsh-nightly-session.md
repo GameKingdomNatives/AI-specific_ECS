@@ -10,6 +10,12 @@
 - 测试提醒已投递到该独立会话（turn #2），证明 Host 恢复/投递链路可用。
 - **但**该会话内执行 `node tools/nightly.mjs` 在沙箱/子进程上受阻，尚未写 `dsh-review.md`。不要把“已投递”说成“审计闭环已完成”。
 
+## 已实测结果（2026-10-24）
+
+- 测试提醒 17:00:23 准时投递到专用会话，并产出 `engineering/audits/2026-10-24/dsh-review.md`。
+- 但会话内 `node tools/nightly.mjs` 第一行 `execFileSync('git', ...)` 触发 EPERM（沙箱禁止管道子进程）；随后它手工拆跑 gate，得到 5 项环境假红，并发现 G1–G9 规则缺口（G1/G2 为 fail-open）。
+- 因此“投递链可用”成立，“会话内直接跑 nightly”不成立；旧 prompt 仍是这条错误路径。
+
 ## 正确分工
 
 ```text

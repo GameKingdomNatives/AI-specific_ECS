@@ -29,8 +29,20 @@
 - 已创建专用独立会话 `session-4a936cd6-6f52-4f5d-b275-d8549750f57e`（ITB Nightly Audit），并在其内创建：
   - 每日 20:00（Asia/Shanghai）：`schedule-2ec612ea-d224-47f8-a20e-86356eed92b1`
   - 一次性 150 秒测试：`schedule-3acbef8a-e639-406c-9ae3-f0319d27abda`
-- 测试提醒已触发到该独立会话（turn #2），证明“Host 投递到原始独立 Session”可用；但该会话执行 `node tools/nightly.mjs` 时在沙箱/子进程上受阻，尚未写出 `dsh-review.md`。
+- 测试提醒已触发到该独立会话（turn #2）；审计报告已写入 `engineering/audits/2026-10-24/dsh-review.md`。
+- 但该会话内执行 `node tools/nightly.mjs` 第一行 `execFileSync('git', ...)` 就 EPERM（DSH 沙箱禁止管道子进程）；它改为手工拆跑 gate，得到 53 PASS / 5 FAIL（5 项均为环境假红），并发现 G1–G9 规则缺口。
 - 正确架构应分工：Windows 计划任务负责跑 gate/deep 并产出报告；DSH 独立会话只读报告、写 `dsh-review.md`，不在会话内再跑 gate。现有 schedule 的 prompt 仍含 nightly 命令，需要更新/删除后重建；未完成前不声称“DSH 夜间闭环已完成”。
+
+## DSH 测试审计发现（来自独立会话）
+
+- 报告：`engineering/audits/2026-10-24/dsh-review.md`（本机，gitignore）。
+- **G1 严重 fail-open**：`tools/checks/gitfacts.mjs` 用 `origin/HEAD`（本仓库不存在）且不看退出码，未盖章提交检查实际零检查。
+- **G2 严重 fail-open**：`tools/checks/findings.mjs` 永不 `process.exit`，depcruise 解析失败被静默跳过。
+- **G3 中**：eslint 3 条 warning 仍 PASS（`scene-runtime.ts` 三条过期 disable 注释），违反“没有警告通过”。
+- **G4–G9**：drill 把崩溃当抓住违规；`.gate/`/`engineering/audits/` gitignore 与“可入仓”矛盾；gate 无环境指纹；夜检目录用 UTC 日期；同日覆盖无 stale 标记；nightly note 写死。
+- **DSH 口径**：原生定时投递成立；目标是**专用会话**（非每轮新会话）；该会话 workspace-write，不是 OS 只读，只靠 prompt 约束。不能写成“独立只读会话已闭环”。
+- 需要动作：把每日提醒改为只读消费报告、删除 150s 测试 schedule；G1–G4 在 `tools/` 保护路径，需人工批准后修。
+
 
 ## 限制
 
