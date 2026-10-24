@@ -1,21 +1,21 @@
-# ADR-048 属性测试起步（无外部依赖）
+# ADR-048 属性测试：fast-check 4.10.2 + npm 安装绕行
 
 - 状态：已接受
 - 日期：2026-10-24
-- 相关：`packages/engine/tests/engine-properties.test.ts`
+- 相关：`packages/engine/tests/engine-properties.test.ts`、`package.json`
 
 ## 背景
 
-计划用 fast-check，但 `npm install --save-dev fast-check` 因 npm arborist `Invalid Version` 失败（vite workspace 解析），没有写入依赖。属性测试不应被一个安装问题阻塞。
+`npm view fast-check version` = **4.10.2**（MIT，Node >=12.17，依赖 pure-rand）。直接 `npm install --save-dev fast-check` 在 npm 11.20 / 10.9.4 都报 `Invalid Version:`（arborist `Node.canDedupe`，vite workspace 解析），但包本身可用。
 
 ## 决策
 
-1. 先用**自带 LCG** 做确定性属性测试：500 个随机 `realMs` 验证 `advance` 不变量；100 次 `step` 验证只推进一个 tick。
-2. 断言的是可证明的不变量，不是快照：
-   - tick 增量 = 返回步数；
-   - 0 ≤ steps ≤ maxStepsPerFrame；
-   - alpha ∈ [0,1]（饱和时为 1）。
-3. 测试文件仍走 `node:test`，不引入新依赖；未来 fast-check 可用时替换 LCG，保留同一组不变量。
+1. 用 `npm install --save-dev --workspaces=false --package-lock=false fast-check` 绕开 workspace lock 解析，安装 **fast-check 4.10.2 + pure-rand**；`package.json` 写入 `^4.10.2`。
+2. `engine-properties.test.ts` 改用 `fc.assert(fc.property(...))`：
+   - 200 个整数毫秒验证 advance 不变量；
+   - 100 个步数验证 step 只推进一 tick。
+3. **已知限制**：`package-lock.json` 未随 fast-check 更新（同一条 npm 错误），`npm ci` 前需要人工补 lock 或修 npm 环境；当前本地 `node_modules` 可用。
+4. 原始 LCG 版本作为历史记录保留在 git 历史；不再作为测试实现。
 
 ## 验收
 
@@ -25,5 +25,6 @@
 
 ## 边界
 
-- 这是“属性测试起步”，不是完整 fast-check 生成器；失败时不能自动 shrink。
-- LCG 种子固定，可复现；覆盖的是 `advance/step` 的边界行为，不覆盖全部系统。
+- fast-check 只覆盖 `advance/step` 的边界行为，不覆盖全部系统。
+- `package-lock.json` 未更新（npm 同一条 Invalid Version）；`npm ci` 前必须补 lock，否则不要在 CI 上假设可复现安装。
+- 当前 `node_modules` 已有 fast-check 4.10.2；本地 gate 可跑。
