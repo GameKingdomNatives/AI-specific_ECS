@@ -130,6 +130,19 @@ const DRILLS = [
     expect: '缺少能力条目',
   },
   {
+    name: '删系统Spec',
+    mutate: () => {
+      const table = JSON.parse(CAPS_ORIGINAL);
+      delete table.systems[0].spec;
+      writeFileSync(CAPS, `${JSON.stringify(table, null, 2)}\n`);
+    },
+    restore: () => {
+      writeFileSync(CAPS, CAPS_ORIGINAL);
+    },
+    command: ['tools/checks/capabilities.mjs'],
+    expect: '缺少 spec',
+  },
+  {
     name: '改阈值：动受保护脚本',
     mutate: () => {
       mkdirSync(DRILL_RUN, { recursive: true });

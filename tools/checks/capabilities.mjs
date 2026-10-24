@@ -33,6 +33,14 @@ for (const system of sceneSystems) {
 }
 for (const cap of caps) {
   if (!sceneById.has(cap.id)) errors.push(`能力条目 ${cap.id} 不在 demo.scene.json 中`);
+  const spec = cap.spec;
+  if (spec === undefined || typeof spec !== 'object') {
+    errors.push(`${cap.id} 缺少 spec`);
+    continue;
+  }
+  for (const field of ['inputs', 'outputs', 'owns']) {
+    if (!Array.isArray(spec[field]) || spec[field].length === 0) errors.push(`${cap.id} spec.${field} 必须是非空数组`);
+  }
 }
 
 if (errors.length > 0) {
