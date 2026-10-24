@@ -1,6 +1,6 @@
 # 引擎下一阶段规划：让 AI 产出自动合法化，同时保持引擎独立
 
-- 版本：v1.0（规划稿，2026-10-24）
+- 版本：v1.1（规划稿，2026-10-24；含用户决策与深检/CI 安排）
 - 基线：HEAD `d198e38`（main），上次全量门禁 PASS（`20261022T125426Z`，58 个检查步骤）
 - 性质：规划，不改引擎代码；先审计、后设计、再排期
 - 关联：`docs/audits/engine-spec-audit-2026-10-22.md`、`docs/audits/scene-editor-acceptance.md`、ADR 034–041
@@ -18,6 +18,20 @@
 > 每一次 AI 改动，在写之前拿到“允许改什么”的前馈指南（Feedforward Guides），写之后经过可解释的计算型传感器（Computational Sensors）和少量推理型传感器（Inferential Sensors），产出一份可验证的回执（Receipt）；只有回执为绿、且不触碰 HARD 契约，才算“自动合法”。
 
 这借鉴了 Birgitta Böckeler 的 Harness Engineering 框架（来源：<https://martinfowler.com/articles/harness-engineering.html>）：前馈与反馈必须成对，计算型检查负责确定性结构，推理型检查只补充语义；人类负责“转向”（steering）规则本身，而不是逐行审 AI 代码。
+
+### 0.1 已落定决策（2026-10-24 用户确认）
+
+| 问题 | 决定 | 对规划的影响 |
+|---|---|---|
+| 阶段 0 启动 | 同意 | 先做规则表/CLI/回执，不改引擎行为 |
+| 引擎发布 | 先本地私有包，基本完善后再考虑上传 | 保持 `private:true`；`npm pack` 只做本地 tarball + starter 冒烟；许可证可后置 |
+| 开发依赖 | 同意 `fast-check`/`api-extractor`/`publint` | 阶段 1/2 安装；变异测试仍优先自研进程内方案 |
+| 深检节奏 | 每 5 次提交一次深检 + 每晚 20:00 DSH 自动化独立后台会话 | 阶段 0 加“提交计数 + 深检回执”；GitHub Actions 负责可复现夜检，DSH 负责独立会话的巡检/分诊 |
+| HARD 项 | 认可 | 渲染表 SoA/anchor-frame、EventBus 类型映射、demo 外迁按阶段逐项落 ADR |
+| 代码托管 | GitHub 为基础，本机已有工具 | 阶段 0 建远端、CI、分支保护与 required checks |
+| 许可证 | 暂缓（本地私有） | 不阻塞阶段 0–2；上传前再定 Apache-2.0/MIT 与 npm scope |
+
+> 补充术语解释见 `docs/guides/quality-primer.md`；阶段 0 的“自动合法”不依赖公开发布，只依赖本地 receipt + GitHub CI。
 
 ## 1. 审计：引擎真实能力（基线 `d198e38`）
 
@@ -107,7 +121,7 @@
 - `@itb/engine`：只导出稳定内核 API；`exports` 完整、`files` 白名单、`sideEffects:false`、`peerDependencies` 仅适配器需要。
 - `@itb/engine-pixi` 等适配器：可选安装；不装 Pixi 也能跑 headless。
 - `starters/engine-headless`、`starters/engine-pixi`：最小可运行示例；CI 里 `npm pack` 后安装到 starter 跑通。
-- `README.md` + `LICENSE`（许可证待用户裁定）+ `CHANGELOG.md` + `docs/embedding.md`（如何嵌入其他项目）。
+- `README.md` + `LICENSE` 占位（本地私有阶段可暂缺，上传前再定）+ `CHANGELOG.md` + `docs/embedding.md`（如何嵌入其他项目）。
 - API 稳定性：`api-extractor` 报告 `.d.ts` 差异；semver 策略；端口哈希之外增加公共 API 哈希。
 - 场景 schema 版本迁移：`schemaVersion` + 迁移函数 + 旧版本夹具测试。
 
@@ -185,6 +199,23 @@
 
 写入 `artifacts/receipts/<tree>.json`，并在提交信息/PR 中引用；无 receipt 不允许 AUTO 合入。
 
+### 5.5 深检节奏与 GitHub / DSH 自动化
+
+**每 5 次提交一次深检**：
+
+- `tools/deep-audit.mjs` 产出 `artifacts/deep/<date>.json/md`（变异、属性全量、API diff、pack、性能、依赖）。
+- 本地提交计数 `.gate/deep-count`；每第 5 次提交时 `pre-push` 要求最近一次深检回执的 tree 覆盖当前 HEAD，否则拒绝推送（本地可 `--no-verify`，但 GitHub CI 仍拦）。
+- 深检回执写入 `artifacts/receipts/`，与普通 gate receipt 同格式、不同 `level: deep`。
+
+**每晚 20:00（Asia/Shanghai）自动化**：
+
+- **GitHub Actions（权威、可复现）**：`schedule: cron '0 12 * * *'`（UTC，对应 20:00 Asia/Shanghai），在 GitHub 上跑 `gate` + `deep-audit`，上传产物；失败自动开 issue / 在 PR 评论，不自动合并。
+- **DSH 独立后台会话（巡检/分诊）**：由 DSH 定时任务启动一个隔离会话，读取仓库 HEAD 与夜间 CI 产物，生成“失败归因 + 规则缺口 + 建议 issue”，只读仓库、不直接改代码；需要修复时由人/主会话开分支。
+- 两者分工：GitHub 负责“确定性证据”，DSH 负责“解释与归因”；DSH 不替代 CI 的判定权。
+- 安全边界：夜间任务默认只读 + 产出报告；不得自动改门禁/保护路径，不得自动改批准文件。
+
+> 若 GitHub Actions 私有仓库配额或 DSH 调度能力不足，降级顺序：本机 DSH 定时任务（20:00）→ 本机计划任务；但“深检回执 + 失败不合并”的语义不变。
+
 ## 6. 传感器清单：现有 → 新增
 
 ### 6.1 保留并强化的现有传感器
@@ -222,7 +253,7 @@
 - 保持 `packages/engine` 单包，但：
   - 根 `index.ts` 增加稳定的 `contracts` 导出（scene schema 类型、事件映射、能力类型）；
   - 把 `demo` 移到 `packages/fixture`（或 `apps/game/src/fixture`），引擎不再含技术夹具；
-  - 补 `README.md`、`LICENSE`（待定）、`CHANGELOG.md`、`docs/embedding.md`；
+  - 补 `README.md`、`LICENSE` 占位（本地私有无需立即选许可证）、`CHANGELOG.md`、`docs/embedding.md`；
   - `package.json` 增加 `files`、`sideEffects`、`engines`、`peerDependencies`（Pixi 只在适配器）；
   - `npm pack --dry-run` + 安装到 `starters/engine-headless` 冒烟纳入全量。
 - 风险：移动 `demo` 会改 import 路径（SOFT），需要一次性 codemod + 全量门禁。
@@ -242,13 +273,15 @@
 
 ## 8. 路线图（建议按阶段执行）
 
-### 阶段 0：基线、规则表、回执（约 1 周）
+### 阶段 0：基线、规则表、回执、GitHub 与深检节奏（约 1–2 周）
 
 - 固化本审计指标；建 `contracts/harness.json` 规则清单（先 10–15 条）。
 - 实现 `tools/itb.mjs` CLI 骨架：`inspect`、`impact --changed`、`check --changed`、`gate`、`receipt`。
 - 每个现有自定义检查补一个负例（从 drill 5 个扩到规则级）。
-- 产出：`gate` 写 receipt；快速门禁 ≤20s；全量仍是 58 步。
-- 退出标准：任一改动能生成 receipt；10 条规则有 guide+sensor+negative test；无行为改动。
+- **托管与自动化**：创建/连接 GitHub 私有仓库；加 `ci.yml`（push/PR 跑 fast + full）；加 `nightly.yml`（20:00 Asia/Shanghai，`gate` + `deep-audit`）；分支保护 + required checks。
+- **深检节奏**：`.gate/deep-count` 统计提交；每 5 次提交要求深检回执；DSH 20:00 独立会话做只读归因（阶段 0 先接 GitHub 产物与报告）。
+- 产出：`gate` 写 receipt；快速门禁 ≤20s；全量仍覆盖现有 58 个检查；深检报告落 `artifacts/deep/`。
+- 退出标准：任一改动能生成 receipt；10 条规则有 guide+sensor+negative test；GitHub CI 与夜间任务可跑通；无引擎行为改动。
 
 ### 阶段 1：契约/能力/行为传感器（约 2–3 周）
 
@@ -258,12 +291,13 @@
 - 黄金场景：demo + 编辑器操作序列的 headless 断言。
 - 退出标准：9/9 系统有 Spec+契约测试；属性测试 4 组；规则闭环 30+ 条；快速门禁不变慢。
 
-### 阶段 2：引擎独立化（约 2–3 周）
+### 阶段 2：引擎独立化（本地私有包，约 2–3 周）
 
-- `demo` 外迁；引擎根 API 收紧；README/LICENSE/CHANGELOG；`npm pack` + headless starter 冒烟。
+- `demo` 外迁；引擎根 API 收紧；README/CHANGELOG/`docs/embedding.md`；`npm pack` 生成**本地 tarball** + headless starter 冒烟。
 - API 报告（`.d.ts` diff）、公共 API 哈希、pack 安装测试。
 - 适配器包拆分 PoC（先 Pixi/physics 二者之一）。
-- 退出标准：`npm pack` 产物在空目录可安装并跑通 starter；引擎无 `apps`/fixture 依赖；包体/导出清单审核通过。
+- 保持 `private:true`；不上传 npm；许可证与 npm scope 留到“基本完善”后决定。
+- 退出标准：本地 tarball 在空目录可安装并跑通 starter；引擎无 `apps`/fixture 依赖；包体/导出清单审核通过。
 
 ### 阶段 3：深检与行为门禁（约 3–4 周）
 
@@ -297,18 +331,26 @@
 
 > 目标不是追求 100% 覆盖率，而是“关键不变量有测试、测试能杀死变异、规则有反例”。覆盖率只做下限。
 
-## 10. 需要你裁定/操作的事项（简短）
+## 10. 已确认的决策与剩余操作
 
-1. **批准本规划与阶段 0 启动**（只加 CLI/规则表/回执，不改行为）。
-2. **许可证**：`@itb/engine` 计划开源给其他项目用；选 Apache-2.0（含专利授权）或 MIT，并给 npm scope 名称。未定前保持 `private:true`，只做本地 starter。
-3. **HARD 项**：是否批准/暂缓——
-   - 渲染表改 SoA + `anchor/frame`（会改冻结 `IRenderer`，需 ADR）；
-   - EventBus 类型映射（§5）；
-   - `demo` 外迁/包拆分（SOFT，但会改 import 路径）。
-4. **依赖安装许可**：阶段 1/3 需要 `fast-check`（属性测试）、`api-extractor`/`publint`（API/pack 检查）；变异测试优先自研进程内方案。若不允许新依赖，请明确，我会改用零依赖实现（能力会受限）。
-5. **深检时间预算**：变异测试放夜间/批次是否可接受（每次提交跑会明显变慢）。
-6. **MCP 优先级**：是否把 MCP 服务器作为阶段 4 的第一优先（Estella 的实践表明它对 AI 原生开发收益最大）。
-7. **远端/CI**：当前无 origin，门禁在本机；阶段 2 后是否接入远端 CI（否则“自动合法”只能靠本地 receipt + 人工抽查）。
+已确认（2026-10-24）：
+
+1. 阶段 0 启动。
+2. 本地私有包，基本完善后再考虑上传。
+3. 允许 `fast-check`/`api-extractor`/`publint`。
+4. 深检每 5 次提交一次 + 每晚 20:00 DSH 独立后台会话；GitHub Actions 作为可复现的权威夜检。
+5. HARD 项原则同意，逐项 ADR。
+6. GitHub 作为托管基础；阶段 0 接入远端、CI、分支保护。
+
+仍需你操作/确认：
+
+1. **提供/创建 GitHub 私有仓库**：给出 remote URL（或确认我可以用 `gh repo create` 建私有库）；确认是否允许我执行 `git remote add/push`。
+2. **GitHub 分支保护**：是否允许我开启 required checks（fast/full/nightly），禁止直接 push main。
+3. **DSH 夜间会话**：确认运行账号/工作区与“只读巡检、不自动改代码”的边界；如果 DSH 调度器不能独立起会话，阶段 0 先落 GitHub Actions，DSH 侧改用计划任务补位。
+4. **许可证/包名**：暂不需要；上传前再定 Apache-2.0/MIT 与 npm scope。
+5. **深检成本上限**：夜间深检预计 10–30 分钟（变异测试占大头），确认可接受；若超出，先只覆盖 core。
+
+> 上述 1–2 项是阶段 0 唯一的外部依赖；不给 remote 也能先做 CLI/规则表/回执，但“自动合法”的远端拦截要等 GitHub 接好。
 
 ## 11. 风险与不做
 
@@ -322,10 +364,29 @@
 
 ## 附录：参考来源
 
+### 本地研究文档
+
 - `研究文档-副本/AI介入下的小团队开发可维护性解决方案/AI友好开发架构自举构建流.md`
 - `研究文档-副本/AI介入下的小团队开发可维护性解决方案/AI开发流程优化方案.md`
 - `研究文档-副本/AI介入下的小团队开发可维护性解决方案/常规游戏架构解耦方式.md`
 - `研究文档-副本/JS技术/AI友好型JS游戏引擎Estella简述.md`
 - `通用资源-副本/代码质量维护/最低成本AI代码优化方案/ECS架构一步方案示范模板.md`
+
+### 术语与长期学习（详见 `docs/guides/quality-primer.md`）
+
+- Martin Fowler, *Harness engineering for coding agent users*：<https://martinfowler.com/articles/harness-engineering.html>
+- Google, *Software Engineering at Google*：<https://abseil.io/resources/swe-book>
+- Robert Nystrom, *Game Programming Patterns*：<https://gameprogrammingpatterns.com/>
+- Fred Hebert, *Property-Based Testing with PropEr, Erlang, and Elixir*：<https://propertesting.com/>
+- `fast-check`：<https://fast-check.dev/>；Hypothesis：<https://hypothesis.readthedocs.io/>
+- ApprovalTests：<https://approvaltests.com/>
+- Michael Feathers, *Working Effectively with Legacy Code*
+- Steve Freeman & Nat Pryce, *Growing Object-Oriented Software Guided by Tests*
+- Kent Beck, *Test-Driven Development: By Example*
+- Martin Fowler, *Refactoring: Improving the Design of Existing Code*
+- John Ousterhout, *A Philosophy of Software Design*
+- Nicole Forsgren et al., *Accelerate*
+- Jason Gregory, *Game Engine Architecture*
+- Roy Osherove, *The Art of Unit Testing*
 - Birgitta Böckeler, *Harness engineering for coding agent users*, Martin Fowler, 2026-04-02：<https://martinfowler.com/articles/harness-engineering.html>
 - 本仓库基线审计：`docs/audits/engine-spec-audit-2026-10-22.md`
