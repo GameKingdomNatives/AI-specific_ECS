@@ -31,6 +31,27 @@ if (!verifyStamp(root, head)) {
   process.exit(1);
 }
 
+const receiptRun = spawnSync(process.execPath, ['tools/receipt.mjs'], { stdio: 'inherit', env: process.env });
+if (receiptRun.status !== 0) {
+  console.error('[pre-push] receipt 生成失败；拒绝推送。');
+  process.exit(receiptRun.status ?? 1);
+}
+const receiptPath = join(root, 'artifacts', 'receipts', `${head}.json`);
+if (!existsSync(receiptPath)) {
+  console.error(`[pre-push] 缺少 receipt：${receiptPath}`);
+  process.exit(1);
+}
+try {
+  const receipt = JSON.parse(readFileSync(receiptPath, 'utf8'));
+  if (receipt.head !== head || receipt.gatePassed !== true) {
+    console.error('[pre-push] receipt 与 HEAD/门禁结果不一致；拒绝推送。');
+    process.exit(1);
+  }
+} catch {
+  console.error('[pre-push] receipt 不可解析；拒绝推送。');
+  process.exit(1);
+}
+
 const deepPath = join(root, '.gate', 'deep-stamp.json');
 let commitsSinceDeep = 0;
 let hasDeepStamp = existsSync(join(root, '.gate', 'stamps', `deep-${head}.json`));
