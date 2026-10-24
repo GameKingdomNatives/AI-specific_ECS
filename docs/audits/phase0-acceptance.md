@@ -10,9 +10,9 @@
 | 批次 | 状态 | 证据 | 缺口 |
 |---|---|---|---|
 | 0.1 本地护栏 | ✅ 完成 | pre-push/tree stamp/main 直推拦截/safe-merge；`npm run hooks:test` 5 组 PASS；`docs/audits/phase0-batch-0.1.md` | `--no-verify` 可绕过；远端 required checks 未接 |
-| 0.2 深检/夜检 | ⚠️ 部分 | deep-audit、每 5 次提交拦截、20:00 任务、`engineering/audits`；DSH 原生 schedule 投递与 `dsh-review` 实测 | DSH 每日 prompt 仍是 nightly 旧命令，需 UI 改只读；Windows 任务暂作 fallback |
+| 0.2 深检/夜检 | 🟡 操作收口 | deep-audit、每 5 次提交拦截、20:00 任务、`engineering/audits`；DSH prompt 已改只读、测试任务删除、插件热重载；Windows 生产任务 Ready 2026-10-25 20:00 | 新 prompt 首次实际投递待 2026-10-25 20:00；此前一轮仍是旧 prompt |
 | 0.3 规则/CLI/回执 | ✅ 完成 | 10/10 rules；`itb` CLI；`check --changed` 2.0s；Receipt 进 pre-push；`docs/audits/phase0-batch-0.3.md` | API 快照非语义 diff；starter 真冒烟待阶段 4 |
-| 0.4 收口 | 🟡 本次 | 本文件 + handoff + 005 状态 + 记忆 | 依赖 0.2 DSH 收口 |
+| 0.4 收口 | ✅ 完成 | 本文件 + handoff + 005 状态 + 记忆 + `dsh-nightly-closure.md` | 依赖 0.2 首次投递观察 |
 
 ## 关键证据
 
@@ -37,7 +37,7 @@
 
 - 本地“提交前可验证、推送前可拦、回执可查、夜检可留证”成立。
 - “DSH 独立只读会话闭环”不成立，只能写“原生定时投递可用，只读角色未强制”。
-- 因此：**阶段 0 部分完成**；完成 0.2 的 DSH prompt 后再宣布阶段 0 收口。
+- 因此：**阶段 0 操作收口完成，但首次新 DSH prompt 投递仍待 2026-10-25 20:00 观察；在此之前不宣称“全绿”**。
 
 ## 下一阶段（004/005）
 
