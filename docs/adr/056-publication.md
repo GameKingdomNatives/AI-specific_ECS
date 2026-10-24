@@ -17,11 +17,12 @@
 - npm dry-run：PASS；`agent-specific_ecs@0.1.0`，188 files，约 94 kB。
 - npm 登录/令牌：用户已写入 token；但 `npm whoami` 返回 **401 Unauthorized**，token 本身不被 npmjs 接受（长度/前缀正常，非格式问题）。
 - npm 实际发布：**未完成**；改名后 `npm publish` 返回 404（认证失败后的权限遮蔽）。没有创建任何 npm 包。
-- 需要重新生成 **Granular Access Token**（read/write + Bypass 2FA + 可选 package `agent-specific_ecs`）或使用当前 OTP，才能上传。
+- 发布路径改为人工 2FA（OTP / staged）或 GitHub Actions OIDC；不再把 bypass-2FA token 当方案。
+- 新增 `.github/workflows/publish.yml`（trusted publishing 骨架）与 `docs/publishing.md`。
 - 公开文件已中英双语/英语优先（`README.md`、`packages/engine/README.md`、package description）。
 - 实际 npm 包版本：`0.1.0`（待认证后发布）。
 
 ## 边界
 
 - 公开仓库不等于 npm 已发布；两者分别记录。
-- 不在没有 npm 认证时使用 `--force` 或假 token。
+- 2FA-bypass GAT 已被 npm 限制（账户操作不再跳过 2FA，直接发布将受限）；不伪造 token，不尝试绕过。
