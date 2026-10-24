@@ -36,4 +36,4 @@ if (errors.length > 0) {
   for (const error of errors) console.error(`  - ${error}`);
   process.exit(1);
 }
-console.log(`包面检查通过：${files.length} 个文件，仅 dist/src + package.json`);
+console.log(`包面检查通过：${files.length} 个文件，仅 dist/src + package.json/README`);

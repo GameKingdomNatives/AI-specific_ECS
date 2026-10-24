@@ -20,7 +20,7 @@
 
 ## 验收
 
-- `package-surface` PASS（187 个文件，仅 dist/src + package.json）。
+- `package-surface` PASS（188 个文件，dist/src + package.json + README）。
 - `pack-smoke` PASS：真实 `npm pack` → 解包到临时 `node_modules/@itb/engine` → 独立进程 import `@itb/engine` 跑 createEngine。
 - `starter-smoke` PASS（workspace 包入口）。
 - 全量 gate PASS。
