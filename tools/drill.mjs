@@ -9,6 +9,8 @@ const GATE = 'tools/gate.mjs';
 const GATE_ORIGINAL = readFileSync(GATE, 'utf8');
 const HARNESS = 'contracts/harness.json';
 const HARNESS_ORIGINAL = readFileSync(HARNESS, 'utf8');
+const MAIN = 'apps/game/src/main.ts';
+const MAIN_ORIGINAL = readFileSync(MAIN, 'utf8');
 const TEST = 'packages/engine/tests/hit.contract.test.ts';
 const HIDDEN_TEST = 'packages/engine/tests/__drill_hidden.ts.bak';
 const DRILL_RUN = 'artifacts/gate/__drill';
@@ -87,6 +89,17 @@ const DRILLS = [
     content: 'export function createMovementSystem(): void {\n  ctx.bus.emit("drill", {});\n}\n',
     command: ['tools/checks/hot-path.mjs'],
     expect: '热路径系统',
+  },
+  {
+    name: '删预算告警',
+    mutate: () => {
+      writeFileSync(MAIN, MAIN_ORIGINAL.replaceAll('findBudgetBreach', 'removedBudgetCheck'));
+    },
+    restore: () => {
+      writeFileSync(MAIN, MAIN_ORIGINAL);
+    },
+    command: ['tools/checks/perf-budget.mjs'],
+    expect: '预算告警',
   },
   {
     name: '改阈值：动受保护脚本',

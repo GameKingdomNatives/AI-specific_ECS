@@ -98,11 +98,11 @@
       "id": "PERF-001",
       "title": "每系统 p95 超预算必须告警并留证",
       "guide": "docs/adr/040-budget-alert.md",
-      "sensor": "tools/checks/registry.mjs",
-      "negativeTest": "tools/drill/cases/PERF-001.mjs",
+      "sensor": "tools/checks/perf-budget.mjs",
+      "negativeTest": "tools/drill.mjs#删预算告警",
       "severity": "warning",
       "approval": "AUTO",
-      "status": "planned",
+      "status": "implemented",
       "scope": [
         "apps/game/src/main.ts"
       ]

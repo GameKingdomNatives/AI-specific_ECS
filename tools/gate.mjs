@@ -67,6 +67,7 @@ step('registry', process.execPath, ['tools/checks/registry.mjs']);
 step('harness', process.execPath, ['tools/checks/harness.mjs']);
 step('system-structure', process.execPath, ['tools/checks/system-structure.mjs']);
 step('hot-path', process.execPath, ['tools/checks/hot-path.mjs']);
+step('perf-budget', process.execPath, ['tools/checks/perf-budget.mjs']);
 runTests();
 step('coverage', process.execPath, ['tools/coverage.mjs', join(RUN, 'coverage'), '0.7']);
 step('replay', process.execPath, ['tools/replay.mjs', '--self-test', '--repeat', '3']);

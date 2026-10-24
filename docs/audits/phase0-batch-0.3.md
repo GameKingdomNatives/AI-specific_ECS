@@ -2,7 +2,7 @@
 
 - 日期：2026-10-24
 - 分支：`feat/batch-0.3-itb-receipt`
-- 结论：**工具骨架可用，10 条规则中 8 条 implemented、2 条 planned**；`check --changed` 实测 2.0s，目标 ≤20s 已满足（选择粒度待打磨）。
+- 结论：**工具骨架可用，10 条规则中 9 条 implemented、1 条 planned（API-001）**；`check --changed` 实测 2.0s，目标 ≤20s 已满足（选择粒度待打磨）。
 
 ## 交付
 
@@ -21,7 +21,7 @@
 
 | 验证 | 结果 |
 |---|---|
-| `node tools/checks/harness.mjs` | PASS；规则 8/10 implemented，系统 9 |
+| `node tools/checks/harness.mjs` | PASS；规则 9/10 implemented，系统 9 |
 | `node tools/itb.mjs inspect` | 列出 10 规则/9 系统 |
 | `node tools/itb.mjs impact` | 输出 changed/affectedRules/suggestedTests/gateLevel |
 | `node tools/receipt.mjs` | 生成 `artifacts/receipts/e3c78470…json` |
