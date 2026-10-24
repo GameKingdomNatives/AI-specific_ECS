@@ -14,13 +14,14 @@
 - `contracts/capabilities.json` 以 scene 为运行时真值修正两处 phase：
   - `demo.weapon`：ai → damage；
   - `physics.bodySync`：movement → collision。
+- 每个系统新增 `spec: { inputs, outputs, owns }`，capabilities 检查要求三个字段都是非空数组；`删系统Spec` drill 验证会红。
 
 ## 证据
 
 | 检查 | 结果 |
 |---|---|
 | `node tools/checks/capabilities.mjs` | PASS：9 个系统 |
-| `node tools/drill.mjs` | 12 条全部“拦住 PASS”，含 `删能力条目` |
+| `node tools/drill.mjs` | 13 条全部“拦住 PASS”，含 `删能力条目`、`删系统Spec` |
 | `node tools/gate.mjs --fast` | PASS `20261024T104354Z` |
 | 全量 gate | 随提交/推送跑 |
 
