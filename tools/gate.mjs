@@ -68,6 +68,7 @@ step('tsc', process.execPath, ['node_modules/typescript/bin/tsc', '-b']);
 step('app-bootstrap', process.execPath, ['tools/checks/app-bootstrap.mjs']);
 step('agent-contract', process.execPath, ['tools/checks/agent-contract.mjs']);
 step('export-policy', process.execPath, ['tools/checks/export-policy.mjs']);
+step('mcp-smoke', process.execPath, ['tools/checks/mcp-smoke.mjs']);
 step('engine-standalone', process.execPath, ['node_modules/typescript/bin/tsc', '-p', 'packages/engine/tsconfig.json', '--noEmit']);
 step('api-surface', process.execPath, ['tools/checks/api-surface.mjs']);
 step('package-surface', process.execPath, ['tools/checks/package-surface.mjs']);
