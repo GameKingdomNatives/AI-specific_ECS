@@ -39,7 +39,7 @@ const changed = [
   ]),
 ];
 
-const PROTECTED = /^(tools\/|\.githooks\/|eslint\.config\.mjs|tsconfig.*\.json|\.dependency-cruiser\.cjs|package\.json|\.npmrc)/;
+const PROTECTED = /^(tools\/|\.githooks\/|eslint\.config\.mjs|tsconfig.*\.json|\.dependency-cruiser\.cjs|package\.json|package-lock\.json|\.npmrc)/;
 const touched = changed.filter((path) => PROTECTED.test(path));
 if (touched.length > 0 && process.env.ALLOW_PROTECTED !== '1') {
   errors.push(`受保护路径被修改（需人工批准）：\n  ${touched.join('\n  ')}`);

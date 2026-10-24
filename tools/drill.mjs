@@ -15,6 +15,8 @@ const API_DECL = 'packages/engine/dist/src/index.d.ts';
 const API_DECL_ORIGINAL = readFileSync(API_DECL, 'utf8');
 const CAPS = 'contracts/capabilities.json';
 const CAPS_ORIGINAL = readFileSync(CAPS, 'utf8');
+const LOCK = 'package-lock.json';
+const LOCK_ORIGINAL = readFileSync(LOCK, 'utf8');
 const ENGINE_JS = 'packages/engine/dist/src/engine.js';
 const ENGINE_JS_ORIGINAL = readFileSync(ENGINE_JS, 'utf8');
 const TEST = 'packages/engine/tests/hit.contract.test.ts';
@@ -154,6 +156,17 @@ const DRILLS = [
     },
     command: ['tools/checks/package-surface.mjs'],
     expect: '缺少发布入口',
+  },
+  {
+    name: '改依赖锁',
+    mutate: () => {
+      writeFileSync(LOCK, `${LOCK_ORIGINAL}\n`);
+    },
+    restore: () => {
+      writeFileSync(LOCK, LOCK_ORIGINAL);
+    },
+    command: ['tools/checks/gitfacts.mjs', DRILL_RUN],
+    expect: '受保护路径',
   },
   {
     name: '改阈值：动受保护脚本',

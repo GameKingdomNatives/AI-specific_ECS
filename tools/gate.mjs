@@ -5,7 +5,11 @@ import { join } from 'node:path';
 const ROOT = process.cwd();
 const FAST = process.argv.includes('--fast');
 process.env.GATE_MODE = FAST ? 'fast' : 'full';
-const RUN = join('artifacts', 'gate', new Date().toISOString().replace(/[-:]/g, '').replace(/\..+/, 'Z'));
+const RUN = join(
+  'artifacts',
+  'gate',
+  `${new Date().toISOString().replace(/[-:]/g, '').replace(/\..+/, 'Z')}-${process.pid}-${Math.random().toString(36).slice(2, 7)}`,
+);
 mkdirSync(join(ROOT, RUN), { recursive: true });
 mkdirSync(join(ROOT, '.gate', 'stamps'), { recursive: true });
 process.env.GATE_RUN = RUN;
