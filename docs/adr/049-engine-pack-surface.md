@@ -21,11 +21,12 @@
 ## 验收
 
 - `package-surface` PASS（187 个文件，仅 dist/src + package.json）。
-- `starter-smoke` PASS。
+- `pack-smoke` PASS：真实 `npm pack` → 解包到临时 `node_modules/@itb/engine` → 独立进程 import `@itb/engine` 跑 createEngine。
+- `starter-smoke` PASS（workspace 包入口）。
 - 全量 gate PASS。
 
 ## 边界
 
-- 还没有真正 `npm pack` 出 tarball 再安装；只是 dry-run 文件面 + workspace 包入口冒烟。
+- `pack-smoke` 是解包后 import，不是 `npm install <tgz>`；依赖仍由根 node_modules 提供（createEngine 路径不依赖 Pixi/zod）。
 - 没有 README/LICENSE；上传前补。
 - 包仍依赖 pixi.js/zod 等；引擎核心仍包含 demo/impl，完全独立化要等 `@itb/fixture`/适配器拆分。

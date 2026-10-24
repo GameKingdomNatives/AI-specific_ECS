@@ -64,6 +64,7 @@ step('tsc', process.execPath, ['node_modules/typescript/bin/tsc', '-b']);
 step('engine-standalone', process.execPath, ['node_modules/typescript/bin/tsc', '-p', 'packages/engine/tsconfig.json', '--noEmit']);
 step('api-surface', process.execPath, ['tools/checks/api-surface.mjs']);
 step('package-surface', process.execPath, ['tools/checks/package-surface.mjs']);
+step('pack-smoke', process.execPath, ['tools/checks/pack-smoke.mjs']);
 step('eslint', process.execPath, ['node_modules/eslint/bin/eslint.js', '.', '-f', 'json', '-o', join(RUN, 'eslint.json')]);
 step('registry', process.execPath, ['tools/checks/registry.mjs']);
 step('harness', process.execPath, ['tools/checks/harness.mjs']);
