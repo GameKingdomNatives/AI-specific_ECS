@@ -2,14 +2,68 @@
   "version": 1,
   "source": "docs/audits/engine-spec-audit-2026-10-22.md",
   "systems": [
-    { "id": "scene.spawner", "phase": "ai", "card": "docs/systems/scene-spawner.md", "contractTest": "packages/engine/tests/spawner.test.ts", "scene": "apps/game/scenes/demo.scene.json" },
-    { "id": "demo.movement", "phase": "movement", "card": "docs/systems/demo-movement.md", "contractTest": "packages/engine/tests/demo.contract.test.ts", "scene": "apps/game/scenes/demo.scene.json" },
-    { "id": "demo.bulletMovement", "phase": "movement", "card": "docs/systems/demo-bullet-movement.md", "contractTest": "packages/engine/tests/demo.contract.test.ts", "scene": "apps/game/scenes/demo.scene.json" },
-    { "id": "demo.player", "phase": "ai", "card": "docs/systems/demo-player.md", "contractTest": "packages/engine/tests/demo.contract.test.ts", "scene": "apps/game/scenes/demo.scene.json" },
-    { "id": "demo.weapon", "phase": "ai", "card": "docs/systems/demo-weapon.md", "contractTest": "packages/engine/tests/weapon.contract.test.ts", "scene": "apps/game/scenes/demo.scene.json" },
-    { "id": "physics.bodySync", "phase": "movement", "card": "docs/systems/physics-body-sync.md", "contractTest": "packages/engine/tests/bridge.contract.test.ts", "scene": "apps/game/scenes/demo.scene.json" },
-    { "id": "physics.contacts", "phase": "collision", "card": "docs/systems/physics-contacts.md", "contractTest": "packages/engine/tests/contacts.test.ts", "scene": "apps/game/scenes/demo.scene.json" },
-    { "id": "demo.hit", "phase": "damage", "card": "docs/systems/demo-hit.md", "contractTest": "packages/engine/tests/hit.contract.test.ts", "scene": "apps/game/scenes/demo.scene.json" },
-    { "id": "demo.bulletCleanup", "phase": "cleanup", "card": "docs/systems/demo-bullet-cleanup.md", "contractTest": "packages/engine/tests/demo.contract.test.ts", "scene": "apps/game/scenes/demo.scene.json" }
+    {
+      "id": "scene.spawner",
+      "phase": "ai",
+      "card": "docs/systems/scene-spawner.md",
+      "contractTest": "packages/engine/tests/spawner.test.ts",
+      "scene": "apps/game/scenes/demo.scene.json"
+    },
+    {
+      "id": "demo.movement",
+      "phase": "movement",
+      "card": "docs/systems/demo-movement.md",
+      "contractTest": "packages/engine/tests/demo.contract.test.ts",
+      "scene": "apps/game/scenes/demo.scene.json"
+    },
+    {
+      "id": "demo.bulletMovement",
+      "phase": "movement",
+      "card": "docs/systems/demo-bullet-movement.md",
+      "contractTest": "packages/engine/tests/demo.contract.test.ts",
+      "scene": "apps/game/scenes/demo.scene.json"
+    },
+    {
+      "id": "demo.player",
+      "phase": "ai",
+      "card": "docs/systems/demo-player.md",
+      "contractTest": "packages/engine/tests/demo.contract.test.ts",
+      "scene": "apps/game/scenes/demo.scene.json"
+    },
+    {
+      "id": "demo.weapon",
+      "phase": "damage",
+      "card": "docs/systems/demo-weapon.md",
+      "contractTest": "packages/engine/tests/weapon.contract.test.ts",
+      "scene": "apps/game/scenes/demo.scene.json"
+    },
+    {
+      "id": "physics.bodySync",
+      "phase": "collision",
+      "card": "docs/systems/physics-body-sync.md",
+      "contractTest": "packages/engine/tests/bridge.contract.test.ts",
+      "scene": "apps/game/scenes/demo.scene.json"
+    },
+    {
+      "id": "physics.contacts",
+      "phase": "collision",
+      "card": "docs/systems/physics-contacts.md",
+      "contractTest": "packages/engine/tests/contacts.test.ts",
+      "scene": "apps/game/scenes/demo.scene.json"
+    },
+    {
+      "id": "demo.hit",
+      "phase": "damage",
+      "card": "docs/systems/demo-hit.md",
+      "contractTest": "packages/engine/tests/hit.contract.test.ts",
+      "scene": "apps/game/scenes/demo.scene.json"
+    },
+    {
+      "id": "demo.bulletCleanup",
+      "phase": "cleanup",
+      "card": "docs/systems/demo-bullet-cleanup.md",
+      "contractTest": "packages/engine/tests/demo.contract.test.ts",
+      "scene": "apps/game/scenes/demo.scene.json"
+    }
   ]
 }

@@ -13,6 +13,8 @@ const MAIN = 'apps/game/src/main.ts';
 const MAIN_ORIGINAL = readFileSync(MAIN, 'utf8');
 const API_DECL = 'packages/engine/dist/src/index.d.ts';
 const API_DECL_ORIGINAL = readFileSync(API_DECL, 'utf8');
+const CAPS = 'contracts/capabilities.json';
+const CAPS_ORIGINAL = readFileSync(CAPS, 'utf8');
 const TEST = 'packages/engine/tests/hit.contract.test.ts';
 const HIDDEN_TEST = 'packages/engine/tests/__drill_hidden.ts.bak';
 const DRILL_RUN = 'artifacts/gate/__drill';
@@ -113,6 +115,19 @@ const DRILLS = [
     },
     command: ['tools/checks/api-surface.mjs'],
     expect: 'API surface changed',
+  },
+  {
+    name: '删能力条目',
+    mutate: () => {
+      const table = JSON.parse(CAPS_ORIGINAL);
+      table.systems = table.systems.filter((system) => system.id !== 'demo.hit');
+      writeFileSync(CAPS, `${JSON.stringify(table, null, 2)}\n`);
+    },
+    restore: () => {
+      writeFileSync(CAPS, CAPS_ORIGINAL);
+    },
+    command: ['tools/checks/capabilities.mjs'],
+    expect: '缺少能力条目',
   },
   {
     name: '改阈值：动受保护脚本',
