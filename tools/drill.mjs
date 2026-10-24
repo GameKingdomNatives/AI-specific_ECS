@@ -169,6 +169,17 @@ const DRILLS = [
     expect: '受保护路径',
   },
   {
+    name: '回退手写五件套',
+    mutate: () => {
+      writeFileSync(MAIN, `${MAIN_ORIGINAL}\nconst rollback = new World();\n`);
+    },
+    restore: () => {
+      writeFileSync(MAIN, MAIN_ORIGINAL);
+    },
+    command: ['tools/checks/app-bootstrap.mjs'],
+    expect: '禁止',
+  },
+  {
     name: '改阈值：动受保护脚本',
     mutate: () => {
       mkdirSync(DRILL_RUN, { recursive: true });

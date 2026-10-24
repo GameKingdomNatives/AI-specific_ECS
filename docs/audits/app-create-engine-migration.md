@@ -19,6 +19,8 @@
 | `tsc -b` | PASS |
 | `engine-facade.test.js` | 4/4 PASS |
 | 浏览器 `npm run dev` | tick 960 · entities 68 · bodies 66 · err 0 · scene demo · player ok |
+| `app-bootstrap` gate | PASS：main.ts 必须有 createEngine/reset 调用，禁止 new 五件套 |
+| `回退手写五件套` drill | PASS（命中“禁止”） |
 | 全量 gate | 随提交跑 |
 
 ## 未验证/边界
