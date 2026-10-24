@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import fc from 'fast-check';
 
-import { CommandBuffer, defineComponent, EventBus, World } from '../src/core/index.js';
+import { CommandBuffer, defineComponent, EventBus, Scheduler, World } from '../src/core/index.js';
 import { createEngine } from '../src/engine.js';
 
 const Position = defineComponent('PropertyPosition', { x: 'f64', y: 'f64' });
@@ -78,6 +78,31 @@ test('CommandBuffer 不变量：按登记顺序 flush，最终值等于最后一
         if (last === undefined) throw new Error('values 最后一项不应为空');
         assert.deepEqual(world.get(entity, Position), { x: last, y: 0 });
       }
+    }),
+    { numRuns: 100 },
+  );
+});
+
+test('Scheduler 不变量：after 链按依赖顺序执行', () => {
+  fc.assert(
+    fc.property(fc.integer({ min: 1, max: 20 }), (count) => {
+      const scheduler = new Scheduler();
+      for (let index = count - 1; index >= 0; index -= 1) {
+        scheduler.add({
+          name: `step-${index}`,
+          phase: 'movement',
+          reads: [],
+          writes: [],
+          after: index === 0 ? [] : [`step-${index - 1}`],
+          update: () => undefined,
+        });
+      }
+      scheduler.build();
+      assert.deepEqual(
+        scheduler.orderNames,
+        Array.from({ length: count }, (_, index) => `step-${index}`),
+      );
+      scheduler.dispose();
     }),
     { numRuns: 100 },
   );

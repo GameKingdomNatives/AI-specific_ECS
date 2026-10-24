@@ -16,13 +16,14 @@
    - 100 个步数验证 step 只推进一 tick；
    - 100 组 spawn/despawn 序列验证 World aliveCount 与存活集合一致、句柄不重复；
    - 100 组随机 set 序列验证 CommandBuffer 按登记顺序 flush、最终值等于最后一次 set；
-   - 100 组随机事件序列验证 EventBus 同步按订阅顺序、deferred 按入队顺序。
+   - 100 组随机事件序列验证 EventBus 同步按订阅顺序、deferred 按入队顺序；
+   - 100 组依赖链验证 Scheduler 按 after 顺序执行。
 3. **已知限制**：`package-lock.json` 已手工补 fast-check/pure-rand 条目，但 `npm ci --dry-run` 仍复现 npm `Invalid Version`；本地 `node_modules` 可用。
 4. 原始 LCG 版本作为历史记录保留在 git 历史；不再作为测试实现。
 
 ## 验收
 
-- `engine-properties.test.js` 5/5 PASS。
+- `engine-properties.test.js` 6/6 PASS。
 - 测试基线 44；`删测试` drill 仍能变红。
 - 全量 gate PASS。
 
