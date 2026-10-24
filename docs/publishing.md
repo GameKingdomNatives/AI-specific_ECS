@@ -51,3 +51,37 @@ English: The 2FA-bypass granular token no longer skips 2FA for account changes a
 中文：2FA-bypass token 已不能跳过账户类敏感操作的 2FA，直接发布也在被限制；不要把发布流程建立在它上面。
 
 Reference: https://github.blog/changelog/2026-07-08-npm-install-time-security-and-gat-bypass2fa-deprecation/
+
+## Network / 网络
+
+English: If `registry.npmjs.org:443` times out while `github.com:443` works, the registry is blocked at the network layer. Use your own VPN/TUN or HTTP proxy; do not use a random public proxy for npm credentials.
+
+中文：如果 `registry.npmjs.org:443` 超时而 `github.com:443` 正常，是 registry 被网络层阻断。使用自己的 VPN/TUN 或 HTTP 代理；不要把 npm 凭据交给随机公共代理。
+
+Diagnose / 诊断：
+
+```powershell
+Test-NetConnection registry.npmjs.org -Port 443
+npm config get proxy
+npm config get https-proxy
+```
+
+Configure an HTTP proxy (example port; use your client's real port) / 配置 HTTP 代理：
+
+```powershell
+npm config set proxy http://127.0.0.1:7890
+npm config set https-proxy http://127.0.0.1:7890
+npm ping --registry=https://registry.npmjs.org/
+```
+
+Remove / 移除：
+
+```powershell
+npm config delete proxy
+npm config delete https-proxy
+```
+
+Alternative / 备选：GitHub Actions runner can reach npm; first publish still needs a human 2FA approval, then configure OIDC trusted publishing for repeatable releases. GitHub Packages is a fallback, not npmjs.
+
+中文备选：GitHub Actions runner 通常能访问 npm；首包仍需人工 2FA 批准，之后配置 OIDC 可信发布。GitHub Packages 只是备选，不是 npmjs。
+
