@@ -3,7 +3,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const ROOT = process.cwd();
-const DIR = join(ROOT, 'packages', 'engine', 'src', 'demo');
+const DIR = join(ROOT, 'packages', 'fixture', 'src');
 const errors = [];
 
 if (!existsSync(DIR)) {

@@ -1,5 +1,5 @@
 import type { EntityId, FixedClock, World } from '@itb/engine/core';
-import { Position } from '@itb/engine/demo';
+import { Position } from '@itb/fixture';
 import type { Recorder } from '@itb/engine/determinism';
 import { serialize } from '@itb/engine/determinism';
 import type { DumpSink } from '@itb/engine/diagnostics';

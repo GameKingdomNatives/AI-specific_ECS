@@ -1,6 +1,6 @@
 import { interpolatePoint } from '@itb/engine/core';
 import type { EntityId, World } from '@itb/engine/core';
-import { Box, Bullet, Position } from '@itb/engine/demo';
+import { Box, Bullet, Position } from '@itb/fixture';
 import type { RenderItem } from '@itb/engine/ports';
 import type { SceneAssets } from '@itb/engine/scene';
 

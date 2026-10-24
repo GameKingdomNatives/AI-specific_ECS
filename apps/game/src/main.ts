@@ -4,7 +4,7 @@ import { findBudgetBreach, type EntityId, type SystemDef } from '@itb/engine/cor
 import { createEngine } from '@itb/engine';
 import type { BoxSpec } from '@itb/engine/data';
 import { hashHex, Recorder, serialize, worldHashGroups } from '@itb/engine/determinism';
-import { Box, BoxSpawner, Bullet, Position, spawnBoxes } from '@itb/engine/demo';
+import { Box, BoxSpawner, Bullet, Position, spawnBoxes } from '@itb/fixture';
 import { createPixiRenderer } from '@itb/engine/impl';
 import { createGameAudio } from './sound.js';
 import { createUiIntents } from './ui-intents.js';

@@ -5,8 +5,8 @@ import ts from 'typescript';
 
 const ROOT = process.cwd();
 const BUDGET = JSON.parse(readFileSync(join(ROOT, 'tools/quality-budget.json'), 'utf8'));
-const SCAN_DIRS = ['packages/engine/src', 'packages/engine/tests', 'apps/game/src'];
-const SKIP_BUDGET_DIRS = ['packages/engine/tests'];
+const SCAN_DIRS = ['packages/engine/src', 'packages/engine/tests', 'packages/fixture/src', 'packages/fixture/tests', 'apps/game/src'];
+const SKIP_BUDGET_DIRS = ['packages/engine/tests', 'packages/fixture/tests'];
 const findings = [];
 
 function add(ruleId, file, line, column, message) {
@@ -86,8 +86,11 @@ function checkPortContract() {
 }
 
 function checkSystemContractTests() {
-  const systems = walk(join(ROOT, 'packages/engine/src/demo')).filter((file) => !file.endsWith('index.ts'));
-  const tests = walk(join(ROOT, 'packages/engine/tests')).map(safeRelative);
+  const systems = walk(join(ROOT, 'packages/fixture/src')).filter((file) => !file.endsWith('index.ts'));
+  const tests = [
+    ...walk(join(ROOT, 'packages/engine/tests')),
+    ...walk(join(ROOT, 'packages/fixture/tests')),
+  ].map(safeRelative);
   for (const system of systems) {
     const name = system.split(/[\\/]/).pop().replace('.ts', '');
     if (!tests.some((file) => file.includes(`${name}.contract.test`))) {
@@ -100,7 +103,10 @@ function checkSystemContractTests() {
 function checkTestBaseline() {
   const baselinePath = join(ROOT, 'tools/test-baseline.json');
   const baseline = JSON.parse(readFileSync(baselinePath, 'utf8'));
-  const files = readdirSync(join(ROOT, 'packages/engine/tests')).filter((file) => file.endsWith('.test.ts'));
+  const files = [
+    ...readdirSync(join(ROOT, 'packages/engine/tests')).filter((file) => file.endsWith('.test.ts')),
+    ...readdirSync(join(ROOT, 'packages/fixture/tests')).filter((file) => file.endsWith('.test.ts')),
+  ];
   if (files.length < baseline.minTestFiles) {
     add('test-baseline', 'packages/engine/tests', 1, 0,
       `测试文件数 ${files.length} 少于基线 ${baseline.minTestFiles}：删除测试需同步更新 tools/test-baseline.json 并在 ADR 说明`);

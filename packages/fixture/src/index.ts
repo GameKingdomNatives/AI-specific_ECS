@@ -1,8 +1,6 @@
-import { defineComponent } from '../core/types.js';
-import type { SystemDef } from '../core/scheduler.js';
-import type { EntityId } from '../core/types.js';
-import type { World } from '../core/world.js';
-import type { InputSnapshot, IPhysics } from '../ports/index.js';
+import { defineComponent } from '@itb/engine/core';
+import type { EntityId, SystemDef, World } from '@itb/engine/core';
+import type { InputSnapshot, IPhysics } from '@itb/engine/ports';
 
 /** 技术夹具用组件：不是游戏内容，只用来证明管线通。 */
 export const Position = defineComponent('Position', { x: 'f64', y: 'f64' });

@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CommandBuffer, EventBus, Scheduler, World } from '../src/core/index.js';
-import { createPhysicsPort, PhysicsWorld } from '../src/impl/physics.js';
-import { createPhysicsBridge } from '../src/bridge/physics.js';
+import { CommandBuffer, EventBus, Scheduler, World } from '@itb/engine/core';
+import { createPhysicsPort, PhysicsWorld } from '@itb/engine/physics';
+import { createPhysicsBridge } from '@itb/engine/bridge';
 import {
   Bullet,
   Box,
   createHitSystem,
   Position,
-} from '../src/demo/index.js';
+} from '../src/index.js';
 
 function setup(): {
   world: World;

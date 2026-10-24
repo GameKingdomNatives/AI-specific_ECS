@@ -16,10 +16,6 @@
       "types": "./dist/src/ports/index.d.ts",
       "default": "./dist/src/ports/index.js"
     },
-    "./demo": {
-      "types": "./dist/src/demo/index.d.ts",
-      "default": "./dist/src/demo/index.js"
-    },
     "./impl": {
       "types": "./dist/src/impl/pixi-renderer.d.ts",
       "default": "./dist/src/impl/pixi-renderer.js"

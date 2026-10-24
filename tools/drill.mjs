@@ -23,8 +23,8 @@ const EXPORT = 'contracts/export-policy.json';
 const EXPORT_ORIGINAL = readFileSync(EXPORT, 'utf8');
 const ENGINE_JS = 'packages/engine/dist/src/engine.js';
 const ENGINE_JS_ORIGINAL = readFileSync(ENGINE_JS, 'utf8');
-const TEST = 'packages/engine/tests/hit.contract.test.ts';
-const HIDDEN_TEST = 'packages/engine/tests/__drill_hidden.ts.bak';
+const TEST = 'packages/fixture/tests/hit.contract.test.ts';
+const HIDDEN_TEST = 'packages/fixture/tests/__drill_hidden.ts.bak';
 const DRILL_RUN = 'artifacts/gate/__drill';
 
 const DRILLS = [
@@ -37,16 +37,16 @@ const DRILLS = [
   },
   {
     name: '文件超预算：>300 行',
-    file: 'packages/engine/src/demo/__drill_long.ts',
+    file: 'packages/fixture/src/__drill_long.ts',
     content: `${'// drill padding\n'.repeat(310)}export const drill = true;\n`,
     command: ['tools/checks/registry.mjs'],
     expect: '预算',
   },
   {
     name: '类型逃逸：as any',
-    file: 'packages/engine/src/demo/__drill_any.ts',
+    file: 'packages/fixture/src/__drill_any.ts',
     content: 'export const drill = (value: unknown): unknown => value as any;\n',
-    command: ['node_modules/eslint/bin/eslint.js', 'packages/engine/src/demo/__drill_any.ts'],
+    command: ['node_modules/eslint/bin/eslint.js', 'packages/fixture/src/__drill_any.ts'],
     expect: 'no-explicit-any',
   },
   {
@@ -64,7 +64,7 @@ const DRILLS = [
   },
   {
     name: '系统直改结构',
-    file: 'packages/engine/src/demo/__drill_structure.ts',
+    file: 'packages/fixture/src/__drill_structure.ts',
     content: 'export const drill = (ctx: { world: { spawn: () => void } }): void => {\n  ctx.world.spawn();\n};\n',
     command: ['tools/checks/system-structure.mjs'],
     expect: '结构变更',
@@ -97,7 +97,7 @@ const DRILLS = [
   },
   {
     name: '热路径发事件',
-    file: 'packages/engine/src/demo/__drill_hot.ts',
+    file: 'packages/fixture/src/__drill_hot.ts',
     content: 'export function createMovementSystem(): void {\n  ctx.bus.emit("drill", {});\n}\n',
     command: ['tools/checks/hot-path.mjs'],
     expect: '热路径系统',

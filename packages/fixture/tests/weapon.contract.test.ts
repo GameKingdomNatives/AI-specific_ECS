@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CommandBuffer, EventBus, Scheduler, World } from '../src/core/index.js';
-import type { InputSnapshot } from '../src/ports/index.js';
+import { CommandBuffer, EventBus, Scheduler, World } from '@itb/engine/core';
+import type { InputSnapshot } from '@itb/engine/ports';
 import {
   Bullet,
   createBulletCleanupSystem,
@@ -9,7 +9,7 @@ import {
   createWeaponSystem,
   Position,
   Velocity,
-} from '../src/demo/index.js';
+} from '../src/index.js';
 
 function input(firing: boolean): InputSnapshot {
   return {

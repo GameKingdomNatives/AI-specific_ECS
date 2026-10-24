@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CommandBuffer, EventBus, World } from '../src/core/index.js';
-import { Box, BoxSpawner, createBoxSpawnerSystem, Position } from '../src/demo/index.js';
+import { CommandBuffer, EventBus, World } from '@itb/engine/core';
+import { Box, BoxSpawner, createBoxSpawnerSystem, Position } from '../src/index.js';
 
 function setup() {
   const world = new World();

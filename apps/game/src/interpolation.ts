@@ -1,5 +1,5 @@
 import type { EntityId, World } from '@itb/engine/core';
-import { Box, Bullet, Position } from '@itb/engine/demo';
+import { Box, Bullet, Position } from '@itb/fixture';
 import type { Point } from '@itb/engine/core';
 
 /** 采集本帧渲染起点（用于渲染插值）；只读世界，不参与逻辑。 */

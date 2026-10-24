@@ -8,7 +8,7 @@ import { Box, createBoxSpawnerSystem, createBulletCleanupSystem,
   createMovementSystem,
   createWeaponSystem,
   Position,
-} from '@itb/engine/demo';
+} from '@itb/fixture';
 
 export interface SystemDeps {
   readonly width: number;

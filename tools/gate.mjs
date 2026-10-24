@@ -40,27 +40,31 @@ function step(name, cmd, args, cwd = ROOT, env = process.env) {
 }
 
 function runTests() {
-  const dir = join(ROOT, 'packages', 'engine', 'dist', 'tests');
-  if (!existsSync(dir)) {
-    codes.push({ name: 'tests', code: 1 });
-    console.log('tests      FAIL 未找到编译后的测试目录');
-    return 1;
-  }
+  const dirs = [
+    join(ROOT, 'packages', 'engine', 'dist', 'tests'),
+    join(ROOT, 'packages', 'fixture', 'dist', 'tests'),
+  ];
   const coverageDir = join(ROOT, RUN, 'coverage');
   mkdirSync(coverageDir, { recursive: true });
   const testEnv = { ...process.env, NODE_V8_COVERAGE: coverageDir };
-  const files = readdirSync(dir).filter((file) => file.endsWith('.test.js'));
+  const entries = [];
+  for (const dir of dirs) {
+    if (!existsSync(dir)) continue;
+    for (const file of readdirSync(dir).filter((name) => name.endsWith('.test.js'))) {
+      entries.push({ dir, file });
+    }
+  }
   let failed = 0;
-  for (const file of files) {
-    const code = step(`test-${file.replace('.test.js', '')}`, process.execPath, [join(dir, file)], ROOT, testEnv);
+  for (const entry of entries) {
+    const code = step(`test-${entry.file.replace('.test.js', '')}`, process.execPath, [join(entry.dir, entry.file)], ROOT, testEnv);
     if (code !== 0) failed += 1;
   }
-  if (files.length === 0) {
+  if (entries.length === 0) {
     codes.push({ name: 'tests', code: 1 });
     console.log('tests      FAIL 没有测试文件');
     return 1;
   }
-  console.log(`tests      ${failed === 0 ? 'PASS' : 'FAIL'}（${files.length} 个文件）`);
+  console.log(`tests      ${failed === 0 ? 'PASS' : 'FAIL'}（${entries.length} 个文件）`);
   return failed === 0 ? 0 : 1;
 }
 
