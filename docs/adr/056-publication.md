@@ -14,9 +14,10 @@
 ## 执行记录
 
 - GitHub 可见性：**已公开** `https://github.com/GameKingdomNatives/AI-specific_ECS`（2026-10-24）。
-- npm dry-run：PASS；`agent-specific_ecs@0.1.0`，188 files，93.2 kB。
-- npm 登录：`npm whoami` 已确认账号 `game-kingdom-natives`。
-- npm 实际发布：**未完成**；`npm publish` 返回 `403 Two-factor authentication or granular access token with bypass 2fa enabled is required`。需要 OTP（`--otp`）或带 bypass-2FA 的 granular token 后才能上传，不能伪称已发布。
+- npm dry-run：PASS；`agent-specific_ecs@0.1.0`，188 files，约 94 kB。
+- npm 登录/令牌：用户已写入 token；但 `npm whoami` 返回 **401 Unauthorized**，token 本身不被 npmjs 接受（长度/前缀正常，非格式问题）。
+- npm 实际发布：**未完成**；改名后 `npm publish` 返回 404（认证失败后的权限遮蔽）。没有创建任何 npm 包。
+- 需要重新生成 **Granular Access Token**（read/write + Bypass 2FA + 可选 package `agent-specific_ecs`）或使用当前 OTP，才能上传。
 - 公开文件已中英双语/英语优先（`README.md`、`packages/engine/README.md`、package description）。
 - 实际 npm 包版本：`0.1.0`（待认证后发布）。
 
