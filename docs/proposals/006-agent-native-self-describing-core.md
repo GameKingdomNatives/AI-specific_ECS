@@ -90,7 +90,7 @@ itb CLI            自描述：describe/capabilities/inspect/impact/check
 | M1 Agent Contract v1 | `contracts/agent.json`、`itb describe`、能力发现 | ✅ 已落地（ADR-052） |
 | M2 可选 MCP | 薄 MCP server 暴露 describe/inspect/impact/check | ✅ 已落地（ADR-053），仍非必需路径 |
 | M3 内核独立化 | fixture 拆出、private pack、starter 真安装 | ✅ fixture 已拆（ADR-054）；pack/starter 冒烟通过 |
-| M4 开源准备 | Apache-2.0/公开 API 冻结/README/发布流程 | 用户批准后公开 |
+| M4 开源准备 | Apache-2.0/公开 API 冻结/README/发布流程 | 🟡 LICENSE/README/ADR 就绪；仍 private，公开待用户批准 |
 
 ## 5. 执行顺序（已裁定）
 
