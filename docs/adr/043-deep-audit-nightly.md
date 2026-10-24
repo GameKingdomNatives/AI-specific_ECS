@@ -1,0 +1,38 @@
+# ADR-043 深检与夜间审计（本地优先）
+
+- 状态：已接受
+- 日期：2026-10-24
+- 相关：`docs/proposals/005-phase0-local-quality-implementation.md`、Batch 0.2、ADR-042
+
+## 背景
+
+普通 gate 已经覆盖 tsc/eslint/depcruise/41 个测试/coverage/replay/bench/storybook/drill，但需要一条“更重、可追溯、按节奏跑”的深检路径：每 5 次提交一次，以及每晚 20:00 的本地夜检。GitHub Actions 后置，不在本批关键路径。
+
+## 决策
+
+1. `tools/deep-audit.mjs`：
+   - 默认先跑全量 `gate`；
+   - 收集最新 gate 报告、coverage、replay、bench、最近提交的缺失 stamp；
+   - 输出 `artifacts/deep/<run>/report.md` 与 `summary.json`；
+   - 成功时写 `.gate/deep-stamp.json` 与 `.gate/stamps/deep-<HEAD>.json`；
+   - `--dry-run` 不跑 gate、不写 stamp，用于演练/验证。
+2. `pre-push` 已读取 `.gate/deep-stamp.json`：距上次深检 ≥5 个提交且 HEAD 无 deep stamp 时拒绝推送。
+3. `tools/nightly.mjs`：调用 deep-audit，输出 `engineering/audits/<YYYY-MM-DD>/report.md`、`summary.json`、`dsh-prompt.md`；原始大日志留在 `artifacts/`。
+4. Windows 计划任务：`tools/nightly-install.mjs` 注册 `AI-specific_ECS-Nightly`，每天 20:00 跑 `tools/nightly.cmd`。
+5. DSH 独立会话：当前只生成 `dsh-prompt.md` 并验证投递方式；未确认原生定时独立会话前，不声称“DSH 已自动运行”，降级为计划任务 + 只读报告。
+6. 深检阶段 0 只复用现有传感器；属性/变异/黄金/API/pack 随后续批次加入。
+
+## 验收
+
+- `npm run deep:dry` 生成报告，不写 deep stamp。
+- 实际 `npm run deep` 全量 gate PASS，写 deep stamp。
+- 构造“距深检 ≥5 提交且 HEAD 无 deep stamp”时 push 被拒（Batch 0.2 演练）。
+- `npm run nightly:dry` 生成 `engineering/audits/<date>/` 报告。
+- 计划任务注册成功，20:00 可触发（测试时可临时改时间）。
+- 全量 gate PASS。
+
+## 边界
+
+- 深检不是“完整变异/属性测试”；当前只是 gate + 汇总证据。
+- 夜间任务只读代码；报告目录不进入引擎/应用 import。
+- 计划任务依赖本机登录账户/Node 路径；换机器需重跑 `nightly:install`。
