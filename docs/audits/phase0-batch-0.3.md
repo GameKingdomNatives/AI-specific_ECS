@@ -31,16 +31,15 @@
 
 补充：`check --changed` 已从 21.2s 的 fast gate 换成 `tools/check-changed.mjs`（2.0s）；有引擎源码改动时会按关键词选测试，无匹配则回退全部编译测试。性能达标，但选择粒度仍需后续打磨。
 
-## 未完成
+## 剩余限制（不阻塞 0.3 完成）
 
-- 6 条 `planned` 规则还没有 sensor/negativeTest：ARCH-001/002、QUAL-001、PERF-001、SCENE-001、API-001。
-- `check --changed` 还不是“按影响选择测试”，只是 fast gate；需要真正 impact→测试子集，目标 ≤20s。
-- Receipt 尚未接 pre-push 校验；目前是生成器 + 证据，不是强制门。
+- API-001 是声明哈希快照，不是语义化 API diff；后续可换 api-extractor。
+- starter 目前只校验存在，真正的 engine→starter 冒烟要在阶段 4 引擎独立化时补。
+- `check --changed` 的选择粒度是关键词；有引擎改动且无匹配时回退全部编译测试。
 - DSH 旧每日 prompt 仍待 UI 更新；Windows 任务仍作为 fallback。
 
 ## 下一步
 
-1. 实现 `system-structure`/`hot-path`/`api-report`/`scene-contract` sensor 与对应负例，把 planned 转 implemented；
-2. 用 impact 选择受影响测试，替代 check 的 fast gate；
-3. pre-push 校验 receipt 与 stamp；
-4. DSH prompt 改成只读消费后停 Windows 任务。
+1. 进 Batch 0.4：ADR/handoff/记忆/验收收口；
+2. 按 004 推进契约/能力、系统 Spec 与契约测试、属性/黄金测试；
+3. DSH prompt 改成只读消费后停 Windows 任务。
