@@ -55,3 +55,19 @@ test('start/stop 控制 running，dispose 可重复调用', () => {
   engine.dispose();
   assert.equal(engine.running, false);
 });
+
+test('resetWorld/resetScheduler 替换核心实例，事件/命令/时钟保持不变', () => {
+  const engine = createEngine();
+  const world = engine.world;
+  const scheduler = engine.scheduler;
+  const events = engine.events;
+  const commands = engine.commands;
+  const clock = engine.clock;
+
+  assert.notEqual(engine.resetWorld(), world);
+  assert.notEqual(engine.resetScheduler({ maxConsecutiveFailures: 2 }), scheduler);
+  assert.equal(engine.events, events);
+  assert.equal(engine.commands, commands);
+  assert.equal(engine.clock, clock);
+  engine.dispose();
+});

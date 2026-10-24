@@ -24,26 +24,47 @@ export interface Engine {
   advance(realMs: number): number;
   start(): void;
   stop(): void;
+  resetWorld(): World;
+  resetScheduler(options?: SchedulerOptions): Scheduler;
   dispose(): void;
 }
 
 class EngineImpl implements Engine {
-  readonly world = new World();
+  private currentWorld = new World();
   readonly events = new EventBus();
   readonly commands = new CommandBuffer();
-  readonly scheduler: Scheduler;
+  private currentScheduler: Scheduler;
   readonly clock: FixedClock;
   private timer: ReturnType<typeof setInterval> | null = null;
 
   constructor(options: EngineOptions) {
     this.clock = new FixedClock(options.fixedStepMs, options.maxStepsPerFrame);
-    this.scheduler = new Scheduler(options.scheduler);
-    for (const system of options.systems ?? []) this.scheduler.add(system);
-    this.scheduler.build();
+    this.currentScheduler = new Scheduler(options.scheduler);
+    for (const system of options.systems ?? []) this.currentScheduler.add(system);
+    this.currentScheduler.build();
+  }
+
+  get world(): World {
+    return this.currentWorld;
+  }
+
+  get scheduler(): Scheduler {
+    return this.currentScheduler;
   }
 
   get running(): boolean {
     return this.timer !== null;
+  }
+
+  resetWorld(): World {
+    this.currentWorld = new World();
+    return this.currentWorld;
+  }
+
+  resetScheduler(options: SchedulerOptions = {}): Scheduler {
+    this.currentScheduler.dispose();
+    this.currentScheduler = new Scheduler(options);
+    return this.currentScheduler;
   }
 
   add(system: SystemDef): this {

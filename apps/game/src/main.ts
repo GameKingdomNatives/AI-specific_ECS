@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 import './ui/app.css';
-import { CommandBuffer, EventBus, FixedClock, Scheduler, World, findBudgetBreach, type EntityId, type SystemDef } from '@itb/engine/core';
+import { findBudgetBreach, type EntityId, type SystemDef } from '@itb/engine/core';
+import { createEngine } from '@itb/engine';
 import type { BoxSpec } from '@itb/engine/data';
 import { hashHex, Recorder, serialize, worldHashGroups } from '@itb/engine/determinism';
 import { Box, BoxSpawner, Bullet, Position, spawnBoxes } from '@itb/engine/demo';
@@ -44,13 +45,17 @@ if (!(canvas instanceof HTMLCanvasElement)) {
 const hud = document.getElementById('hud');
 const probe = new URLSearchParams(location.search).get('probe');
 const stress = Number(new URLSearchParams(location.search).get('stress') ?? '0');
-let world = new World();
+const engine = createEngine({
+  fixedStepMs: STEP_MS,
+  scheduler: { maxConsecutiveFailures: 3, onSystemError, enforceWrites: new URLSearchParams(location.search).has('guard') },
+});
+let world = engine.world;
 const textures = await loadTextureUrls();
 const schemaGuard = createSchemaGuard(world);
-const bus = new EventBus();
+const bus = engine.events;
 bus.startRecording();
-const commands = new CommandBuffer();
-const clock = new FixedClock(STEP_MS);
+const commands = engine.commands;
+const clock = engine.clock;
 const storage = createLocalStorage('itb:');
 const audio = createGameAudio(bus, canvas);
 const dumpSink = createDumpSink({ storage, key: 'dumps', max: 20 });
@@ -74,7 +79,7 @@ let sceneResult: Awaited<ReturnType<typeof loadSceneRuntime>> = await loadSceneR
 let player = resolvePlayer(world, sceneResult.loaded, { position: Position, box: Box }, WIDTH, HEIGHT) ?? -1;
 let current = input.sample(0);
 
-let scheduler = createScheduler();
+let scheduler = engine.scheduler;
 let runState = createRunState();
 
 function onSystemError(system: string, error: unknown, tick: number): void {
@@ -85,12 +90,8 @@ function onSystemError(system: string, error: unknown, tick: number): void {
   audio.play('error');
 }
 
-function createScheduler(): Scheduler {
-  return new Scheduler({ maxConsecutiveFailures: 3, onSystemError, enforceWrites: new URLSearchParams(location.search).has('guard') });
-}
 function applySystems(list: readonly SystemDef[]): void {
-  scheduler.dispose();
-  scheduler = createScheduler();
+  scheduler = engine.resetScheduler({ maxConsecutiveFailures: 3, onSystemError, enforceWrites: new URLSearchParams(location.search).has('guard') });
   for (const system of list) {
     if (probe === null || system.name === probe) {
       scheduler.add(system);
@@ -129,13 +130,11 @@ function sceneSystems(): SystemDef[] {
   return createSceneSystems(deps, sceneResult.loaded?.scene ?? null);
 }
 function rebuild(scene: Scene | null): { ok: boolean; issues: string[] } {
-  scheduler.dispose();
-  world = new World();
+  world = engine.resetWorld();
   const state = scene === null ? null : instantiateSceneState(world, scene, componentLookup);
   sceneResult = { loaded: state?.loaded ?? null, issues: state?.issues ?? [] };
   player = resolvePlayer(world, sceneResult.loaded, { position: Position, box: Box }, WIDTH, HEIGHT) ?? -1;
   deps = depsFor(player);
-  scheduler = createScheduler();
   applySystems(pickSystems(sceneSystems(), sceneResult.loaded));
   boxes = sceneResult.loaded === null ? spawnSpec(initial.spec) : [];
   runState = createRunState();
