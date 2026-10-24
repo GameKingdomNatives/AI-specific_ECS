@@ -3,8 +3,10 @@ import test from 'node:test';
 
 import fc from 'fast-check';
 
-import { World } from '../src/core/index.js';
+import { CommandBuffer, defineComponent, World } from '../src/core/index.js';
 import { createEngine } from '../src/engine.js';
+
+const Position = defineComponent('PropertyPosition', { x: 'f64', y: 'f64' });
 
 test('advance 不变量：tick 增量等于返回步数，且不超过 maxSteps', () => {
   fc.assert(
@@ -55,6 +57,27 @@ test('World 不变量：aliveCount 与存活集合一致，句柄不重复', () 
       assert.equal(world.aliveCount, alive.size);
       assert.equal(new Set(alive).size, alive.size);
       for (const entity of alive) assert.equal(world.isAlive(entity), true);
+    }),
+    { numRuns: 100 },
+  );
+});
+
+test('CommandBuffer 不变量：按登记顺序 flush，最终值等于最后一次 set', () => {
+  fc.assert(
+    fc.property(fc.array(fc.integer({ min: -1000, max: 1000 }), { maxLength: 40 }), (values) => {
+      const world = new World();
+      const buffer = new CommandBuffer();
+      const entity = world.spawn();
+      world.add(entity, Position, { x: 0, y: 0 });
+      for (const value of values) buffer.set(entity, Position, { x: value });
+      assert.equal(buffer.size, values.length);
+      assert.equal(buffer.flush(world), values.length);
+      assert.equal(buffer.size, 0);
+      if (values.length > 0) {
+        const last = values[values.length - 1];
+        if (last === undefined) throw new Error('values 最后一项不应为空');
+        assert.deepEqual(world.get(entity, Position), { x: last, y: 0 });
+      }
     }),
     { numRuns: 100 },
   );
