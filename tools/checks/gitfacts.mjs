@@ -70,13 +70,13 @@ if (hasRemote) {
     const base = upstream[0];
     const headLine = existsSync(join(ROOT, RUN, 'head.txt')) ? readFileSync(join(ROOT, RUN, 'head.txt'), 'utf8').trim() : '';
     const pending = gitLines(['rev-list', `${base}..HEAD`], '待推送提交读取失败');
-    for (const sha of pending) {
-      // 当前 HEAD 正在被这次 gate 校验；它的 stamp 由本次成功运行写入，不能先要求已有 stamp。
-      if (sha === headLine) continue;
-      if (!existsSync(join(ROOT, '.gate', 'stamps', `${sha}.json`))) {
-        errors.push(`stamp 缺失：${sha} 没有通过全量门禁的记录`);
-      }
+    if (headLine.length === 0) {
+      errors.push('无法读取 HEAD；不能把“未盖章提交”校验当成通过');
+    } else if (!pending.includes(headLine)) {
+      errors.push(`HEAD ${headLine} 不在 ${base}..HEAD 中；待推送范围异常`);
     }
+    // stamp 是 tip/tree 级证据：本次 gate 成功后由 pre-push 校验 HEAD stamp；
+    // 历史提交由每 5 次深检与 nightly 的缺失 stamp 扫描覆盖，不能在这里要求祖先已有 stamp。
   }
 } else {
   console.log('[stamp 链] 未配置远端，跳过待推送校验（记录在案，不假装已校验）');
