@@ -1,8 +1,12 @@
 {
   "name": "@itb/engine",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "type": "module",
   "exports": {
     ".": {
