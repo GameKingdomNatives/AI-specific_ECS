@@ -1,7 +1,8 @@
 # 引擎下一阶段规划：让 AI 产出自动合法化，同时保持引擎独立
 
-- 版本：v1.1（规划稿，2026-10-24；含用户决策与深检/CI 安排）
+- 版本：v1.2（规划稿，2026-10-24；含仓库/分支保护/DSH 授权与外部 API 原则）
 - 基线：HEAD `d198e38`（main），上次全量门禁 PASS（`20261022T125426Z`，58 个检查步骤）
+- 远端：`git@github.com:GameKingdomNatives/AI-specific_ECS.git`（私有，main 已推送）
 - 性质：规划，不改引擎代码；先审计、后设计、再排期
 - 关联：`docs/audits/engine-spec-audit-2026-10-22.md`、`docs/audits/scene-editor-acceptance.md`、ADR 034–041
 
@@ -30,6 +31,8 @@
 | HARD 项 | 认可 | 渲染表 SoA/anchor-frame、EventBus 类型映射、demo 外迁按阶段逐项落 ADR |
 | 代码托管 | GitHub 为基础，本机已有工具 | 阶段 0 建远端、CI、分支保护与 required checks |
 | 许可证 | 暂缓（本地私有） | 不阻塞阶段 0–2；上传前再定 Apache-2.0/MIT 与 npm scope |
+| 仓库 | 私有库 `GameKingdomNatives/AI-specific_ECS` 已建并推送 main | SSH remote 可用；HTTPS 到 github.com 当前不稳定，push 走 SSH |
+| 分支保护 | 用户同意；但 GitHub Free 私有库返回 403“需 Pro 或公开” | 需在 Pro 升级 / 改公开 / 本地+CI 守卫三选一；不能假装已开启 |
 
 > 补充术语解释见 `docs/guides/quality-primer.md`；阶段 0 的“自动合法”不依赖公开发布，只依赖本地 receipt + GitHub CI。
 
@@ -87,6 +90,7 @@
 5. **能力注册表**：AI 实现前先查已有能力，避免重复造轮子；注册表必须可执行、可查询，不能只是散文。
 6. **模型权威 + 工具原生**（来源：`研究文档-副本/JS技术/AI友好型JS游戏引擎Estella简述.md`）：场景 JSON 是 Source of Truth，运行时 World 是有损投影；编辑器/引擎应暴露 MCP（Model Context Protocol，模型上下文协议）工具，让 AI 能查询、校验、干跑，而不是只能改文件。
 7. **前馈与反馈成对**（来源：Martin Fowler Harness Engineering）：每条指南配一个传感器；每个传感器配一个负例测试；人类只维护这套 Harness 和 HARD 决策。
+8. **复杂隐于内部，外部简单易懂**（用户 2026-10-24 补充前提）：调用者不需要理解 ECS/端口/场景实例化内部；默认配置可用，常用路径一个门面/一个配置对象；可选适配器按需装配；错误在边界给出可执行的修复提示。公共 API 只暴露稳定类型，不泄露内部实现；内部复杂度由适配器/工具层吸收。
 
 ## 3. 目标架构：四层 + 两个面
 
@@ -116,7 +120,28 @@
 - **工具面独立**：`tools/`/devtools 是元层，允许粗糙，但必须能执法；不被引擎运行时依赖。
 - **应用不反向污染引擎**：`__itbScene`/`__itbApplyScene` 等调试全局留在应用/devtools，引擎只暴露稳定 API。
 
-### 3.2 引擎独立消费面
+### 3.2 引擎独立消费面（外部简单）
+
+**外部只面对一个稳定门面**，例如：
+
+```ts
+import { createEngine } from '@itb/engine';
+
+const engine = createEngine({ scene, renderer, physics }); // 都有默认值/可选
+engine.start();
+engine.dispose();
+```
+
+约束：
+
+- 调用者**不需要** import `core`/`ports`/`scene` 内部类型，也不需要懂 ECS 调度；高级用户才用子路径。
+- 常用场景零配置：headless 默认可跑；Pixi/物理/存储按需注入；没有适配器时给出明确降级/错误。
+- 一个配置对象、一个生命周期（create/start/dispose）；错误信息包含“下一步怎么做”。
+- 公共 API 报告（`.d.ts`）+ 快速上手编译测试（starter ≤10 行）作为门禁；破坏性变更需 HARD。
+- 应用专用的 `__itbScene`/`__itbApplyScene` 等调试全局不进入引擎公共面，留在 devtools/应用。
+- 内部可复杂：调度、命令、物理宽窄相、场景实例化都隐藏在门面后；外部只看到稳定语义。
+
+引擎独立化目标（保持本地私有）：
 
 - `@itb/engine`：只导出稳定内核 API；`exports` 完整、`files` 白名单、`sideEffects:false`、`peerDependencies` 仅适配器需要。
 - `@itb/engine-pixi` 等适配器：可选安装；不装 Pixi 也能跑 headless。
@@ -213,6 +238,8 @@
 - **DSH 独立后台会话（巡检/分诊）**：由 DSH 定时任务启动一个隔离会话，读取仓库 HEAD 与夜间 CI 产物，生成“失败归因 + 规则缺口 + 建议 issue”，只读仓库、不直接改代码；需要修复时由人/主会话开分支。
 - 两者分工：GitHub 负责“确定性证据”，DSH 负责“解释与归因”；DSH 不替代 CI 的判定权。
 - 安全边界：夜间任务默认只读 + 产出报告；不得自动改门禁/保护路径，不得自动改批准文件。
+- **审计工作目录**（用户授权）：独立会话可在当前工作区创建纯工程目录，例如 `engineering/audits/<date>/` 存审计报告、`engineering/source/` 存被审计源码快照；这些不是引擎/应用代码，不得被运行时 import；报告默认只读、可归档。
+- **分支保护限制（已实测）**：GitHub Free 私有库调用 branch protection/rulesets 返回 `403 Upgrade to GitHub Pro or make this repository public`。在用户选择 Pro / 公开 / 本地+CI 守卫之前，不伪称“已开启”；当前 main 已推送，SSH remote 可用。
 
 > 若 GitHub Actions 私有仓库配额或 DSH 调度能力不足，降级顺序：本机 DSH 定时任务（20:00）→ 本机计划任务；但“深检回执 + 失败不合并”的语义不变。
 
@@ -344,13 +371,13 @@
 
 仍需你操作/确认：
 
-1. **提供/创建 GitHub 私有仓库**：给出 remote URL（或确认我可以用 `gh repo create` 建私有库）；确认是否允许我执行 `git remote add/push`。
-2. **GitHub 分支保护**：是否允许我开启 required checks（fast/full/nightly），禁止直接 push main。
-3. **DSH 夜间会话**：确认运行账号/工作区与“只读巡检、不自动改代码”的边界；如果 DSH 调度器不能独立起会话，阶段 0 先落 GitHub Actions，DSH 侧改用计划任务补位。
-4. **许可证/包名**：暂不需要；上传前再定 Apache-2.0/MIT 与 npm scope。
-5. **深检成本上限**：夜间深检预计 10–30 分钟（变异测试占大头），确认可接受；若超出，先只覆盖 core。
+1. **分支保护三选一**：GitHub Free 私有库不支持 branch protection/rulesets（已实测 403）。选：① 升级 GitHub Pro；② 仓库改公开（不推荐，当前意图是私有）；③ 暂用本地 pre-push/stamp + GitHub Actions 检查作为“软保护”，等 Pro 再开 required checks。不要默认“已保护”。
+2. **DSH 夜间会话边界**：已确认使用当前工作区/账户；允许创建 `engineering/audits/` 等纯工程目录存报告/源码快照。还需确认 DSH 调度器能否独立起会话；若不能，阶段 0 先落 GitHub Actions，DSH 侧用本机计划任务补位。
+3. **GitHub CI 权限**：允许我在阶段 0 添加 `.github/workflows/ci.yml`/`nightly.yml` 并推送；私有库 Actions 分钟数是否可接受。
+4. **深检成本**：夜间深检预计 10–30 分钟（变异测试为主）；已认可，若超出先只覆盖 core。
+5. **许可证/包名**：上传前再定；当前保持 private。
 
-> 上述 1–2 项是阶段 0 唯一的外部依赖；不给 remote 也能先做 CLI/规则表/回执，但“自动合法”的远端拦截要等 GitHub 接好。
+> 仓库已建：`GameKingdomNatives/AI-specific_ECS`（private），main 已推送；HTTPS 到 github.com 当前不稳，remote 使用 SSH。
 
 ## 11. 风险与不做
 
