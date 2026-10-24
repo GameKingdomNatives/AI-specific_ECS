@@ -25,6 +25,13 @@
 | `node tools/gate.mjs --fast` | PASS `20261024T104354Z` |
 | 全量 gate | 随提交/推送跑 |
 
+## createEngine 门面（Phase 1）
+
+- 新增 `packages/engine/src/engine.ts` + `createEngine(options)`：单一入口创建 World/EventBus/CommandBuffer/Scheduler/FixedClock。
+- `step()`/`advance()`/`start()`/`stop()`/`dispose()`；`engine-facade.test.ts` 3 组通过。
+- API surface 快照已随门面更新（人工评审）；ADR-047。
+- 应用 `apps/game` 尚未迁移到门面，迁移需单独验证输入/渲染/物理。
+
 ## 说明
 
 - scene 是**运行时系统清单**的真值；能力表是索引，phase 不一致时以 scene 为准并同步能力表。

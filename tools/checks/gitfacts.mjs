@@ -72,7 +72,7 @@ if (hasRemote) {
     const pending = gitLines(['rev-list', `${base}..HEAD`], '待推送提交读取失败');
     if (headLine.length === 0) {
       errors.push('无法读取 HEAD；不能把“未盖章提交”校验当成通过');
-    } else if (!pending.includes(headLine)) {
+    } else if (pending.length > 0 && !pending.includes(headLine)) {
       errors.push(`HEAD ${headLine} 不在 ${base}..HEAD 中；待推送范围异常`);
     }
     // stamp 是 tip/tree 级证据：本次 gate 成功后由 pre-push 校验 HEAD stamp；
