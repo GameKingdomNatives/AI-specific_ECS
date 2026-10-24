@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "entry": "packages/engine/src/index.ts",
+  "files": {
+    "packages/engine/dist/src/index.d.ts": "daef918d4a800d6c6584f4253c2fe9c821984bf8f36e7003f02015e1d850bee2",
+    "packages/engine/dist/src/core/index.d.ts": "5dd2ff2c127f4fcbe000139ebb49d04792ce4523cf6cdbfaa3368f07c471f508",
+    "packages/engine/dist/src/ports/index.d.ts": "69a69b10142ee9e98b6d769a932fa07aeaccb8d872eb636a30620f054e0fb269",
+    "packages/engine/dist/src/scene/index.d.ts": "f3e45f4fb77e5884771b90570deee002ff267c17a2a9ba4f67f938a58b180f51",
+    "packages/engine/dist/src/bridge/index.d.ts": "d05285a787ac78e5fea33e63ac9638530e6c86b181e3135a95c376e4190a8e19"
+  }
+}

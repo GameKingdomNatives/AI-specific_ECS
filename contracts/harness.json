@@ -126,11 +126,11 @@
       "id": "API-001",
       "title": "公共 API 导出必须有报告与 starter 冒烟",
       "guide": "docs/guides/quality-primer.md",
-      "sensor": "tools/checks/api-report.mjs",
-      "negativeTest": "tools/drill/cases/API-001.mjs",
+      "sensor": "tools/checks/api-surface.mjs",
+      "negativeTest": "tools/drill.mjs#改API声明",
       "severity": "error",
       "approval": "AUTO",
-      "status": "planned",
+      "status": "implemented",
       "scope": [
         "packages/engine/src/index.ts",
         "starters/**"

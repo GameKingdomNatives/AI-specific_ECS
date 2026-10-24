@@ -1,11 +1,12 @@
 # 契约目录（机器可读）
 
-本目录是 AI 与工具查询的**机器可读契约**；目前是 Batch 0.3 的种子，不是已完全执行的规则。
+本目录是 AI 与工具查询的**机器可读契约**；Batch 0.3 已把 10 条规则全部接入 gate。
 
 | 文件 | 作用 | 状态 |
 |---|---|---|
-| `harness.json` | 规则表：guide / sensor / negativeTest / 审批级别 | 10 条；`planned` 表示 sensor/负例还未接入 gate |
+| `harness.json` | 规则表：guide / sensor / negativeTest / 审批级别 | 10 条全部 implemented |
 | `capabilities.json` | 当前 9 个系统的 phase、系统卡、契约测试、scene | 只读索引，供 `itb inspect` 使用 |
+| `api-surface.json` | 5 个公共声明入口的 SHA-256 快照 | API 变化需人工评审更新 |
 
 约定：
 

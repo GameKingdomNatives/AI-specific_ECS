@@ -11,6 +11,8 @@ const HARNESS = 'contracts/harness.json';
 const HARNESS_ORIGINAL = readFileSync(HARNESS, 'utf8');
 const MAIN = 'apps/game/src/main.ts';
 const MAIN_ORIGINAL = readFileSync(MAIN, 'utf8');
+const API_DECL = 'packages/engine/dist/src/index.d.ts';
+const API_DECL_ORIGINAL = readFileSync(API_DECL, 'utf8');
 const TEST = 'packages/engine/tests/hit.contract.test.ts';
 const HIDDEN_TEST = 'packages/engine/tests/__drill_hidden.ts.bak';
 const DRILL_RUN = 'artifacts/gate/__drill';
@@ -100,6 +102,17 @@ const DRILLS = [
     },
     command: ['tools/checks/perf-budget.mjs'],
     expect: '预算告警',
+  },
+  {
+    name: '改API声明',
+    mutate: () => {
+      writeFileSync(API_DECL, `${API_DECL_ORIGINAL}\n// drill api drift\n`);
+    },
+    restore: () => {
+      writeFileSync(API_DECL, API_DECL_ORIGINAL);
+    },
+    command: ['tools/checks/api-surface.mjs'],
+    expect: 'API surface changed',
   },
   {
     name: '改阈值：动受保护脚本',
