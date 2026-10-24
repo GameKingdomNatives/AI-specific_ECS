@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CommandBuffer, EventBus, World } from '@itb/engine/core';
+import { CommandBuffer, EventBus, World } from 'agent-specific_ecs/core';
 import { Box, BoxSpawner, createBoxSpawnerSystem, Position } from '../src/index.js';
 
 function setup() {

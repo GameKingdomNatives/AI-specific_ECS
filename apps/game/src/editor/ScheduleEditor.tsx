@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { PHASES } from '@itb/engine/core';
-import type { Phase } from '@itb/engine/core';
-import type { ParamField, Scene } from '@itb/engine/scene';
-import { coerceParamValue } from '@itb/engine/scene';
+import { PHASES } from 'agent-specific_ecs/core';
+import type { Phase } from 'agent-specific_ecs/core';
+import type { ParamField, Scene } from 'agent-specific_ecs/scene';
+import { coerceParamValue } from 'agent-specific_ecs/scene';
 import type { ScheduleActions } from './schedule-actions.js';
 import { SYSTEM_META_BY_ID } from './system-meta.js';
 

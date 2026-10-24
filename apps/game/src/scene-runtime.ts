@@ -1,6 +1,6 @@
-import { buildSchedule, instantiateScene, parseScene } from '@itb/engine/scene';
-import type { ComponentDef, EntityId, SystemDef, World } from '@itb/engine/core';
-import type { Scene, SceneAssets, SceneIssue } from '@itb/engine/scene';
+import { buildSchedule, instantiateScene, parseScene } from 'agent-specific_ecs/scene';
+import type { ComponentDef, EntityId, SystemDef, World } from 'agent-specific_ecs/core';
+import type { Scene, SceneAssets, SceneIssue } from 'agent-specific_ecs/scene';
 import { currentSceneFile, sceneUrl } from './scene-file.js';
 
 export interface LoadedScene {

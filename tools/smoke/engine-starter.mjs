@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createEngine } from '@itb/engine';
+import { createEngine } from 'agent-specific_ecs';
 
 const engine = createEngine({ fixedStepMs: 10 });
 let ticks = 0;
@@ -20,4 +20,4 @@ assert.equal(engine.advance(25), 2);
 assert.equal(engine.clock.tick, 3);
 assert.equal(ticks, 3);
 engine.dispose();
-console.log('headless starter smoke PASS：@itb/engine createEngine 可消费');
+console.log('headless starter smoke PASS：agent-specific_ecs createEngine 可消费');

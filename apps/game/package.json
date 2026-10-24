@@ -11,7 +11,7 @@
     "build-storybook": "storybook build -o ../../artifacts/storybook-static"
   },
   "dependencies": {
-    "@itb/engine": "*",
+    "agent-specific_ecs": "*",
     "@itb/fixture": "*",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"

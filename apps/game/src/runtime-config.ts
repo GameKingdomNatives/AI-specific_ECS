@@ -1,4 +1,4 @@
-import type { Scene } from '@itb/engine/scene';
+import type { Scene } from 'agent-specific_ecs/scene';
 
 /** 运行时配置指纹：scene 名/资源/系统/节点结构（不含组件值），用于录制归属。 */
 export function configHashFor(scene: Scene | null): string {

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import type { Scene } from '@itb/engine/scene';
+import type { Scene } from 'agent-specific_ecs/scene';
 
 export interface ApplyResult {
   readonly ok: boolean;

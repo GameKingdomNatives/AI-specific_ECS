@@ -11,6 +11,6 @@
     }
   },
   "dependencies": {
-    "@itb/engine": "*"
+    "agent-specific_ecs": "*"
   }
 }

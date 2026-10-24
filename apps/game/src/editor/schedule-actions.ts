@@ -1,5 +1,5 @@
-import type { Phase } from '@itb/engine/core';
-import type { Scene } from '@itb/engine/scene';
+import type { Phase } from 'agent-specific_ecs/core';
+import type { Scene } from 'agent-specific_ecs/scene';
 import {
   addSystem,
   removeSystem,
@@ -7,7 +7,7 @@ import {
   setSystemEnabled,
   setSystemParam,
   updateSystemPhase,
-} from '@itb/engine/scene';
+} from 'agent-specific_ecs/scene';
 import type { SceneDocRef } from './doc-ref.js';
 
 export interface ScheduleActions {

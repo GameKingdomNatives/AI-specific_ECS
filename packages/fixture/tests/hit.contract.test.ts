@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CommandBuffer, EventBus, Scheduler, World } from '@itb/engine/core';
-import { createPhysicsPort, PhysicsWorld } from '@itb/engine/physics';
-import { createPhysicsBridge } from '@itb/engine/bridge';
+import { CommandBuffer, EventBus, Scheduler, World } from 'agent-specific_ecs/core';
+import { createPhysicsPort, PhysicsWorld } from 'agent-specific_ecs/physics';
+import { createPhysicsBridge } from 'agent-specific_ecs/bridge';
 import {
   Bullet,
   Box,

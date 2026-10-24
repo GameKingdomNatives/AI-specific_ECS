@@ -12,7 +12,7 @@
 
 1. **行为验证不够硬**：覆盖率 84.7%，但主要靠作者/测试生成；没有变异测试（Mutation Testing，变异测试）、属性测试（Property-Based Testing，属性测试）和经批准的黄金夹具（Approved Fixtures，黄金夹具）；契约测试只有 4 个文件。高覆盖率不等于高断言质量。
 2. **规则没有形成“指南—传感器—反例测试”的闭环**：门禁有 58 个检查，但并非每条规则都有“负例演练”；AI 不知道改动的完整影响面，也无法在写代码前查询能力/契约。
-3. **引擎还不是一个可独立消费的产品**：`@itb/engine` 仍是 `private`，根导出只有 core/ports，`demo` 夹具在引擎包内，缺少 README/许可证/API 报告/`npm pack` 冒烟/最小嵌入 starter。
+3. **引擎还不是一个可独立消费的产品**：`agent-specific_ecs` 仍是 `private`，根导出只有 core/ports，`demo` 夹具在引擎包内，缺少 README/许可证/API 报告/`npm pack` 冒烟/最小嵌入 starter。
 
 下一阶段的目标不是“再加几个检查”，而是建立一套 **Harness（约束系统）**：
 
@@ -71,7 +71,7 @@
 | G3 | 没有影响分析与分级执行 | 门禁全量或 `--fast`，AI 不知道改动影响哪些测试/规则 | 反馈慢、AI 倾向跳过检查 |
 | G4 | 契约/能力不可查询 | 能力在 `docs/capabilities.md` 散文；无机器可读 registry | AI 重复实现、越界改公共面 |
 | G5 | 系统级架构规则弱 | 读写声明有，但结构变更靠约定；写作用域守卫默认关；无“系统内禁止 spawn/despawn”检查 | AI 可绕命令缓冲 |
-| G6 | 引擎独立性不足 | `@itb/engine` private；根导出仅 core/ports；`demo` 在引擎内；无 README/LICENSE/API 报告/pack 冒烟 | 其他项目难以只消费引擎 |
+| G6 | 引擎独立性不足 | `agent-specific_ecs` private；根导出仅 core/ports；`demo` 在引擎内；无 README/LICENSE/API 报告/pack 冒烟 | 其他项目难以只消费引擎 |
 | G7 | 发布/API 兼容无门禁 | 只有端口哈希；无 `.d.ts` diff、无 pack/install 测试 | AI 改导出形状不易被发现 |
 | G8 | 性能预算只在运行时告警 | ADR-040 每系统 p95 告警；bench 是全量夹具 | AI 引入慢系统可能过门禁 |
 | G9 | 依赖/供应链检查缺失 | 无 `npm audit`、license、重复依赖检查 | 依赖面风险不可见 |
@@ -104,17 +104,17 @@
 ├─────────────────────────────────────────────────────┤
 │ 内容面：@itb/fixture（demo 场景/技术夹具）            │
 ├─────────────────────────────────────────────────────┤
-│ 适配器：@itb/engine-pixi / physics / storage / audio │
+│ 适配器：agent-specific_ecs-pixi / physics / storage / audio │
 ├─────────────────────────────────────────────────────┤
 │ 契约：@itb/contracts（端口/事件/场景/能力 JSON）      │
 ├─────────────────────────────────────────────────────┤
-│ 内核：@itb/engine（ECS/调度/命令/确定性，零应用依赖） │
+│ 内核：agent-specific_ecs（ECS/调度/命令/确定性，零应用依赖） │
 └─────────────────────────────────────────────────────┘
 ```
 
 原则：
 
-- **内核零依赖**：`@itb/engine` 不依赖 Pixi/zod/React；适配器通过端口注入。
+- **内核零依赖**：`agent-specific_ecs` 不依赖 Pixi/zod/React；适配器通过端口注入。
 - **契约唯一事实源**：端口、事件映射、场景 schema、能力注册表都在 `@itb/contracts`（可由 zod/JSON Schema 生成 TS 类型与文档）。
 - **夹具独立**：`demo` 系统和场景移到 `@itb/fixture`，引擎包不再包含技术夹具；`apps/game` 只做集成。
 - **工具面独立**：`tools/`/devtools 是元层，允许粗糙，但必须能执法；不被引擎运行时依赖。
@@ -125,7 +125,7 @@
 **外部只面对一个稳定门面**，例如：
 
 ```ts
-import { createEngine } from '@itb/engine';
+import { createEngine } from 'agent-specific_ecs';
 
 const engine = createEngine({ scene, renderer, physics }); // 都有默认值/可选
 engine.start();
@@ -143,8 +143,8 @@ engine.dispose();
 
 引擎独立化目标（保持本地私有）：
 
-- `@itb/engine`：只导出稳定内核 API；`exports` 完整、`files` 白名单、`sideEffects:false`、`peerDependencies` 仅适配器需要。
-- `@itb/engine-pixi` 等适配器：可选安装；不装 Pixi 也能跑 headless。
+- `agent-specific_ecs`：只导出稳定内核 API；`exports` 完整、`files` 白名单、`sideEffects:false`、`peerDependencies` 仅适配器需要。
+- `agent-specific_ecs-pixi` 等适配器：可选安装；不装 Pixi 也能跑 headless。
 - `starters/engine-headless`、`starters/engine-pixi`：最小可运行示例；CI 里 `npm pack` 后安装到 starter 跑通。
 - `README.md` + `LICENSE` 占位（本地私有阶段可暂缺，上传前再定）+ `CHANGELOG.md` + `docs/embedding.md`（如何嵌入其他项目）。
 - API 稳定性：`api-extractor` 报告 `.d.ts` 差异；semver 策略；端口哈希之外增加公共 API 哈希。
@@ -287,7 +287,7 @@ engine.dispose();
 
 ### 阶段 B：可选适配器包
 
-- `@itb/engine-pixi`（Pixi 渲染适配器）、`@itb/engine-physics`（自研物理）、`@itb/engine-storage` 等按需拆；内核只依赖 ports。
+- `agent-specific_ecs-pixi`（Pixi 渲染适配器）、`agent-specific_ecs-physics`（自研物理）、`agent-specific_ecs-storage` 等按需拆；内核只依赖 ports。
 - 每个适配器有独立契约测试 + pack 冒烟；应用按需安装。
 - 不追求微服务/多仓库；保持 monorepo、模块化单体的“包级边界”。
 

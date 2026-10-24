@@ -1,4 +1,4 @@
-import type { Scene, SceneNode } from '@itb/engine/scene';
+import type { Scene, SceneNode } from 'agent-specific_ecs/scene';
 
 interface Row {
   readonly node: SceneNode;

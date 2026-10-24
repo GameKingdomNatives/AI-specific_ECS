@@ -1,4 +1,4 @@
-import type { Scene } from '@itb/engine/scene';
+import type { Scene } from 'agent-specific_ecs/scene';
 
 export const DEFAULT_SCENE_FILE = 'demo.scene.json';
 const FILE_PATTERN = /^[A-Za-z0-9._-]+\.scene\.json$/;

@@ -1,4 +1,4 @@
-import type { ComponentDef, EntityId, SystemDef, World } from '@itb/engine/core';
+import type { ComponentDef, EntityId, SystemDef, World } from 'agent-specific_ecs/core';
 import type { LoadedScene } from './scene-runtime.js';
 import { buildSceneSchedule } from './scene-runtime.js';
 

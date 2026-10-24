@@ -1,5 +1,5 @@
-import { createWebAudio } from '@itb/engine/audio';
-import type { EventBus } from '@itb/engine/core';
+import { createWebAudio } from 'agent-specific_ecs/audio';
+import type { EventBus } from 'agent-specific_ecs/core';
 
 /** 临时 CC0 音效（来源见 apps/game/public/audio/CREDITS.md）。 */
 const SOURCES = {

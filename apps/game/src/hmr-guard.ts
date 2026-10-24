@@ -1,4 +1,4 @@
-import type { World } from '@itb/engine/core';
+import type { World } from 'agent-specific_ecs/core';
 
 /** §11：组件 schema 变化时不能热替换，打印原因并整页重载。 */
 export function createSchemaGuard(world: World): () => boolean {

@@ -7,11 +7,11 @@
 ## 决策
 
 1. `packages/engine/src/demo` 移到 `packages/fixture/src`，包名 `@itb/fixture`。
-2. `@itb/engine` 删除 `./demo` 导出；运行时内核不再带 fixture。
+2. `agent-specific_ecs` 删除 `./demo` 导出；运行时内核不再带 fixture。
 3. `apps/game` 改依赖 `@itb/fixture`；5 个源文件 import 切换。
 4. 4 个 demo/hit/spawner/weapon 契约测试移到 `packages/fixture/tests`。
 5. gate 测试扫描 engine + fixture 两个 `dist/tests`；registry/harness/capabilities/drill 路径同步。
-6. `@itb/fixture` 是 private，不进 npm 发布；`@itb/engine` pack 保持 dist/src + README。
+6. `@itb/fixture` 是 private，不进 npm 发布；`agent-specific_ecs` pack 保持 dist/src + README。
 
 ## 验收
 
@@ -23,5 +23,5 @@
 ## 边界
 
 - fixture 仍是 private 包，不单独发布。
-- starter 冒烟仍走 `@itb/engine`；fixture 未纳入 starter。
+- starter 冒烟仍走 `agent-specific_ecs`；fixture 未纳入 starter。
 - 迁移使用 Git mv + UTF-8 修复，历史保留。

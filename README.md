@@ -21,7 +21,7 @@ English: First the runtime kernel (sparse-set/SoA ECS, seven-phase scheduler, Co
 
 ## 工作原理 / How it works
 
-### 1. 运行时内核 / Runtime kernel `@itb/engine`
+### 1. 运行时内核 / Runtime kernel `agent-specific_ecs`
 
 中文：组件列式存储，实体带代际 ID；系统只声明 reads/writes；七阶段固定顺序；跨系统只走 EventBus 或 CommandBuffer；固定步长、随机流、录制/回放、World 快照；渲染/物理/输入/音频/存储通过端口隔离；`createEngine()` 是唯一门面。
 
@@ -51,7 +51,7 @@ node tools/itb.mjs describe
 Engine usage:
 
 ```ts
-import { createEngine } from '@itb/engine';
+import { createEngine } from 'agent-specific_ecs';
 const engine = createEngine({ fixedStepMs: 1000 / 60 });
 engine.step();
 engine.dispose();

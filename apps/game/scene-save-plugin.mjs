@@ -1,6 +1,6 @@
 import { readdirSync, renameSync, writeFileSync } from 'node:fs';
 import { basename, resolve, sep } from 'node:path';
-import { parseScene } from '@itb/engine/scene';
+import { parseScene } from 'agent-specific_ecs/scene';
 
 const MAX_BODY_BYTES = 1_000_000;
 

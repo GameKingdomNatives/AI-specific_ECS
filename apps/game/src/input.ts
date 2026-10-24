@@ -1,6 +1,6 @@
-import type { IInput, InputSnapshot } from '@itb/engine/ports';
-import type { InputMap } from '@itb/engine/data';
-import { resolveActions } from '@itb/engine/data';
+import type { IInput, InputSnapshot } from 'agent-specific_ecs/ports';
+import type { InputMap } from 'agent-specific_ecs/data';
+import { resolveActions } from 'agent-specific_ecs/data';
 
 export interface BrowserInput extends IInput {
   dispose(): void;

@@ -1,6 +1,6 @@
-import type { EntityId, World } from '@itb/engine/core';
+import type { EntityId, World } from 'agent-specific_ecs/core';
 import { Box, Bullet, Position } from '@itb/fixture';
-import type { Point } from '@itb/engine/core';
+import type { Point } from 'agent-specific_ecs/core';
 
 /** 采集本帧渲染起点（用于渲染插值）；只读世界，不参与逻辑。 */
 export function capturePoses(world: World): Map<EntityId, Point> {

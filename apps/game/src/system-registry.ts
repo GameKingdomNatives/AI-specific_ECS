@@ -1,7 +1,7 @@
-import type { EntityId, SystemDef } from '@itb/engine/core';
-import type { InputSnapshot, IPhysics } from '@itb/engine/ports';
-import type { Scene, SystemParams } from '@itb/engine/scene';
-import { createContactEvents, createPhysicsBridge } from '@itb/engine/bridge';
+import type { EntityId, SystemDef } from 'agent-specific_ecs/core';
+import type { InputSnapshot, IPhysics } from 'agent-specific_ecs/ports';
+import type { Scene, SystemParams } from 'agent-specific_ecs/scene';
+import { createContactEvents, createPhysicsBridge } from 'agent-specific_ecs/bridge';
 import { Box, createBoxSpawnerSystem, createBulletCleanupSystem,
   createBulletMovementSystem,
   createHitSystem,

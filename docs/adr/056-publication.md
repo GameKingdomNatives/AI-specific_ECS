@@ -6,7 +6,7 @@
 ## 决定
 
 1. 仓库由 private 改为 **public**。
-2. `@itb/engine` 从 private 改为可发布，目标 registry 为 `https://registry.npmjs.org/`，`access: public`。
+2. `agent-specific_ecs` 从 private 改为可发布，目标 registry 为 `https://registry.npmjs.org/`，`access: public`。
 3. root 与 `@itb/fixture` 保持 private；fixture 不单独发布。
 4. 发布前必须：全量 gate PASS、API surface 未漂移、export 只含 runtime、LICENSE/README 就绪。
 5. 发布后保留“原型”声明：功能动态推进，不建议直接用于生产。
@@ -14,7 +14,7 @@
 ## 执行记录
 
 - GitHub 可见性：**已公开** `https://github.com/GameKingdomNatives/AI-specific_ECS`（2026-10-24）。
-- npm dry-run：PASS；`@itb/engine@0.1.0`，188 files，93.2 kB。
+- npm dry-run：PASS；`agent-specific_ecs@0.1.0`，188 files，93.2 kB。
 - npm 登录：`npm whoami` 已确认账号 `game-kingdom-natives`。
 - npm 实际发布：**未完成**；`npm publish` 返回 `403 Two-factor authentication or granular access token with bypass 2fa enabled is required`。需要 OTP（`--otp`）或带 bypass-2FA 的 granular token 后才能上传，不能伪称已发布。
 - 公开文件已中英双语/英语优先（`README.md`、`packages/engine/README.md`、package description）。

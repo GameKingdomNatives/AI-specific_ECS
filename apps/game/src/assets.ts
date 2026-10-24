@@ -1,4 +1,4 @@
-import { assetUrl, createAssetLoader, parseAssetManifest } from '@itb/engine/data';
+import { assetUrl, createAssetLoader, parseAssetManifest } from 'agent-specific_ecs/data';
 
 /** 应用侧资源清单：启动时校验 manifest，失败回退到同名 PNG 约定。 */
 export interface TextureUrls {

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CommandBuffer, EventBus, Scheduler, World } from '@itb/engine/core';
-import type { InputSnapshot } from '@itb/engine/ports';
+import { CommandBuffer, EventBus, Scheduler, World } from 'agent-specific_ecs/core';
+import type { InputSnapshot } from 'agent-specific_ecs/ports';
 import {
   Bullet,
   createBulletCleanupSystem,

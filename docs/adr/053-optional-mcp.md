@@ -24,4 +24,4 @@ MCP 是可选表面；Agent 直接读源码/跑 CLI 是同等一等路径。适�
 ## 边界
 
 - 行式 JSON-RPC，不是完整 MCP 传输实现；复杂客户端接入前需补 Content-Length/流式错误处理。
-- 不把 MCP 依赖加进 `@itb/engine`。
+- 不把 MCP 依赖加进 `agent-specific_ecs`。

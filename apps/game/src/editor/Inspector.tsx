@@ -1,6 +1,6 @@
-import type { Scene, SceneNode } from '@itb/engine/scene';
-import { coerceFieldValue } from '@itb/engine/scene';
-import type { ComponentMeta } from '@itb/engine/scene';
+import type { Scene, SceneNode } from 'agent-specific_ecs/scene';
+import { coerceFieldValue } from 'agent-specific_ecs/scene';
+import type { ComponentMeta } from 'agent-specific_ecs/scene';
 import { COMPONENT_META } from './component-meta.js';
 
 function AssetSelect(props: {

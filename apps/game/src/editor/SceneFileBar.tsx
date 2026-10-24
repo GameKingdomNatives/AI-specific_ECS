@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { Scene } from '@itb/engine/scene';
+import type { Scene } from 'agent-specific_ecs/scene';
 import { currentSceneFile, fetchSceneList, isSceneFile, saveScene } from '../scene-file.js';
 
 function navigateTo(file: string): void {

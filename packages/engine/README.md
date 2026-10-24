@@ -1,4 +1,4 @@
-# @itb/engine
+# agent-specific_ecs
 
 English: An agent-native, tool-agnostic 2D ECS runtime kernel. It has no dependency on any Agent, IDE or MCP server; fixtures and engineering tools live outside the package.
 
@@ -10,7 +10,7 @@ English: An agent-native, tool-agnostic 2D ECS runtime kernel. It has no depende
 ## Quick start / 最小用法
 
 ```ts
-import { createEngine } from '@itb/engine';
+import { createEngine } from 'agent-specific_ecs';
 
 const engine = createEngine({ fixedStepMs: 1000 / 60 });
 engine.add({

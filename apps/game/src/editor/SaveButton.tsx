@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Scene } from '@itb/engine/scene';
+import type { Scene } from 'agent-specific_ecs/scene';
 import { currentSceneFile, saveScene } from '../scene-file.js';
 
 type SaveState = { kind: 'idle' } | { kind: 'saving' } | { kind: 'ok'; bytes: number } | { kind: 'error'; message: string };

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { defaultsFor, parseScene } from '@itb/engine/scene';
-import type { Scene } from '@itb/engine/scene';
+import { defaultsFor, parseScene } from 'agent-specific_ecs/scene';
+import type { Scene } from 'agent-specific_ecs/scene';
 import {
   addComponent,
   addNode,
@@ -11,7 +11,7 @@ import {
   renameNode,
   setAsset,
   setComponentField,
-} from '@itb/engine/scene';
+} from 'agent-specific_ecs/scene';
 import { COMPONENT_META_BY_NAME } from './component-meta.js';
 import type { SceneDocRef, SelectionRef } from './doc-ref.js';
 import { usePreview } from './use-preview.js';

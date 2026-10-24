@@ -1,6 +1,6 @@
 # Headless starter
 
-无浏览器、无渲染器的最小消费示例：只验证 `@itb/engine` 的 `createEngine` 能在独立进程里创建、step、advance、dispose。
+无浏览器、无渲染器的最小消费示例：只验证 `agent-specific_ecs` 的 `createEngine` 能在独立进程里创建、step、advance、dispose。
 
 ```bash
 node tools/smoke/engine-starter.mjs

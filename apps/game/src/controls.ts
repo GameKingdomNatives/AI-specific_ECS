@@ -1,9 +1,9 @@
-import type { EntityId, FixedClock, World } from '@itb/engine/core';
+import type { EntityId, FixedClock, World } from 'agent-specific_ecs/core';
 import { Position } from '@itb/fixture';
-import type { Recorder } from '@itb/engine/determinism';
-import { serialize } from '@itb/engine/determinism';
-import type { DumpSink } from '@itb/engine/diagnostics';
-import type { SaveStore } from '@itb/engine/storage';
+import type { Recorder } from 'agent-specific_ecs/determinism';
+import { serialize } from 'agent-specific_ecs/determinism';
+import type { DumpSink } from 'agent-specific_ecs/diagnostics';
+import type { SaveStore } from 'agent-specific_ecs/storage';
 import type { UiIntents } from './ui/App.js';
 
 export interface SavePayload {

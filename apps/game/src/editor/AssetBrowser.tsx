@@ -1,4 +1,4 @@
-import type { AssetEntry } from '@itb/engine/data';
+import type { AssetEntry } from 'agent-specific_ecs/data';
 
 export function AssetBrowser(props: {
   entries: readonly AssetEntry[];

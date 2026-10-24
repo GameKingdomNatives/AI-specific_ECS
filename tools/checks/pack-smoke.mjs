@@ -26,9 +26,9 @@ if (tarball === undefined) {
   process.exit(1);
 }
 
-const pkgDir = join(TEMP, 'node_modules', '@itb', 'engine');
+const pkgDir = join(TEMP, 'node_modules', 'agent-specific_ecs');
 mkdirSync(pkgDir, { recursive: true });
-const extract = spawnSync('tar', ['-xzf', tarball, '-C', 'node_modules/@itb/engine', '--strip-components=1'], {
+const extract = spawnSync('tar', ['-xzf', tarball, '-C', 'node_modules/agent-specific_ecs', '--strip-components=1'], {
   cwd: TEMP,
   encoding: 'utf8',
 });
@@ -42,7 +42,7 @@ writeFileSync(join(TEMP, 'package.json'), '{"type":"module"}\n');
 writeFileSync(
   join(TEMP, 'smoke.mjs'),
   [
-    "import { createEngine } from '@itb/engine';",
+    "import { createEngine } from 'agent-specific_ecs';",
     'const engine = createEngine({ fixedStepMs: 10 });',
     'let ticks = 0;',
     "engine.add({ name: 'pack', phase: 'movement', reads: [], writes: [], update: () => { ticks += 1; } });",

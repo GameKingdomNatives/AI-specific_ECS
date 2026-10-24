@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import type { Scene, SceneNode } from '@itb/engine/scene';
-import type { AssetEntry } from '@itb/engine/data';
+import type { Scene, SceneNode } from 'agent-specific_ecs/scene';
+import type { AssetEntry } from 'agent-specific_ecs/data';
 import { SceneTree } from './SceneTree.js';
 import { Inspector } from './Inspector.js';
 import { ScheduleEditor } from './ScheduleEditor.js';

@@ -1,8 +1,8 @@
-import { interpolatePoint } from '@itb/engine/core';
-import type { EntityId, World } from '@itb/engine/core';
+import { interpolatePoint } from 'agent-specific_ecs/core';
+import type { EntityId, World } from 'agent-specific_ecs/core';
 import { Box, Bullet, Position } from '@itb/fixture';
-import type { RenderItem } from '@itb/engine/ports';
-import type { SceneAssets } from '@itb/engine/scene';
+import type { RenderItem } from 'agent-specific_ecs/ports';
+import type { SceneAssets } from 'agent-specific_ecs/scene';
 
 export interface RenderTableContext {
   readonly player: EntityId;

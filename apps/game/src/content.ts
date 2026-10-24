@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import raw from './data/demo.boxes.json' with { type: 'json' };
-import { FALLBACK_BOXES, parseContent } from '@itb/engine/data';
-import type { BoxSpec } from '@itb/engine/data';
+import { FALLBACK_BOXES, parseContent } from 'agent-specific_ecs/data';
+import type { BoxSpec } from 'agent-specific_ecs/data';
 
 export interface ContentState {
   readonly ok: boolean;

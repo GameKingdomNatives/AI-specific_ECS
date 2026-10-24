@@ -1,6 +1,6 @@
-import { defineComponent } from '@itb/engine/core';
-import type { EntityId, SystemDef, World } from '@itb/engine/core';
-import type { InputSnapshot, IPhysics } from '@itb/engine/ports';
+import { defineComponent } from 'agent-specific_ecs/core';
+import type { EntityId, SystemDef, World } from 'agent-specific_ecs/core';
+import type { InputSnapshot, IPhysics } from 'agent-specific_ecs/ports';
 
 /** 技术夹具用组件：不是游戏内容，只用来证明管线通。 */
 export const Position = defineComponent('Position', { x: 'f64', y: 'f64' });

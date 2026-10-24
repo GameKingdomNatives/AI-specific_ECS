@@ -1,4 +1,4 @@
-import type { ComponentMeta } from '@itb/engine/scene';
+import type { ComponentMeta } from 'agent-specific_ecs/scene';
 
 /** demo 组件的编辑器元数据：标签、字段类型、范围、默认值。 */
 export const COMPONENT_META: readonly ComponentMeta[] = [

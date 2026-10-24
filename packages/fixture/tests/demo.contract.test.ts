@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CommandBuffer, EventBus, Scheduler, World } from '@itb/engine/core';
+import { CommandBuffer, EventBus, Scheduler, World } from 'agent-specific_ecs/core';
 import { Box, createMovementSystem, Position, spawnBoxes, Velocity } from '../src/index.js';
 
 test('技术夹具：方块在边界内运动且不逃逸', () => {

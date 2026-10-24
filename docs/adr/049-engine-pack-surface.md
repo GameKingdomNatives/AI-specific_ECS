@@ -15,13 +15,13 @@
    - `npm pack --dry-run --json` 解析文件清单；
    - 必须有 `package.json`、`dist/src/index.js`、`dist/src/index.d.ts`、`dist/src/engine.js`；
    - 禁止 `src/`、`tests/`、`dist/tests/`、`tsconfig.json`。
-3. 新增 `starter-smoke` gate：`tools/smoke/engine-starter.mjs` 通过 `@itb/engine` 包入口 `createEngine`，跑 step/advance/dispose。
+3. 新增 `starter-smoke` gate：`tools/smoke/engine-starter.mjs` 通过 `agent-specific_ecs` 包入口 `createEngine`，跑 step/advance/dispose。
 4. `删发布入口` drill 验证缺失 `dist/src/engine.js` 会红。
 
 ## 验收
 
 - `package-surface` PASS（188 个文件，dist/src + package.json + README）。
-- `pack-smoke` PASS：真实 `npm pack` → 解包到临时 `node_modules/@itb/engine` → 独立进程 import `@itb/engine` 跑 createEngine。
+- `pack-smoke` PASS：真实 `npm pack` → 解包到临时 `node_modules/agent-specific_ecs` → 独立进程 import `agent-specific_ecs` 跑 createEngine。
 - `starter-smoke` PASS（workspace 包入口）。
 - 全量 gate PASS。
 

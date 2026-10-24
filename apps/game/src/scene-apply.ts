@@ -1,5 +1,5 @@
-import type { ComponentDef, World } from '@itb/engine/core';
-import type { Scene, SceneNode } from '@itb/engine/scene';
+import type { ComponentDef, World } from 'agent-specific_ecs/core';
+import type { Scene, SceneNode } from 'agent-specific_ecs/scene';
 import type { LoadedScene } from './scene-runtime.js';
 
 /** 只有这两个组件的值变化可以原地写列；BoxSpawner 计数变化需要重建 spawner 状态。 */

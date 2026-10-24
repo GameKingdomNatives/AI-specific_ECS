@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { AssetEntry } from '@itb/engine/data';
+import type { AssetEntry } from 'agent-specific_ecs/data';
 import { SceneEditorBody } from './SceneEditorBody.js';
 import { ScheduleEditor } from './ScheduleEditor.js';
 import { SaveButton } from './SaveButton.js';

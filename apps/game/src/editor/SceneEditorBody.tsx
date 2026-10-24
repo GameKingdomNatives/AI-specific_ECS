@@ -1,5 +1,5 @@
-import type { AssetEntry } from '@itb/engine/data';
-import type { Scene } from '@itb/engine/scene';
+import type { AssetEntry } from 'agent-specific_ecs/data';
+import type { Scene } from 'agent-specific_ecs/scene';
 import { AssetBrowser } from './AssetBrowser.js';
 import { Inspector } from './Inspector.js';
 import { SceneTree } from './SceneTree.js';

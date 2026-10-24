@@ -1,5 +1,5 @@
-import type { Scene, SystemMeta } from '@itb/engine/scene';
-import { validateSystemParams } from '@itb/engine/scene';
+import type { Scene, SystemMeta } from 'agent-specific_ecs/scene';
+import { validateSystemParams } from 'agent-specific_ecs/scene';
 
 /** 系统参数元数据：编辑器表单与保存校验共用同一份声明。 */
 export const SYSTEM_META: readonly SystemMeta[] = [

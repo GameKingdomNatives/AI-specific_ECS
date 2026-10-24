@@ -50,7 +50,7 @@
 ```text
 @itb/contracts     机器可读能力契约（capabilities/agent contract/schema）
       │
-@itb/engine        纯领域内核：ECS/确定性；不依赖 Agent/IDE/MCP
+agent-specific_ecs        纯领域内核：ECS/确定性；不依赖 Agent/IDE/MCP
       │
 @itb/fixture       demo/场景/系统（可替换的产品内容）
       │
