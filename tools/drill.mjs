@@ -7,6 +7,8 @@ import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileS
  */
 const GATE = 'tools/gate.mjs';
 const GATE_ORIGINAL = readFileSync(GATE, 'utf8');
+const HARNESS = 'contracts/harness.json';
+const HARNESS_ORIGINAL = readFileSync(HARNESS, 'utf8');
 const TEST = 'packages/engine/tests/hit.contract.test.ts';
 const HIDDEN_TEST = 'packages/engine/tests/__drill_hidden.ts.bak';
 const DRILL_RUN = 'artifacts/gate/__drill';
@@ -65,6 +67,26 @@ const DRILLS = [
     },
     command: ['tools/checks/harness.mjs'],
     expect: '系统卡不存在',
+  },
+  {
+    name: '删规则字段',
+    mutate: () => {
+      const table = JSON.parse(HARNESS_ORIGINAL);
+      delete table.rules[0].negativeTest;
+      writeFileSync(HARNESS, `${JSON.stringify(table, null, 2)}\n`);
+    },
+    restore: () => {
+      writeFileSync(HARNESS, HARNESS_ORIGINAL);
+    },
+    command: ['tools/checks/harness.mjs'],
+    expect: '缺少字段 negativeTest',
+  },
+  {
+    name: '热路径发事件',
+    file: 'packages/engine/src/demo/__drill_hot.ts',
+    content: 'export function createMovementSystem(): void {\n  ctx.bus.emit("drill", {});\n}\n',
+    command: ['tools/checks/hot-path.mjs'],
+    expect: '热路径系统',
   },
   {
     name: '改阈值：动受保护脚本',

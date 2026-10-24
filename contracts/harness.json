@@ -20,10 +20,10 @@
       "title": "热路径禁止事件总线",
       "guide": "docs/runbooks/07-如何新增系统.md",
       "sensor": "tools/checks/hot-path.mjs",
-      "negativeTest": "tools/drill/cases/ARCH-002.mjs",
+      "negativeTest": "tools/drill.mjs#热路径发事件",
       "severity": "error",
       "approval": "AUTO",
-      "status": "planned",
+      "status": "implemented",
       "scope": [
         "packages/engine/src/**"
       ]
@@ -72,10 +72,10 @@
       "title": "每条自定义规则必须有 negativeTest 且能变红",
       "guide": "docs/guides/harness-lessons.md",
       "sensor": "tools/checks/harness.mjs",
-      "negativeTest": "tools/drill/cases/QUAL-001.mjs",
+      "negativeTest": "tools/drill.mjs#删规则字段",
       "severity": "error",
       "approval": "AUTO",
-      "status": "planned",
+      "status": "implemented",
       "scope": [
         "contracts/harness.json"
       ]

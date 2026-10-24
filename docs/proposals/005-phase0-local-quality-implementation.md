@@ -198,7 +198,7 @@ Git 本身没有本地 branch protection；hooks 可以被 `--no-verify` 绕过�
 |---|---|---|---|
 | 0.1 本地护栏 | 3 天 | hooks、stamp 校验、main 直推拦截、safe-merge、负例测试 | **已完成（2026-10-24，见 `docs/audits/phase0-batch-0.1.md`）** |
 | 0.2 深检/夜间 | 3 天 | deep-audit、deep-stamp、20:00 任务、engineering/audits、DSH 结论 | **部分完成（2026-10-24）：深检/5 次拦截/计划任务已验收；DSH 原生 schedule 已验证独立投递，执行侧需改为只读消费报告；见 `docs/audits/phase0-batch-0.2.md`）** |
-| 0.3 规则/CLI/回执 | 4 天 | harness.json、10 条规则、itb、impact、receipt | **进行中（2026-10-24）：规则表/harness gate/itb/receipt 已落地，6/10 implemented；check 2.0s，见 `docs/audits/phase0-batch-0.3.md`）** |
+| 0.3 规则/CLI/回执 | 4 天 | harness.json、10 条规则、itb、impact、receipt | **进行中（2026-10-24）：规则表/harness gate/itb/receipt 已落地，8/10 implemented；check 2.0s，见 `docs/audits/phase0-batch-0.3.md`）** |
 | 0.4 收口 | 1 天 | ADR/指南/记忆/验收记录 | 阶段 0 全绿；无引擎行为改动 |
 
 ## 5. 后续阶段（详细批次）
