@@ -18,13 +18,14 @@
    - 100 组随机 set 序列验证 CommandBuffer 按登记顺序 flush、最终值等于最后一次 set；
    - 100 组随机事件序列验证 EventBus 同步按订阅顺序、deferred 按入队顺序；
    - 100 组依赖链验证 Scheduler 按 after 顺序执行。
-3. **已知限制**：`package-lock.json` 已手工补 fast-check/pure-rand 条目，但 `npm ci --dry-run` 仍复现 npm `Invalid Version`；本地 `node_modules` 可用。
+3. **npm `Invalid Version` 已定位并修复**：`package-lock.json` 里有空壳条目（`apps/game/node_modules/vite`、`packages/engine/node_modules/{pixi.js,@pixi/sound,zod}` 只有 `{}`/`dev:true`，没有 version），arborist `canDedupe` 读到空版本。删除这些占位条目后，`npm install --package-lock-only --ignore-scripts --workspaces=false` 成功，`npm ci --dry-run` 通过。
 4. 原始 LCG 版本作为历史记录保留在 git 历史；不再作为测试实现。
 
 ## 验收
 
 - `engine-properties.test.js` 6/6 PASS。
-- 测试基线 44；`删测试` drill 仍能变红。
+- `npm ci --dry-run` PASS（lock 已重建，含 fast-check/pure-rand）。
+- 测试基线 45；`删测试` drill 仍能变红。
 - 全量 gate PASS。
 
 ## 边界
