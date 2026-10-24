@@ -15,6 +15,8 @@ const API_DECL = 'packages/engine/dist/src/index.d.ts';
 const API_DECL_ORIGINAL = readFileSync(API_DECL, 'utf8');
 const CAPS = 'contracts/capabilities.json';
 const CAPS_ORIGINAL = readFileSync(CAPS, 'utf8');
+const ENGINE_JS = 'packages/engine/dist/src/engine.js';
+const ENGINE_JS_ORIGINAL = readFileSync(ENGINE_JS, 'utf8');
 const TEST = 'packages/engine/tests/hit.contract.test.ts';
 const HIDDEN_TEST = 'packages/engine/tests/__drill_hidden.ts.bak';
 const DRILL_RUN = 'artifacts/gate/__drill';
@@ -141,6 +143,17 @@ const DRILLS = [
     },
     command: ['tools/checks/capabilities.mjs'],
     expect: '缺少 spec',
+  },
+  {
+    name: '删发布入口',
+    mutate: () => {
+      unlinkSync(ENGINE_JS);
+    },
+    restore: () => {
+      writeFileSync(ENGINE_JS, ENGINE_JS_ORIGINAL);
+    },
+    command: ['tools/checks/package-surface.mjs'],
+    expect: '缺少发布入口',
   },
   {
     name: '改阈值：动受保护脚本',

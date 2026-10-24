@@ -63,6 +63,7 @@ function runTests() {
 step('tsc', process.execPath, ['node_modules/typescript/bin/tsc', '-b']);
 step('engine-standalone', process.execPath, ['node_modules/typescript/bin/tsc', '-p', 'packages/engine/tsconfig.json', '--noEmit']);
 step('api-surface', process.execPath, ['tools/checks/api-surface.mjs']);
+step('package-surface', process.execPath, ['tools/checks/package-surface.mjs']);
 step('eslint', process.execPath, ['node_modules/eslint/bin/eslint.js', '.', '-f', 'json', '-o', join(RUN, 'eslint.json')]);
 step('registry', process.execPath, ['tools/checks/registry.mjs']);
 step('harness', process.execPath, ['tools/checks/harness.mjs']);
@@ -85,6 +86,7 @@ step('build', process.execPath, [
   '--logLevel',
   'warn',
 ], join(ROOT, 'apps', 'game'));
+step('starter-smoke', process.execPath, ['tools/smoke/engine-starter.mjs']);
 step('storybook', process.execPath, [
   join(ROOT, 'node_modules/storybook/dist/bin/dispatcher.js'),
   'build',
