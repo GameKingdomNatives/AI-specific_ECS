@@ -6,6 +6,8 @@ artifacts/
 .pnpm-store/
 .npm-cache/
 .gate/
+engineering/audits/
+engineering/source/
 *.log
 .DS_Store
 .dsh-code-index/
