@@ -23,6 +23,6 @@
 
 ## 未验证/边界
 
-- `schemaGuard` 仍绑定初始 World；场景重建后的 HMR 守卫未重新验证。
+- `schemaGuard` 在 `rebuild` 时按新 World 重新创建；HMR 重建链未在本轮重新做浏览器回归。
 - 编辑器保存/重建链未在本轮重新做浏览器回归（现有自动化只有 build/tsc）。
 - `start()` 未接入 app 的渲染循环；app 仍用自己的固定步长循环，符合边界。

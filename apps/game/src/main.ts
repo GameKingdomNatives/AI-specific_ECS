@@ -51,7 +51,7 @@ const engine = createEngine({
 });
 let world = engine.world;
 const textures = await loadTextureUrls();
-const schemaGuard = createSchemaGuard(world);
+let schemaGuard = createSchemaGuard(world);
 const bus = engine.events;
 bus.startRecording();
 const commands = engine.commands;
@@ -131,6 +131,7 @@ function sceneSystems(): SystemDef[] {
 }
 function rebuild(scene: Scene | null): { ok: boolean; issues: string[] } {
   world = engine.resetWorld();
+  schemaGuard = createSchemaGuard(world);
   const state = scene === null ? null : instantiateSceneState(world, scene, componentLookup);
   sceneResult = { loaded: state?.loaded ?? null, issues: state?.issues ?? [] };
   player = resolvePlayer(world, sceneResult.loaded, { position: Position, box: Box }, WIDTH, HEIGHT) ?? -1;
