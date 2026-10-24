@@ -7,10 +7,10 @@
       "title": "系统不得直接 spawn/despawn/add/remove，结构变更只走命令缓冲",
       "guide": "docs/guides/local-branch-protection.md",
       "sensor": "tools/checks/system-structure.mjs",
-      "negativeTest": "tools/drill/cases/ARCH-001.mjs",
+      "negativeTest": "tools/drill.mjs#系统直改结构",
       "severity": "error",
       "approval": "AUTO",
-      "status": "planned",
+      "status": "implemented",
       "scope": [
         "packages/engine/src/**"
       ]
@@ -111,11 +111,11 @@
       "id": "SCENE-001",
       "title": "每个运行中系统有系统卡、Scene 条目与契约测试",
       "guide": "docs/runbooks/07-如何新增系统.md",
-      "sensor": "tools/checks/registry.mjs",
-      "negativeTest": "tools/drill/cases/SCENE-001.mjs",
+      "sensor": "tools/checks/harness.mjs",
+      "negativeTest": "tools/drill.mjs#删系统卡",
       "severity": "error",
       "approval": "SOFT",
-      "status": "planned",
+      "status": "implemented",
       "scope": [
         "docs/systems/**",
         "apps/game/scenes/**",

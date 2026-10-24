@@ -47,6 +47,26 @@ const DRILLS = [
     expect: '少于基线',
   },
   {
+    name: '系统直改结构',
+    file: 'packages/engine/src/demo/__drill_structure.ts',
+    content: 'export const drill = (ctx: { world: { spawn: () => void } }): void => {\n  ctx.world.spawn();\n};\n',
+    command: ['tools/checks/system-structure.mjs'],
+    expect: '结构变更',
+  },
+  {
+    name: '删系统卡',
+    mutate: () => {
+      renameSync('docs/systems/demo-hit.md', 'docs/systems/__drill_card.bak');
+    },
+    restore: () => {
+      if (existsSync('docs/systems/__drill_card.bak')) {
+        renameSync('docs/systems/__drill_card.bak', 'docs/systems/demo-hit.md');
+      }
+    },
+    command: ['tools/checks/harness.mjs'],
+    expect: '系统卡不存在',
+  },
+  {
     name: '改阈值：动受保护脚本',
     mutate: () => {
       mkdirSync(DRILL_RUN, { recursive: true });
