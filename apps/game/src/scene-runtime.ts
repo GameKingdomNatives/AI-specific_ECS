@@ -15,7 +15,6 @@ export interface SceneState {
 }
 
 declare global {
-  // eslint-disable-next-line no-var
   var __itbScene:
     | {
         name: string;
@@ -27,9 +26,7 @@ declare global {
         spawned: Record<string, number>;
       }
     | undefined;
-  // eslint-disable-next-line no-var
   var __itbApplyScene: ((raw: unknown) => { ok: boolean; issues: string[] }) | undefined;
-  // eslint-disable-next-line no-var
   var __itbSceneFile: string | undefined;
 }
 
