@@ -23,19 +23,22 @@
 | `npm run nightly:install` | 任务 `AI-specific_ECS-Nightly` 创建成功，Next Run 20:00 |
 | 手动触发计划任务 | `schtasks /Run` → Last Result `0`（成功），日志写 `engineering/nightly.log` |
 
-## DSH 边界（未完成）
+## DSH 边界（关键发现）
 
-- 已生成 `engineering/audits/<date>/dsh-prompt.md`（只读审计提示）。
-- 尚未验证 DSH 能否原生定时启动独立会话；当前没有把“DSH 已自动运行”写进结论。
-- 下一步二选一：最小 daemon-loop 插件，或 Windows 计划任务跑审计 + DSH 会话只消费报告。
+- **DSH 原生 schedule 插件存在**：`@deepseek-ai/dsh-schedule` + `schedule_create/list/update/delete` 工具，投递回原始 Session；Host 会在到期时恢复冷 Session。
+- 已创建专用独立会话 `session-4a936cd6-6f52-4f5d-b275-d8549750f57e`（ITB Nightly Audit），并在其内创建：
+  - 每日 20:00（Asia/Shanghai）：`schedule-2ec612ea-d224-47f8-a20e-86356eed92b1`
+  - 一次性 150 秒测试：`schedule-3acbef8a-e639-406c-9ae3-f0319d27abda`
+- 测试提醒已触发到该独立会话（turn #2），证明“Host 投递到原始独立 Session”可用；但该会话执行 `node tools/nightly.mjs` 时在沙箱/子进程上受阻，尚未写出 `dsh-review.md`。
+- 正确架构应分工：Windows 计划任务负责跑 gate/deep 并产出报告；DSH 独立会话只读报告、写 `dsh-review.md`，不在会话内再跑 gate。现有 schedule 的 prompt 仍含 nightly 命令，需要更新/删除后重建；未完成前不声称“DSH 夜间闭环已完成”。
 
 ## 限制
 
 - 深检目前是 gate + 汇总，不含属性/变异/黄金/API/pack；这些在阶段 1–3。
 - 报告目录默认 gitignore；需要长期留档时手动归档或改 ignore 策略。
-- 计划任务只在当前用户登录时运行（Interactive only）；换机器需重装。
+- Windows 计划任务只在当前用户登录时运行（Interactive only）；DSH schedule 依赖 Host 运行，Host 不在时会延迟/补投。
 
 ## 下一步
 
-1. 完成 DSH 独立会话（插件/计划任务降级二选一）。
+1. 把 DSH 每日提醒改为“只读消费 `engineering/audits/<date>/report.md` + 写 dsh-review”，删除旧的 nightly 命令 prompt。
 2. 进入 Batch 0.3：`contracts/harness.json`、`itb` CLI、影响分析、Receipt、10 条规则负例。
