@@ -1,31 +1,41 @@
 import { spawnSync } from 'node:child_process';
-import { closeSync, existsSync, openSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { closeSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 const ROOT = process.cwd();
 const RUN = process.argv[2] ?? join('artifacts', 'gate', 'manual');
 const errors = [];
+mkdirSync(join(ROOT, RUN), { recursive: true });
 
 function gitToFile(args, target) {
   const fd = openSync(join(ROOT, target), 'w');
   const result = spawnSync('git', args, { cwd: ROOT, stdio: ['ignore', fd, fd], windowsHide: true });
   closeSync(fd);
+  if (result.error !== undefined) {
+    errors.push(`git ${args.join(' ')} 启动失败：${result.error.message}`);
+    return 1;
+  }
   return result.status ?? 1;
+}
+
+function gitLines(args, label) {
+  const target = join(RUN, 'git-capture.txt');
+  const code = gitToFile(args, target);
+  if (code !== 0) {
+    errors.push(`${label}：git ${args.join(' ')} 退出码 ${code}（不能当作“无待推送提交”）`);
+    return [];
+  }
+  return readFileSync(join(ROOT, target), 'utf8').split('\n').filter(Boolean);
 }
 
 gitToFile(['status', '--porcelain'], join(RUN, 'git-status.txt'));
 gitToFile(['rev-parse', 'HEAD'], join(RUN, 'head.txt'));
 
-function gitList(args) {
-  const result = spawnSync('git', args, { cwd: ROOT, encoding: 'utf8', windowsHide: true });
-  return result.status === 0 ? (result.stdout ?? '').split('\n').filter(Boolean) : [];
-}
-
 const hasHead = spawnSync('git', ['rev-parse', '--verify', 'HEAD'], { cwd: ROOT, stdio: 'ignore' }).status === 0;
 const changed = [
   ...new Set([
-    ...(hasHead ? gitList(['diff', '--name-only', 'HEAD']) : []),
-    ...gitList(['diff', '--cached', '--name-only']),
+    ...(hasHead ? gitLines(['diff', '--name-only', 'HEAD'], '工作区 diff 读取失败') : []),
+    ...gitLines(['diff', '--cached', '--name-only'], '暂存区 diff 读取失败'),
   ]),
 ];
 
@@ -53,11 +63,19 @@ for (const file of [...walk('packages/engine/src'), ...walk('apps/game/src')]) {
 
 const hasRemote = spawnSync('git', ['remote', 'get-url', 'origin'], { cwd: ROOT, stdio: 'ignore' }).status === 0;
 if (hasRemote) {
-  const pending = spawnSync('git', ['rev-list', 'origin/HEAD..HEAD'], { cwd: ROOT, encoding: 'utf8' });
-  const shas = (pending.stdout ?? '').split('\n').filter(Boolean);
-  for (const sha of shas) {
-    if (!existsSync(join(ROOT, '.gate', 'stamps', `${sha}.json`))) {
-      errors.push(`stamp 缺失：${sha} 没有通过全量门禁的记录`);
+  const upstream = gitLines(['rev-parse', '--verify', 'origin/main'], '无法确定上游 origin/main');
+  if (upstream.length === 0) {
+    errors.push('无法确定上游 origin/main；拒绝把“未盖章提交”校验当成通过');
+  } else {
+    const base = upstream[0];
+    const headLine = existsSync(join(ROOT, RUN, 'head.txt')) ? readFileSync(join(ROOT, RUN, 'head.txt'), 'utf8').trim() : '';
+    const pending = gitLines(['rev-list', `${base}..HEAD`], '待推送提交读取失败');
+    for (const sha of pending) {
+      // 当前 HEAD 正在被这次 gate 校验；它的 stamp 由本次成功运行写入，不能先要求已有 stamp。
+      if (sha === headLine) continue;
+      if (!existsSync(join(ROOT, '.gate', 'stamps', `${sha}.json`))) {
+        errors.push(`stamp 缺失：${sha} 没有通过全量门禁的记录`);
+      }
     }
   }
 } else {

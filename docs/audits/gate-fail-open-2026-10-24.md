@@ -13,10 +13,10 @@
 
 | ID | 严重度 | 问题 | 位置 | 状态 |
 |---|---|---|---|---|
-| G1 | 严重 | 未盖章提交检查用 `origin/HEAD`（本仓库不存在）且不看退出码，实际零检查 | `tools/checks/gitfacts.mjs:56` | **待批准** |
-| G2 | 严重 | `findings` 永不失败；depcruise 解析失败被静默跳过 | `tools/checks/findings.mjs:50-56,78,117-121` | **待批准** |
+| G1 | 严重 | 未盖章提交检查用 `origin/HEAD`（本仓库不存在）且不看退出码，实际零检查 | `tools/checks/gitfacts.mjs` | **已修：origin/main + 失败即红；当前 HEAD 跳过自证，成功 gate 后写 stamp** |
+| G2 | 严重 | `findings` 永不失败；depcruise 解析失败被静默跳过 | `tools/checks/findings.mjs` | **已修：输入缺失/解析失败/warnings/发现项均非零；depcruise JSON 分离到 `depcruise.json`** |
 | G3 | 中 | eslint 3 条 warning 仍 PASS，违反“没有警告通过” | `apps/game/src/scene-runtime.ts:18/30/32` | **已修（5467954，warnings=0）** |
-| G4 | 中 | drill 把 `status=null`（崩溃）当“抓住违规” | `tools/drill.mjs:73-75` | 待批准 |
+| G4 | 中 | drill 把 `status=null`（崩溃）当“抓住违规” | `tools/drill.mjs:73-75` | **已修：started 三态，未启动显示“没跑起来”** |
 | G5 | 中 | `.gate/`、`engineering/audits/` gitignore 与“可入仓”文档矛盾 | `.gitignore:9-10`、`engineering/README.md` | **文档已澄清（README：本机产物）**；stamp 仍本机 |
 | G6 | 中 | gate 不区分“环境不可用”与“违规”，无环境指纹 | `tools/gate.mjs`/报告 | 待设计 |
 | G7 | 低 | 夜检目录用 UTC 日期，凌晨补跑错位 | `tools/nightly.mjs:9` | 待批准 |
@@ -31,7 +31,7 @@
 4. **G7/G8/G9**：Asia/Shanghai 日期、stale 标记、note 由结果计算。
 5. **G6**：报告记录环境指纹与“因环境未执行”的步骤，禁止算 PASS。
 
-> 这些都在 `tools/` 保护路径；按 AGENTS.md，需人工批准后修改并补负例。G3 是 AUTO 区，已修。
+> 这些都在 `tools/` 保护路径；用户 2026-10-24 已批准修复。G1/G2/G4 已修并通过全量 gate `20261024T094129Z`；负例：坏 depcruise JSON 会让 findings 退出 1。G5 已澄清 README（本机产物）；G6–G9 待处理。
 
 ## 正确 DSH 分工
 

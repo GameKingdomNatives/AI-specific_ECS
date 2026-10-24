@@ -73,7 +73,14 @@ for (const drill of DRILLS) {
       drill.mutate();
     }
     const run = spawnSync(process.execPath, drill.command, { encoding: 'utf8', env });
-    results.push({ name: drill.name, caught: run.status !== 0, expect: drill.expect, text: `${run.stdout ?? ''}${run.stderr ?? ''}` });
+    const started = run.error === undefined && run.status !== null;
+    results.push({
+      name: drill.name,
+      started,
+      caught: started && run.status !== 0,
+      expect: drill.expect,
+      text: `${run.stdout ?? ''}${run.stderr ?? ''}`,
+    });
   } finally {
     if (drill.restore !== undefined) {
       drill.restore();
@@ -84,7 +91,8 @@ for (const drill of DRILLS) {
 }
 
 for (const result of results) {
-  const matched = result.caught && result.text.includes(result.expect);
-  console.log(`${result.name.padEnd(28)} ${matched ? '拦住了 PASS' : '漏过去了 FAIL'}（命中「${result.expect}」=${matched}）`);
+  const matched = result.started && result.caught && result.text.includes(result.expect);
+  const label = !result.started ? '没跑起来 FAIL' : matched ? '拦住了 PASS' : '漏过去了 FAIL';
+  console.log(`${result.name.padEnd(28)} ${label}（命中「${result.expect}」=${matched}）`);
 }
-process.exit(results.every((result) => result.caught && result.text.includes(result.expect)) ? 0 : 1);
+process.exit(results.every((result) => result.started && result.caught && result.text.includes(result.expect)) ? 0 : 1);

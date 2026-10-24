@@ -24,7 +24,7 @@ const result = spawnSync(
 
 const output = result.stdout ?? '';
 if (RUN !== undefined) {
-  writeFileSync(join(ROOT, RUN, 'depcruise.log'), output);
+  writeFileSync(join(ROOT, RUN, 'depcruise.json'), output);
 }
 
 let violations = -1;
