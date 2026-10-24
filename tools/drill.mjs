@@ -17,6 +17,10 @@ const CAPS = 'contracts/capabilities.json';
 const CAPS_ORIGINAL = readFileSync(CAPS, 'utf8');
 const LOCK = 'package-lock.json';
 const LOCK_ORIGINAL = readFileSync(LOCK, 'utf8');
+const AGENT = 'contracts/agent.json';
+const AGENT_ORIGINAL = readFileSync(AGENT, 'utf8');
+const EXPORT = 'contracts/export-policy.json';
+const EXPORT_ORIGINAL = readFileSync(EXPORT, 'utf8');
 const ENGINE_JS = 'packages/engine/dist/src/engine.js';
 const ENGINE_JS_ORIGINAL = readFileSync(ENGINE_JS, 'utf8');
 const TEST = 'packages/engine/tests/hit.contract.test.ts';
@@ -178,6 +182,32 @@ const DRILLS = [
     },
     command: ['tools/checks/app-bootstrap.mjs'],
     expect: '禁止',
+  },
+  {
+    name: '删Agent入口',
+    mutate: () => {
+      const contract = JSON.parse(AGENT_ORIGINAL);
+      delete contract.entrypoints;
+      writeFileSync(AGENT, `${JSON.stringify(contract, null, 2)}\n`);
+    },
+    restore: () => {
+      writeFileSync(AGENT, AGENT_ORIGINAL);
+    },
+    command: ['tools/checks/agent-contract.mjs'],
+    expect: '缺少 entrypoints',
+  },
+  {
+    name: '删导出策略',
+    mutate: () => {
+      const policy = JSON.parse(EXPORT_ORIGINAL);
+      delete policy.runtimeKernel;
+      writeFileSync(EXPORT, `${JSON.stringify(policy, null, 2)}\n`);
+    },
+    restore: () => {
+      writeFileSync(EXPORT, EXPORT_ORIGINAL);
+    },
+    command: ['tools/checks/export-policy.mjs'],
+    expect: '缺少 runtimeKernel',
   },
   {
     name: '改阈值：动受保护脚本',

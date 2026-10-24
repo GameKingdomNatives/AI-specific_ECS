@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "name": "into-the-battlefield",
+  "summary": "Agent-native ECS capability kernel: inspect contracts, impact, check, gate, receipt without requiring a specific IDE or plugin.",
+  "entrypoints": [
+    { "id": "inspect", "command": "node tools/itb.mjs inspect", "output": "text" },
+    { "id": "impact", "command": "node tools/itb.mjs impact", "output": "json" },
+    { "id": "check", "command": "node tools/itb.mjs check", "output": "text" },
+    { "id": "gate", "command": "node tools/itb.mjs gate", "output": "text" },
+    { "id": "receipt", "command": "node tools/itb.mjs receipt", "output": "text" },
+    { "id": "describe", "command": "node tools/itb.mjs describe", "output": "json" }
+  ],
+  "capabilities": [
+    {
+      "id": "contracts.inspect",
+      "summary": "列出 10 条质量规则与 9 个系统能力",
+      "command": "node tools/itb.mjs inspect",
+      "inputs": [],
+      "outputs": ["rules", "systems"],
+      "errors": ["contracts/harness.json 缺失或非法"]
+    },
+    {
+      "id": "change.impact",
+      "summary": "把当前变更映射到规则、建议测试与门禁级别",
+      "command": "node tools/itb.mjs impact",
+      "inputs": ["git working tree"],
+      "outputs": ["changed", "affectedRules", "suggestedTests", "gateLevel"],
+      "errors": ["git 不可用"]
+    },
+    {
+      "id": "change.check",
+      "summary": "按影响跑轻量检查（harness/registry/tsc/eslint/tests）",
+      "command": "node tools/itb.mjs check",
+      "inputs": ["git working tree"],
+      "outputs": ["exit code", "per-step timings"],
+      "errors": ["编译/测试失败"]
+    },
+    {
+      "id": "gate.full",
+      "summary": "跑全量门禁并生成 receipt",
+      "command": "node tools/itb.mjs gate",
+      "inputs": ["working tree"],
+      "outputs": ["artifacts/gate/<run>/report.md", "artifacts/receipts/<head>.json"],
+      "errors": ["任意门禁步骤失败"]
+    }
+  ],
+  "contracts": [
+    "contracts/harness.json",
+    "contracts/capabilities.json",
+    "contracts/api-surface.json"
+  ]
+}

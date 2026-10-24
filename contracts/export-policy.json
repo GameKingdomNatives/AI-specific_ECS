@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "runtimeKernel": {
+    "package": "packages/engine",
+    "include": ["dist/src", "README.md"],
+    "exclude": ["src", "tests", "tsconfig.json"]
+  },
+  "engineeringKernel": {
+    "path": "tools",
+    "devOnly": ["tools", "contracts", "engineering", "docs", "artifacts", "tests"]
+  },
+  "rule": "发布/导出只复制 runtimeKernel.include；dev-only 目录不进入产物。Agent 可以直接读 dev-only 源码，但产品产物不应包含它们。"
+}

@@ -1,9 +1,20 @@
 # 006 · Agent 原生、工具无关的自描述能力内核
 
-- 状态：方向提案（待用户确认）
+- 状态：方向已确认（2026-10-24 用户裁定）
 - 日期：2026-10-24
 - 关联：`docs/proposals/004-engine-ai-quality-next-stage.md`、`005-phase0-local-quality-implementation.md`
-- 前提：当前引擎仍是 private；公开/许可证/npm 未决。
+- 前提：当前引擎仍是 private；M4 前不公开、不发 npm。
+
+## 0. 用户已裁定
+
+| 问题 | 决定 |
+|---|---|
+| 内核边界 | **双内核**：运行时内核（ECS/确定性）+ 工程/质量内核（agent contract/harness/itb/证据链） |
+| 导出边界 | 只导出运行时内核与显式 allowlist；tools/tests/docs/审计产物等 dev-only 不进产物 |
+| 公开时间 | **M4** 后再公开 |
+| 许可证 | **Apache-2.0** |
+| MCP | 可选适配器；Agent 直接操作源码同等一等 |
+| 命名/格式 | 统一用 **agent**，不用 AI；格式按规范整理 |
 
 ## 一句话
 
@@ -27,7 +38,9 @@
 
 - ECS 内核、10 个冻结端口、确定性、场景数据、调度/命令/事件；
 - `contracts/harness.json`：10 条 guide/sensor/negativeTest 规则；
-- `itb` CLI（inspect/impact/check/gate/receipt）；
+- `contracts/agent.json`：6 entrypoints / 4 capabilities，`itb describe` 输出；
+- `contracts/export-policy.json`：运行时 allowlist + dev-only 清单；
+- `itb` CLI（inspect/describe/impact/check/gate/receipt）；
 - Receipt、drill、stamp、deep-audit、属性/黄金测试；
 - `createEngine` 单一门面、pack/starter 冒烟；
 - 应用 `apps/game` 作为集成样例，不属于产品内核。
@@ -46,14 +59,20 @@ itb CLI            自描述：describe/capabilities/inspect/impact/check
 可选适配器          MCP/HTTP；只是薄壳，不进入核心依赖
 ```
 
-### Agent Contract（M1）
+### 双内核与导出边界
 
-新增 `contracts/agent.json`（版本化）：
+```text
+运行时内核  packages/engine → dist/src + README（产品产物）
+工程内核    tools/contracts/engineering/docs（dev-only，不进产物）
+```
 
-- 每个能力：`id`、`summary`、`inputs`、`outputs`、`errors`、`examples`、`evidence`；
-- 机器可读，不依赖散文文档；
-- `itb describe --json` 只输出这份契约；
-- Agent 通过 CLI JSON 或直接读 `contracts/` 发现能力。
+- `contracts/export-policy.json` 是唯一导出 allowlist；
+- `export-policy` gate 校验运行时 package.files 不含 dev-only；
+- Agent 可以直接读 dev-only 源码，但产品导出不包含它们。
+
+### Agent Contract（M1，已落地）
+
+`contracts/agent.json` + `itb describe` 已落地；每个能力有 id/summary/command/inputs/outputs/errors；gate `agent-contract` 校验；`删Agent入口` drill 验证会红。
 
 ### 设计原则
 
@@ -68,18 +87,18 @@ itb CLI            自描述：describe/capabilities/inspect/impact/check
 | 里程碑 | 内容 | 验收 |
 |---|---|---|
 | M0 当前质量 | 0.2 夜检首次投递、npm ci、app 门面、规则 10/10 | 全量 gate + receipt |
-| M1 Agent Contract v1 | `contracts/agent.json`、`itb describe --json`、能力发现 | 契约 schema 校验 + 一个外部 Agent 场景演练 |
-| M2 可选 MCP | 薄 MCP server 暴露 describe/inspect/impact/check | 任意 MCP client 可列/调 |
+| M1 Agent Contract v1 | `contracts/agent.json`、`itb describe`、能力发现 | ✅ 已落地（ADR-052） |
+| M2 可选 MCP | 薄 MCP server 暴露 describe/inspect/impact/check | 任意 MCP client 可列/调；不阻塞源码路径 |
 | M3 内核独立化 | fixture 拆出、private pack、starter 真安装 | tarball install + smoke |
-| M4 开源准备 | LICENSE/公开 API 冻结/README/发布流程 | 用户批准后公开 |
+| M4 开源准备 | Apache-2.0/公开 API 冻结/README/发布流程 | 用户批准后公开 |
 
-## 5. 需要用户裁定
+## 5. 执行顺序（已裁定）
 
-1. **内核边界**：ECS 是唯一内核，还是“审计/规则能力”也作为独立内核？
-2. **公开时间**：M3 完成就公开，还是 M4 后再公开？
-3. **许可证**：Apache-2.0 / MIT / 暂不。
-4. **MCP 定位**：可选适配器（推荐）还是必须？
-5. **命名**：继续 `AI-specific_ECS`，还是换成面向 Agent 的品牌（如 `agent-native-ecs`）？
+1. 双内核：运行时内核 + 工程/质量内核；导出只走 allowlist。
+2. M4 前保持 private；公开时 Apache-2.0。
+3. MCP 可选，源码操作同等一等。
+4. 统一用 agent 命名；不再用 AI 作为产品术语。
+5. M1 已落地；下一步 M3 fixture 拆分、M2 可选 MCP、M4 开源准备。
 
 ## 6. 非目标
 

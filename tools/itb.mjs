@@ -106,9 +106,15 @@ function status() {
   console.log(`receipt    ${receipt ?? '（无）'}`);
 }
 
+function describeContract() {
+  process.stdout.write(readFileSync(join(ROOT, 'contracts', 'agent.json'), 'utf8'));
+}
+
 let code = 0;
 if (command === 'inspect') {
   inspect();
+} else if (command === 'describe') {
+  describeContract();
 } else if (command === 'impact') {
   impact();
 } else if (command === 'check') {
@@ -131,7 +137,7 @@ if (command === 'inspect') {
 } else if (command === 'status') {
   status();
 } else {
-  console.error('用法：node tools/itb.mjs <inspect|impact|check|gate|receipt|status>');
+  console.error('用法：node tools/itb.mjs <inspect|describe|impact|check|gate|receipt|status>');
   code = 2;
 }
 process.exit(code);
