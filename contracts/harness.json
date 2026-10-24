@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "source": "docs/proposals/005-phase0-local-quality-implementation.md",
+  "rules": [
+    {
+      "id": "ARCH-001",
+      "title": "系统不得直接 spawn/despawn/add/remove，结构变更只走命令缓冲",
+      "guide": "docs/guides/local-branch-protection.md",
+      "sensor": "tools/checks/system-structure.mjs",
+      "negativeTest": "tools/drill/cases/ARCH-001.mjs",
+      "severity": "error",
+      "approval": "AUTO",
+      "status": "planned",
+      "scope": ["packages/engine/src/**"]
+    },
+    {
+      "id": "ARCH-002",
+      "title": "热路径禁止事件总线",
+      "guide": "docs/runbooks/07-如何新增系统.md",
+      "sensor": "tools/checks/hot-path.mjs",
+      "negativeTest": "tools/drill/cases/ARCH-002.mjs",
+      "severity": "error",
+      "approval": "AUTO",
+      "status": "planned",
+      "scope": ["packages/engine/src/**"]
+    },
+    {
+      "id": "ARCH-003",
+      "title": "core 不依赖 ports/impl/data/apps 或第三方",
+      "guide": "AGENTS.md",
+      "sensor": "tools/checks/depcruise.mjs",
+      "negativeTest": "tools/drill/cases/ARCH-003.mjs",
+      "severity": "error",
+      "approval": "AUTO",
+      "status": "implemented",
+      "scope": ["packages/engine/src/core/**"]
+    },
+    {
+      "id": "ARCH-004",
+      "title": "ports 只允许纯类型",
+      "guide": "AGENTS.md",
+      "sensor": "tools/checks/depcruise.mjs",
+      "negativeTest": "tools/drill/cases/ARCH-004.mjs",
+      "severity": "error",
+      "approval": "AUTO",
+      "status": "implemented",
+      "scope": ["packages/engine/src/ports/**"]
+    },
+    {
+      "id": "ARCH-005",
+      "title": "engine 不依赖 apps",
+      "guide": "AGENTS.md",
+      "sensor": "tools/checks/depcruise.mjs",
+      "negativeTest": "tools/drill/cases/ARCH-005.mjs",
+      "severity": "error",
+      "approval": "AUTO",
+      "status": "implemented",
+      "scope": ["packages/engine/**"]
+    },
+    {
+      "id": "QUAL-001",
+      "title": "每条自定义规则必须有 negativeTest 且能变红",
+      "guide": "docs/guides/harness-lessons.md",
+      "sensor": "tools/checks/harness.mjs",
+      "negativeTest": "tools/drill/cases/QUAL-001.mjs",
+      "severity": "error",
+      "approval": "AUTO",
+      "status": "planned",
+      "scope": ["contracts/harness.json"]
+    },
+    {
+      "id": "QUAL-002",
+      "title": "禁用 test.skip/only/@ts-ignore 等绕过标记",
+      "guide": "AGENTS.md",
+      "sensor": "tools/checks/registry.mjs",
+      "negativeTest": "tools/drill/cases/QUAL-002.mjs",
+      "severity": "error",
+      "approval": "AUTO",
+      "status": "implemented",
+      "scope": ["packages/engine/**", "apps/game/src/**"]
+    },
+    {
+      "id": "PERF-001",
+      "title": "每系统 p95 超预算必须告警并留证",
+      "guide": "docs/adr/040-budget-alert.md",
+      "sensor": "tools/checks/registry.mjs",
+      "negativeTest": "tools/drill/cases/PERF-001.mjs",
+      "severity": "warning",
+      "approval": "AUTO",
+      "status": "implemented",
+      "scope": ["apps/game/src/main.ts"]
+    },
+    {
+      "id": "SCENE-001",
+      "title": "每个运行中系统有系统卡、Scene 条目与契约测试",
+      "guide": "docs/runbooks/07-如何新增系统.md",
+      "sensor": "tools/checks/registry.mjs",
+      "negativeTest": "tools/drill/cases/SCENE-001.mjs",
+      "severity": "error",
+      "approval": "SOFT",
+      "status": "planned",
+      "scope": ["docs/systems/**", "apps/game/scenes/**", "packages/engine/tests/**"]
+    },
+    {
+      "id": "API-001",
+      "title": "公共 API 导出必须有报告与 starter 冒烟",
+      "guide": "docs/guides/quality-primer.md",
+      "sensor": "tools/checks/api-report.mjs",
+      "negativeTest": "tools/drill/cases/API-001.mjs",
+      "severity": "error",
+      "approval": "AUTO",
+      "status": "planned",
+      "scope": ["packages/engine/src/index.ts", "starters/**"]
+    }
+  ]
+}
