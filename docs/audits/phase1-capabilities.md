@@ -29,6 +29,7 @@
 
 - 新增 `packages/engine/src/engine.ts` + `createEngine(options)`：单一入口创建 World/EventBus/CommandBuffer/Scheduler/FixedClock。
 - `step()`/`advance()`/`start()`/`stop()`/`dispose()`；`engine-facade.test.ts` 3 组通过。
+- `capabilities.test.ts` 2 组：9 系统 spec 三字段、scene↔phase 一致；测试基线 43。
 - API surface 快照已随门面更新（人工评审）；ADR-047。
 - 应用 `apps/game` 尚未迁移到门面，迁移需单独验证输入/渲染/物理。
 
