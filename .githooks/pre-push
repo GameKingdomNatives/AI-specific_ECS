@@ -1,4 +1,4 @@
 #!/bin/sh
-# 推送期：全量门禁（权威判定）。若本机 sh 无法运行（沙箱），改用 node tools/gate.mjs。
+# 推送期：全量门禁 + stamp + main 直推拦截 + 深检节奏。
 cd "$(git rev-parse --show-toplevel)" || exit 1
-exec node tools/gate.mjs
+exec node tools/hooks/pre-push.mjs
