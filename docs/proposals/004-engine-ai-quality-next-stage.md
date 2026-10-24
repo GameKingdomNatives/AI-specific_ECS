@@ -1,10 +1,10 @@
 # 引擎下一阶段规划：让 AI 产出自动合法化，同时保持引擎独立
 
-- 版本：v1.2（规划稿，2026-10-24；含仓库/分支保护/DSH 授权与外部 API 原则）
+- 版本：v1.3（规划稿，2026-10-24；执行计划见 `docs/proposals/005-phase0-local-quality-implementation.md`）
 - 基线：HEAD `d198e38`（main），上次全量门禁 PASS（`20261022T125426Z`，58 个检查步骤）
 - 远端：`git@github.com:GameKingdomNatives/AI-specific_ECS.git`（私有，main 已推送）
 - 性质：规划，不改引擎代码；先审计、后设计、再排期
-- 关联：`docs/audits/engine-spec-audit-2026-10-22.md`、`docs/audits/scene-editor-acceptance.md`、ADR 034–041
+- 关联：`docs/audits/engine-spec-audit-2026-10-22.md`、`docs/audits/scene-editor-acceptance.md`、ADR 034–041、执行计划 005
 
 ## 0. 结论摘要
 
@@ -27,14 +27,14 @@
 | 阶段 0 启动 | 同意 | 先做规则表/CLI/回执，不改引擎行为 |
 | 引擎发布 | 先本地私有包，基本完善后再考虑上传 | 保持 `private:true`；`npm pack` 只做本地 tarball + starter 冒烟；许可证可后置 |
 | 开发依赖 | 同意 `fast-check`/`api-extractor`/`publint` | 阶段 1/2 安装；变异测试仍优先自研进程内方案 |
-| 深检节奏 | 每 5 次提交一次深检 + 每晚 20:00 DSH 自动化独立后台会话 | 阶段 0 加“提交计数 + 深检回执”；GitHub Actions 负责可复现夜检，DSH 负责独立会话的巡检/分诊 |
+| 深检节奏 | 每 5 次提交一次深检 + 每晚 20:00 DSH 自动化独立后台会话 | 阶段 0 先本地：deep-audit + 计划任务 + DSH 只读会话；GitHub Actions 等本地稳定后再接 |
 | HARD 项 | 认可 | 渲染表 SoA/anchor-frame、EventBus 类型映射、demo 外迁按阶段逐项落 ADR |
-| 代码托管 | GitHub 为基础，本机已有工具 | 阶段 0 建远端、CI、分支保护与 required checks |
+| 代码托管 | GitHub 私有库作备份；本地先跑稳 | 远端已建；CI/required checks 后置，不阻塞本地护栏 |
 | 许可证 | 暂缓（本地私有） | 不阻塞阶段 0–2；上传前再定 Apache-2.0/MIT 与 npm scope |
 | 仓库 | 私有库 `GameKingdomNatives/AI-specific_ECS` 已建并推送 main | SSH remote 可用；HTTPS 到 github.com 当前不稳定，push 走 SSH |
-| 分支保护 | 用户同意；但 GitHub Free 私有库返回 403“需 Pro 或公开” | 需在 Pro 升级 / 改公开 / 本地+CI 守卫三选一；不能假装已开启 |
+| 分支保护 | 用户改定：先本地保护，稳定后再考虑 CI/公开 | 本地 pre-push/stamp/safe-merge 为护栏；GitHub Pro/public 后再开 required checks |
 
-> 补充术语解释见 `docs/guides/quality-primer.md`；阶段 0 的“自动合法”不依赖公开发布，只依赖本地 receipt + GitHub CI。
+> 补充术语解释见 `docs/guides/quality-primer.md`；阶段 0 执行计划见 `docs/proposals/005-phase0-local-quality-implementation.md`。当前“自动合法”不依赖公开发布，只依赖本地 receipt + 本地护栏；GitHub 仅作私有备份。
 
 ## 1. 审计：引擎真实能力（基线 `d198e38`）
 
@@ -228,20 +228,20 @@ engine.dispose();
 
 **每 5 次提交一次深检**：
 
-- `tools/deep-audit.mjs` 产出 `artifacts/deep/<date>.json/md`（变异、属性全量、API diff、pack、性能、依赖）。
-- 本地提交计数 `.gate/deep-count`；每第 5 次提交时 `pre-push` 要求最近一次深检回执的 tree 覆盖当前 HEAD，否则拒绝推送（本地可 `--no-verify`，但 GitHub CI 仍拦）。
+- `tools/deep-audit.mjs` 产出 `artifacts/deep/<date>.json/md`（阶段 0 先复用 gate/coverage/replay/bench，阶段 1–3 再增属性/黄金/变异/API/pack）。
+- 本地提交计数 `.gate/deep-stamp`；每第 5 次提交时 `pre-push` 要求深检 stamp 覆盖 HEAD，否则拒绝推送（本地可 `--no-verify`，由夜间审计补漏）。
 - 深检回执写入 `artifacts/receipts/`，与普通 gate receipt 同格式、不同 `level: deep`。
 
-**每晚 20:00（Asia/Shanghai）自动化**：
+**每晚 20:00（Asia/Shanghai）自动化（本地优先）**：
 
-- **GitHub Actions（权威、可复现）**：`schedule: cron '0 12 * * *'`（UTC，对应 20:00 Asia/Shanghai），在 GitHub 上跑 `gate` + `deep-audit`，上传产物；失败自动开 issue / 在 PR 评论，不自动合并。
-- **DSH 独立后台会话（巡检/分诊）**：由 DSH 定时任务启动一个隔离会话，读取仓库 HEAD 与夜间 CI 产物，生成“失败归因 + 规则缺口 + 建议 issue”，只读仓库、不直接改代码；需要修复时由人/主会话开分支。
-- 两者分工：GitHub 负责“确定性证据”，DSH 负责“解释与归因”；DSH 不替代 CI 的判定权。
+- **本地计划任务**：`tools/nightly.mjs` + Windows 计划任务/GitBash 包装，跑 `gate` + `deep-audit`，产物写入 `engineering/audits/<date>/`。
+- **DSH 独立后台会话（巡检/分诊）**：优先验证 DSH 原生定时独立会话；不支持则用最小 daemon-loop 插件或计划任务降级。会话只读，生成“失败归因 + 规则缺口 + 建议 issue”，不直接改代码。
+- **GitHub Actions（后置）**：本地稳定后再加 `gate`/`deep` 工作流；它只作为可复现的远端证据，不替代本地护栏。
 - 安全边界：夜间任务默认只读 + 产出报告；不得自动改门禁/保护路径，不得自动改批准文件。
-- **审计工作目录**（用户授权）：独立会话可在当前工作区创建纯工程目录，例如 `engineering/audits/<date>/` 存审计报告、`engineering/source/` 存被审计源码快照；这些不是引擎/应用代码，不得被运行时 import；报告默认只读、可归档。
-- **分支保护限制（已实测）**：GitHub Free 私有库调用 branch protection/rulesets 返回 `403 Upgrade to GitHub Pro or make this repository public`。在用户选择 Pro / 公开 / 本地+CI 守卫之前，不伪称“已开启”；当前 main 已推送，SSH remote 可用。
+- **审计工作目录**（用户授权）：`engineering/audits/<date>/` 存审计报告、`engineering/source/` 存被审计源码快照；这些不是引擎/应用代码，不得被运行时 import。
+- **分支保护限制（已实测）**：GitHub Free 私有库 branch protection/rulesets 返回 `403`；当前采用本地护栏，等本地稳定后再决定 Pro/公开/required checks。
 
-> 若 GitHub Actions 私有仓库配额或 DSH 调度能力不足，降级顺序：本机 DSH 定时任务（20:00）→ 本机计划任务；但“深检回执 + 失败不合并”的语义不变。
+> 若 DSH 调度能力不足，降级顺序：本机 DSH 定时任务（20:00）→ Windows 计划任务；但“深检回执 + 失败不合并”的语义不变。
 
 ## 6. 传感器清单：现有 → 新增
 
@@ -300,15 +300,16 @@ engine.dispose();
 
 ## 8. 路线图（建议按阶段执行）
 
-### 阶段 0：基线、规则表、回执、GitHub 与深检节奏（约 1–2 周）
+### 阶段 0：基线、规则表、回执、本地保护与深检节奏（约 1–2 周）
 
 - 固化本审计指标；建 `contracts/harness.json` 规则清单（先 10–15 条）。
 - 实现 `tools/itb.mjs` CLI 骨架：`inspect`、`impact --changed`、`check --changed`、`gate`、`receipt`。
 - 每个现有自定义检查补一个负例（从 drill 5 个扩到规则级）。
-- **托管与自动化**：创建/连接 GitHub 私有仓库；加 `ci.yml`（push/PR 跑 fast + full）；加 `nightly.yml`（20:00 Asia/Shanghai，`gate` + `deep-audit`）；分支保护 + required checks。
-- **深检节奏**：`.gate/deep-count` 统计提交；每 5 次提交要求深检回执；DSH 20:00 独立会话做只读归因（阶段 0 先接 GitHub 产物与报告）。
-- 产出：`gate` 写 receipt；快速门禁 ≤20s；全量仍覆盖现有 58 个检查；深检报告落 `artifacts/deep/`。
-- 退出标准：任一改动能生成 receipt；10 条规则有 guide+sensor+negative test；GitHub CI 与夜间任务可跑通；无引擎行为改动。
+- **本地保护**：pre-commit fast、pre-push full + tree stamp、main 直推拦截、safe-merge、hooks 负例测试；GitHub 只作私有备份，CI 后置。
+- **深检节奏**：`.gate/deep-stamp` 记录；每 5 次提交要求深检回执；每晚 20:00 本地 `deep-audit` + DSH 只读会话（原生不支持则插件/计划任务降级）。
+- 产出：`gate` 写 receipt；快速门禁 ≤20s；全量仍覆盖现有 58 个检查；深检报告落 `engineering/audits/`。
+- 退出标准：本地三类绕过被拒；任一改动能生成 receipt；10 条规则有 guide+sensor+negative test；夜检报告可复现；无引擎行为改动。
+- **详细任务/批次/验收见 `docs/proposals/005-phase0-local-quality-implementation.md`。**
 
 ### 阶段 1：契约/能力/行为传感器（约 2–3 周）
 
@@ -362,20 +363,19 @@ engine.dispose();
 
 已确认（2026-10-24）：
 
-1. 阶段 0 启动。
-2. 本地私有包，基本完善后再考虑上传。
+1. 阶段 0 启动，执行计划见 `docs/proposals/005-phase0-local-quality-implementation.md`。
+2. 本地私有包，基本完善后再考虑上传；保持 `private:true`。
 3. 允许 `fast-check`/`api-extractor`/`publint`。
-4. 深检每 5 次提交一次 + 每晚 20:00 DSH 独立后台会话；GitHub Actions 作为可复现的权威夜检。
+4. 深检每 5 次提交一次 + 每晚 20:00 DSH 独立后台会话；先本地，GitHub Actions 后置。
 5. HARD 项原则同意，逐项 ADR。
-6. GitHub 作为托管基础；阶段 0 接入远端、CI、分支保护。
+6. GitHub 私有库作备份；本地分支保护优先，稳定后再考虑 CI/公开/required checks。
+7. 分支保护：本地 pre-push/stamp/safe-merge 作为护栏；GitHub Free 私有库不支持服务端保护，已实测 403，不伪称已开启。
 
 仍需你操作/确认：
 
-1. **分支保护三选一**：GitHub Free 私有库不支持 branch protection/rulesets（已实测 403）。选：① 升级 GitHub Pro；② 仓库改公开（不推荐，当前意图是私有）；③ 暂用本地 pre-push/stamp + GitHub Actions 检查作为“软保护”，等 Pro 再开 required checks。不要默认“已保护”。
-2. **DSH 夜间会话边界**：已确认使用当前工作区/账户；允许创建 `engineering/audits/` 等纯工程目录存报告/源码快照。还需确认 DSH 调度器能否独立起会话；若不能，阶段 0 先落 GitHub Actions，DSH 侧用本机计划任务补位。
-3. **GitHub CI 权限**：允许我在阶段 0 添加 `.github/workflows/ci.yml`/`nightly.yml` 并推送；私有库 Actions 分钟数是否可接受。
-4. **深检成本**：夜间深检预计 10–30 分钟（变异测试为主）；已认可，若超出先只覆盖 core。
-5. **许可证/包名**：上传前再定；当前保持 private。
+1. **DSH 调度器能力**：当前边界已确认（当前工作区/账户、允许 `engineering/audits/` 只读报告目录）；还差“能否原生定时起独立会话”。Batch 0.2 会先验证；若不能，我会给“最小 daemon-loop 插件 / 计划任务降级”二选一的操作清单，不会口头声称已完成。
+2. **许可证/包名**：上传前再定；当前保持 private。
+3. 其余无需操作；本地护栏、深检、规则表、CLI、Receipt 由我按 005 批次推进。
 
 > 仓库已建：`GameKingdomNatives/AI-specific_ECS`（private），main 已推送；HTTPS 到 github.com 当前不稳，remote 使用 SSH。
 
