@@ -9,7 +9,7 @@ if (branch === 'main' || branch === 'master') {
   console.error('[safe-merge] 请在 feature 分支运行；当前在 main。');
   process.exit(1);
 }
-const dirty = execFileSync('git', ['status', '--porcelain'], { encoding: 'utf8' }).trim();
+const dirty = execFileSync('git', ['status', '--porcelain', '--untracked-files=no'], { encoding: 'utf8' }).trim();
 if (dirty.length > 0) {
   console.error('[safe-merge] 工作区有未提交改动；先提交再合并。');
   process.exit(1);
