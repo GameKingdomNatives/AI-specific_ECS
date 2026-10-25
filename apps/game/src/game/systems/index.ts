@@ -5,14 +5,14 @@ import { createMechaControlSystem } from './controls.js';
 import { createEnemyAiSystem } from './enemy.js';
 import { createFluxSystem } from './flux.js';
 import { createProjectileSystem } from './projectile.js';
-import { createEnemyWeaponSystem, createPlayerWeaponSystem, type WeaponSpec } from './weapon.js';
+import { createEnemyWeaponSystem, createPlayerWeaponSystem, createSupportSystem, createTerminatorSystem, type WeaponSpec } from './weapon.js';
 
 export { AI_ENGAGE, AI_VENT, createEnemyAiSystem } from './enemy.js';
 export { createMechaControlSystem } from './controls.js';
 export { createFluxSystem } from './flux.js';
 export { createCombatSystem } from './combat.js';
 export { createProjectileSystem } from './projectile.js';
-export { createEnemyWeaponSystem, createPlayerWeaponSystem } from './weapon.js';
+export { createEnemyWeaponSystem, createPlayerWeaponSystem, createSupportSystem, createTerminatorSystem } from './weapon.js';
 export type { WeaponSpec } from './weapon.js';
 
 export interface GameSystemDeps {
@@ -34,6 +34,8 @@ export function createGameSystems(deps: GameSystemDeps): SystemDef[] {
     createMechaControlSystem({ player: deps.player, getInput: deps.getInput, width: deps.width, height: deps.height }),
     createFluxSystem(),
     createPlayerWeaponSystem({ player: deps.player, getInput: deps.getInput, ...(deps.playerWeapon === undefined ? {} : { spec: deps.playerWeapon }) }),
+    createTerminatorSystem({ player: deps.player, getInput: deps.getInput }),
+    createSupportSystem({ player: deps.player, getInput: deps.getInput }),
     createEnemyAiSystem({ player: deps.player, width: deps.width, height: deps.height }),
     createEnemyWeaponSystem(deps.enemyWeapon === undefined ? {} : { spec: deps.enemyWeapon }),
     createProjectileSystem({ width: deps.width, height: deps.height }),

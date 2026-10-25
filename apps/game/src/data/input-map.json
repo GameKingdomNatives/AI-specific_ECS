@@ -6,6 +6,8 @@
     { "name": "left", "keys": ["KeyA", "ArrowLeft"] },
     { "name": "right", "keys": ["KeyD", "ArrowRight"] },
     { "name": "fire", "keys": ["Space"] },
-    { "name": "vent", "keys": ["KeyV"] }
+    { "name": "vent", "keys": ["KeyV"] },
+    { "name": "terminator", "keys": ["KeyE"] },
+    { "name": "support", "keys": ["KeyQ"] }
   ]
 }

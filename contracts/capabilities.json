@@ -327,6 +327,50 @@
           "combat"
         ]
       }
+    },
+    {
+      "id": "game.weapon.terminator",
+      "phase": "ai",
+      "card": "docs/systems/game-weapon-terminator.md",
+      "contractTest": "apps/game/tests/weapon.contract.test.ts",
+      "scene": "apps/game/scenes/flux-core.scene.json",
+      "spec": {
+        "inputs": [
+          "Position",
+          "Aim",
+          "Flux",
+          "Terminator"
+        ],
+        "outputs": [
+          "Projectile",
+          "softFlux"
+        ],
+        "owns": [
+          "terminator"
+        ]
+      }
+    },
+    {
+      "id": "game.weapon.support",
+      "phase": "ai",
+      "card": "docs/systems/game-weapon-support.md",
+      "contractTest": "apps/game/tests/weapon.contract.test.ts",
+      "scene": "apps/game/scenes/flux-core.scene.json",
+      "spec": {
+        "inputs": [
+          "Position",
+          "Aim",
+          "Flux",
+          "Support"
+        ],
+        "outputs": [
+          "Projectile",
+          "hardFlux"
+        ],
+        "owns": [
+          "support"
+        ]
+      }
     }
   ]
 }

@@ -16,6 +16,8 @@
 | game.player | ai | [game-player.md](game-player.md) |
 | game.flux | ai | [game-flux.md](game-flux.md) |
 | game.weapon.primary | ai | [game-weapon-primary.md](game-weapon-primary.md) |
+| game.weapon.terminator | ai | [game-weapon-terminator.md](game-weapon-terminator.md) |
+| game.weapon.support | ai | [game-weapon-support.md](game-weapon-support.md) |
 | game.enemyAi | ai | [game-enemy-ai.md](game-enemy-ai.md) |
 | game.enemyWeapon | ai | [game-enemy-weapon.md](game-enemy-weapon.md) |
 | game.projectiles | movement | [game-projectiles.md](game-projectiles.md) |

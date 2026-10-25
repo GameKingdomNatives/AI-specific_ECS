@@ -44,6 +44,12 @@
         "Weapon": {
           "cooldown": 0
         },
+        "Terminator": {
+          "cooldown": 0
+        },
+        "Support": {
+          "cooldown": 0
+        },
         "Aim": {
           "angle": 0
         },
@@ -118,10 +124,24 @@
       ]
     },
     {
-      "id": "game.enemyAi",
+      "id": "game.weapon.terminator",
       "phase": "ai",
       "after": [
         "game.weapon.primary"
+      ]
+    },
+    {
+      "id": "game.weapon.support",
+      "phase": "ai",
+      "after": [
+        "game.weapon.terminator"
+      ]
+    },
+    {
+      "id": "game.enemyAi",
+      "phase": "ai",
+      "after": [
+        "game.weapon.support"
       ]
     },
     {

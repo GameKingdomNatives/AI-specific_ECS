@@ -18,7 +18,7 @@ function setup(shieldActive: boolean) {
   physics.addCircle(target, 200, 200, 20);
   const bullet = fixture.spawnWith([
     [Position, { x: 200, y: 200 }],
-    [Projectile, { damage: 8, faction: 0 }],
+    [Projectile, { damage: 8, faction: 0, effect: 0 }],
   ]);
   return { fixture, physics, target, bullet };
 }
@@ -33,6 +33,16 @@ test('护盾命中转硬辐能，不扣结构', () => {
   assert.ok(flux !== undefined && flux.hard > 10);
   assert.equal(fixture.world.get(target, Mecha)?.hull, 20);
   assert.deepEqual(events, ['hit']);
+});
+
+test('电子战弹穿盾：只加硬辐能、不扣结构', () => {
+  const { fixture, physics, target, bullet } = setup(false);
+  fixture.world.set(bullet, Projectile, { damage: 6, faction: 0, effect: 1 });
+  fixture.run(createCombatSystem({ physics }));
+  assert.equal(fixture.world.isAlive(bullet), false);
+  const flux = fixture.world.get(target, Flux);
+  assert.ok(flux !== undefined && flux.hard > 10);
+  assert.equal(fixture.world.get(target, Mecha)?.hull, 20);
 });
 
 test('无盾命中扣结构，结构归零即销毁并发击杀事件', () => {
