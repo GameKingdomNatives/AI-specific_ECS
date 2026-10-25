@@ -11,6 +11,8 @@
 - **人的裁定（2026-10-25，Q1–Q24）**：基础工作交工具、人只做判断（Q1/Q3/Q4）；L3 环境受限只能算部分证据、不得称全量 PASS（Q2）；游戏内容与引擎分离、不进包体（Q5）；迭代顺序 **A 三武器槽 → C 标准组件上移 → B 战后复盘**（Q10）；单局 3 分钟、纯色块、敌机两态、数值维持先验值（Q11–Q15）；战后回放而非战中侧栏（Q16）；G6 与文档入口已做（Q20/Q21）；**事后追认只用于人不在场时的可逆 HARD**（Q24）。
 - **工具修复**：`tools/status.mjs` 改文件描述符捕获（不再伪造「HEAD 尚无提交／脏文件 1」）；`gate` 记录环境指纹并标注 L3（G6）；`.archify/` 进 `.gitignore`。
 - 游戏内容层：`apps/game/src/game/`（组件、纯函数辐能模型、7 个系统）；契约测试 `apps/game/tests/*.contract.test.ts` 6 个文件，已进全量门禁（测试文件 45 → 51）。
+- **本轮已提交**：`900ff58 feat(game): add flux-core slice and iteration workflow`（59 文件，+2167/−171）。门禁 `20261025T063433Z-44880-9v6iy`：73/76，仅 build／storybook／starter 未执行（L3，管道受限，不计 PASS）。**未推送**：`git push` 失败于环境——Git Bash 的 ssh 无法创建信号管道（`couldn't create signal pipe, Win32 error 5`，exit 128）；请在完整终端推送，并先复跑全量门禁写 stamp。
+- 下一步（人已定顺序）：**迭代 002 = A 三武器槽** → 迭代 003 = C 标准组件上移（F-01）→ 迭代 004 = B 战后复盘回放。单局 3 分钟、纯色块、敌机两态、数值不调。
 - 门禁泛化（HARD，见 ADR-057）：测试根加 `apps/game/dist-ts/tests`；能力校验遍历所有 `*.scene.json`；结构变更扫描加 `apps/game/src/game`；系统契约测试扫描加游戏系统。阈值与规则强度未变。
 - 引擎反馈：`docs/game/engine-feedback.md` 记 F-01～F-07（标准变换组件归属、门禁单场景假设、阵营查询、输入边沿、HUD 图元、世界哈希约定、检查脚本管道子进程）。
 - 修掉一个真实工具链问题：`mcp-smoke` / `package-surface` / `pack-smoke` / `depcruise` / `drill` 的 `spawnSync(..., encoding)` 管道写法在受限沙箱下 EPERM；统一改用新文件 `tools/checks/spawn-capture.mjs`（文件描述符重定向）。
