@@ -29,3 +29,14 @@
 | 10 转向 | handoff/ADR | 失败归因 → 新规则 |
 
 > 记住：Harness 的目标不是“零人工”，而是把人的注意力从逐行 Review 移到 Spec/契约、HARD 决策和规则演进上。
+
+## 2026-10-25 追加：发布与文档
+
+11. **发布状态必须可核验**：`staged`、`published`、`recovery hold` 是三种不同状态；不要用“已上传”概括。核验 `npm view` / `npm stage list`。
+12. **恢复码不是发布因子**：使用 recovery code 会触发 72h 安全冻结；日常发布用 TOTP，长期用 OIDC trusted publishing。
+13. **passkey 与 OTP 是两条通道**：`npm stage approve` 只支持 `--otp`；WebAuthn/passkey 只在交互式 `npm publish` 的浏览器仪式里使用。
+14. **编码是门禁的一部分**：PowerShell 批量替换可能破坏 UTF-8/BOM；JSON 带 BOM 会让 Vite/PostCSS 解析失败。批量编辑必须保留编码，或用编辑工具。
+15. **文档也是产物**：公开包需要生命周期、代码地图、前后端边界、Agent 手册、维护/废弃说明；只写 API 列表不算可维护。
+16. **一次只加一个动作**：`git add -A` 会把生成物/敏感产物带进提交；显式列出路径。
+17. **先证明网络层**：npm registry TCP 超时与 token 401 是不同故障；先 `npm ping`，再谈认证。
+18. **包重命名要全链路**：package.json、imports、tsconfig、lock、pack-smoke 解包路径、starter 都必须同步，否则单测绿但交付包坏。

@@ -37,6 +37,7 @@
 - [runbooks/07-如何新增系统.md](runbooks/07-如何新增系统.md)
 - [systems/](systems/) — 系统卡（demo/物理/场景）
 - [audits/](audits/) — 批次验收、阶段验收、故障审计
+- [audits/session-2026-10-25.md](audits/session-2026-10-25.md) — 本次公开/命名/发布/文档总集回顾与教训
 
 ## 关键契约 / Contracts
 
