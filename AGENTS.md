@@ -2,10 +2,21 @@
 
 本文件是**约束**，不是说明书。完整规格见 `docs/00-最终指令.md`，冲突以该文档为准。
 
-## 本轮范围
+## 项目结构（2026-10-25 起）
 
-只做引擎与技术基础：ECS 内核、十个端口、事件总线、渲染与物理查询、数据层、确定性、热重载、治理面板。
-**不做**：机甲／辐能／弹幕／僚机／关卡等任何游戏内容。
+**一个容器、两个平级项目**，另有一个测试替身：
+
+| 单元 | 路径 | 性质 |
+|---|---|---|
+| 引擎 | `packages/engine` | 可被外部消费的库（npm `agent-specific_ecs`）；只导出运行时内核 |
+| 游戏 | `apps/game` + `docs/game/` | 产品：场景、游戏系统、HUD、编辑器接线 |
+| 夹具 | `packages/fixture` | 测试替身，不承载游戏内容 |
+| 工程内核 | `tools/`、`contracts/`、`docs/workflow/` | 门禁、契约、流程 |
+
+- 历史：2026-10-20 ～ 10-24 的工作是**建立引擎框架**；现在进入**在框架上推进游戏，并以游戏的推进反哺引擎**的阶段。
+- 游戏内容**不得进入引擎包体**（`contracts/export-policy.json` + `package-surface` 门禁）。
+- 引擎契约变更仍走 ADR 与 HARD 审批；游戏暴露的缺口记 `docs/game/engine-feedback.md`。
+- 迭代方式见 `docs/workflow/iteration-workflow.md`（证据分层、人的在场规则、收尾清单）。
 
 ## 边界（违反即拒绝）
 
@@ -17,6 +28,7 @@
 6. 热路径（每帧上千次）不得走事件总线。
 7. 不得新增任何「平行真相」（例如物理库自己维护位置）。
 8. 不得用 `any`、`@ts-ignore`、类型断言绕过契约。
+9. 游戏内容不得进入引擎包体或引擎源码；引擎不得 import `apps/`。
 
 ## 门禁
 
@@ -44,16 +56,19 @@ node tools/panel/collect.mjs  # 刷新治理面板数据
 `tools/`、`.githooks/`、`eslint.config.mjs`、`tsconfig*.json`、`.dependency-cruiser.cjs`、`package.json`、`.npmrc`。
 改动时门禁会拦；确需改动：`ALLOW_PROTECTED=1 node tools/gate.mjs` 并在 `docs/adr/` 补记录。
 
-## 环境事实（2026-10-20 实测）
+## 环境事实（2026-10-25 实测）
 
-- Node 24.14、npm 11.9、TypeScript 5.9、ESLint 9.39、dependency-cruiser 18.7。
-- **vitest／vite 不可用**：二者依赖 esbuild 子进程，本机沙箱禁止管道子进程。测试用 `node:test`，构建用 `tsc`。
-- **pnpm 不可用**：生命周期脚本 spawn 被拒，隔离链接在本机也不完整。用 npm workspaces。
-- **Git Bash 在本沙箱内起不来**（MSYS 需要信号管道）。钩子依据 `.githooks/` 已配好，在你自己的终端里生效；沙箱内提交需 `git commit --no-verify`，并用 `node tools/gate.mjs` 手动补跑。
-- npm 缓存必须落工作区内：`.npmrc` 已设 `cache=.npm-cache`。
+- **受限会话**（当前 DSH 沙箱）：禁止管道子进程 → esbuild/vite 内部 spawn 失败，`build`／`storybook`／`starter` 无法执行；这是 **L3 环境受限**，不是代码违规，但**不得计为 PASS**。
+- 本会话 `node` 为 v26.12.1，`npm` 解析到需要 Node 22 的 shim；跑 npm 相关步骤前先确认解析到的可执行文件。
+- **vitest／vite 测试不可用**：测试用 `node:test`；构建用 `tsc` 验证类型。完整会话（人的终端）可跑 Vite/Storybook。
+- **pnpm 不可用**：用 npm workspaces；npm 缓存必须落工作区内（`.npmrc` 已设 `cache=.npm-cache`）。
+- 检查脚本一律用 `tools/checks/spawn-capture.mjs`（文件描述符重定向），**不要用 `spawnSync(..., { encoding })` 管道捕获**。
+- 门禁报告会记录环境指纹（node／平台／管道可用性）；L3 步骤必须点名列出。
 
 ## 会话仪式
 
-1. 开始：`node tools/status.mjs`，确认 HEAD、脏文件、上次门禁。
-2. 中途：改完一个模块就 `node tools/gate.mjs --fast`，别攒到最后。
-3. 结束：`node tools/gate.mjs` + 贴报告摘要 + 更新 `docs/handoff.md` + 必要时 `node tools/panel/collect.mjs`。
+1. 开始：`node tools/status.mjs` + 读 `docs/handoff.md` 顶部 + 读 `docs/workflow/iteration-workflow.md`。
+2. 立项：选 1–2 个目标，写迭代记录（`docs/workflow/iterations/iter-NNN-*.md`），过边界检查。
+3. 中途：改完一个模块就 `node tools/gate.mjs --fast`，别攒到最后。
+4. 结束：`node tools/gate.mjs` + 贴报告摘要 + 更新 `docs/handoff.md` 与 `docs/quality-log.md` + 必要时 `node tools/panel/collect.mjs`。
+5. 基础工作交工具：状态检查、门禁、报告、回执全部自动化；工具坏了修工具，不写"注意事项"绕过。

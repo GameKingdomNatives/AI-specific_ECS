@@ -2,9 +2,11 @@
 import './ui/app.css';
 import { findBudgetBreach, type EntityId, type SystemDef } from 'agent-specific_ecs/core';
 import { createEngine } from 'agent-specific_ecs';
-import type { BoxSpec } from 'agent-specific_ecs/data';
-import { hashHex, Recorder, serialize, worldHashGroups } from 'agent-specific_ecs/determinism';
-import { Box, BoxSpawner, Bullet, Position, spawnBoxes } from '@itb/fixture';
+
+import { Recorder, serialize } from 'agent-specific_ecs/determinism';
+import { Box, Bullet, Position, spawnBoxes } from '@itb/fixture';
+import { Flux, Mecha } from './game/components.js';
+import { componentLookup, hashWorld } from './scene-components.js';
 import { createPixiRenderer } from 'agent-specific_ecs/impl';
 import { createGameAudio } from './sound.js';
 import { createUiIntents } from './ui-intents.js';
@@ -21,7 +23,7 @@ import { createLocalStorage, createSaveStore } from 'agent-specific_ecs/storage'
 import { initialContent, watchContent } from './content.js';
 import { createControls, type SavePayload } from './controls.js';
 import { createBrowserInput } from './input.js';
-import { parseInputMap } from 'agent-specific_ecs/data';
+import { parseInputMap, type BoxSpec } from 'agent-specific_ecs/data';
 import inputMapRaw from './data/input-map.json' with { type: 'json' };
 import { createSceneSystems } from './system-registry.js';
 import { currentSceneFile } from './scene-file.js';
@@ -73,8 +75,6 @@ const input = createBrowserInput(canvas, {
   },
   ...(inputMapParsed.value === null ? {} : { map: inputMapParsed.value }),
 });
-
-const componentLookup = (name: string) => (name === 'Position' ? Position : name === 'Box' ? Box : name === 'BoxSpawner' ? BoxSpawner : undefined);
 let sceneResult: Awaited<ReturnType<typeof loadSceneRuntime>> = await loadSceneRuntime(world, componentLookup);
 let player = resolvePlayer(world, sceneResult.loaded, { position: Position, box: Box }, WIDTH, HEIGHT) ?? -1;
 let current = input.sample(0);
@@ -109,6 +109,9 @@ let deps = {
 applySystems(pickSystems(sceneSystems(), sceneResult.loaded));
 let kills = 0;
 bus.on('demo.hit', () => { kills += 1; renderer.shake(10, 180); });
+bus.on('game.shot', () => { audio.play('shoot'); });
+bus.on('game.hit', () => { renderer.shake(4, 90); audio.play('impact'); });
+bus.on('game.kill', () => { kills += 1; renderer.shake(14, 260); audio.play('explosion'); });
 const initial = initialContent();
 let dataStatus = `${initial.ok ? 'data ok' : `data fallback: ${initial.issue ?? 'invalid'}`} · scene ${sceneResult.loaded === null ? 'fallback' : sceneResult.loaded.scene.name} · player ${player < 0 ? 'missing' : 'ok'}`;
 function spawnSpec(spec: BoxSpec): EntityId[] {
@@ -116,7 +119,7 @@ function spawnSpec(spec: BoxSpec): EntityId[] {
   return spawnBoxes(world, count, WIDTH, HEIGHT, spec.minSize, spec.maxSize, spec.speed);
 }
 let boxes = sceneResult.loaded !== null ? [] : spawnSpec(initial.spec);
-let recorder = new Recorder(20261020, hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]])));
+let recorder = new Recorder(20261020, hashWorld(world));
 function sceneLabel(): string {
   return sceneResult.loaded === null ? 'fallback' : sceneResult.loaded.scene.name;
 }
@@ -140,7 +143,7 @@ function rebuild(scene: Scene | null): { ok: boolean; issues: string[] } {
   boxes = sceneResult.loaded === null ? spawnSpec(initial.spec) : [];
   runState = createRunState();
   kills = 0;
-  const hash = hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]]));
+  const hash = hashWorld(world);
   recorder = new Recorder(20261020, hash, configHashFor(sceneResult.loaded === null ? null : sceneResult.loaded.scene));
   lastHash = hash;
   dataStatus = `scene ${sceneLabel()} · player ${playerLabel()}`;
@@ -158,7 +161,7 @@ function applySceneDocument(raw: unknown): { ok: boolean; issues: string[] } {
   if (light !== null) {
     sceneResult = { loaded: light, issues: [] };
     lastAppliedScene = json;
-    lastHash = hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]]));
+    lastHash = hashWorld(world);
     recorder = new Recorder(20261020, lastHash, configHashFor(light.scene));
     dataStatus = `scene ${sceneLabel()} · player ${playerLabel()}`;
     return { ok: true, issues: [] };
@@ -195,7 +198,7 @@ const uiStore = createUiStore({
   hash: '',
   dataStatus,
   mode: probe === null ? 'run' : `probe ${probe}`,
-  note: '就绪 · 按住左键射击',
+  note: '就绪 · WASD 移动 · 左键开火 · 右键护盾 · V 排散',
 });
 function quarantinedCount(): number {
   return storage.keys().filter((key) => key.startsWith('save:quarantine:')).length;
@@ -228,7 +231,7 @@ const debugView = createDebugView(new URLSearchParams(location.search).has('debu
 const renderer = await createPixiRenderer(canvas, { preserveDrawingBuffer: captureMode, debugGlobal: captureMode, batching });
 renderer.setCamera(WIDTH / 2, HEIGHT / 2, 1);
 let last = performance.now();
-let lastHash = hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]]));
+let lastHash = hashWorld(world);
 function updateHud(): void {
   if (hud === null || clock.tick % 10 !== 0) return;
   if (clock.tick % 60 === 0) {
@@ -262,36 +265,25 @@ function frame(now: number): void {
       dumpSink.persist();
     }
   }
-  if (clock.tick % 60 === 0) lastHash = hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]]));
+  if (clock.tick % 60 === 0) lastHash = hashWorld(world);
   renderer.submit(renderTable(world, clock.alpha, frameStart, { player, kills, width: WIDTH, assets: sceneResult.loaded?.assets, url: textures.url }));
   renderer.debugDraw(debugView.enabled ? scheduler.collectDebug(world, bus, commands, clock.tick) : []);
   updateHud();
   requestAnimationFrame(frame);
 }
-Object.assign(globalThis, {
-  __itb: {
-    recording: () => {
-      recorder.captureEvents(bus.snapshotRecording());
-      return serialize(recorder.toRecording());
-    },
-    hash: () => hashHex(worldHashGroups(world, [[Position, Box], [Position, Bullet]])),
-    snapshot: () => current,
-    player: () => world.get(player, Position),
-    dumps: () => dumpSink.list(),
-    logs: () => logger.entries(),
-    audio: () => audio.stats(),
-    worldSnapshot: () => world.snapshot(),
-    restoreWorld: (snapshot: Parameters<typeof world.restore>[0]) => world.restore(snapshot),
-    render: () => renderer.stats(),
-    setCulling: (enabled: boolean) => renderer.setCulling(enabled),
-    camera: (x: number, y: number, zoom: number) => renderer.setCamera(x, y, zoom),
-    systems: () => scheduler.orderNames,
-    valid: () => runState.valid,
-    debugLines: () => scheduler.collectDebug(world, bus, commands, clock.tick),
-    shake: (amplitude = 10, durationMs = 180) => renderer.shake(amplitude, durationMs),
-    timings: () => scheduler.systemTimings(),
-  },
-});
+Object.assign(globalThis, { __itb: {
+  recording: () => { recorder.captureEvents(bus.snapshotRecording()); return serialize(recorder.toRecording()); },
+  hash: () => hashWorld(world), snapshot: () => current, player: () => world.get(player, Position),
+  flux: () => world.get(player, Flux), hull: () => world.get(player, Mecha),
+  dumps: () => dumpSink.list(), logs: () => logger.entries(), audio: () => audio.stats(),
+  worldSnapshot: () => world.snapshot(), restoreWorld: (snapshot: Parameters<typeof world.restore>[0]) => world.restore(snapshot),
+  render: () => renderer.stats(), setCulling: (enabled: boolean) => renderer.setCulling(enabled),
+  camera: (x: number, y: number, zoom: number) => renderer.setCamera(x, y, zoom),
+  systems: () => scheduler.orderNames, valid: () => runState.valid,
+  debugLines: () => scheduler.collectDebug(world, bus, commands, clock.tick),
+  shake: (amplitude = 10, durationMs = 180) => renderer.shake(amplitude, durationMs),
+  timings: () => scheduler.systemTimings(),
+} });
 if (import.meta.hot !== undefined) {
   import.meta.hot.accept('./system-registry.ts', (module) => {
     if (module !== undefined && schemaGuard()) applySystems(module.createSystems(deps));

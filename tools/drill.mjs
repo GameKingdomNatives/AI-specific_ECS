@@ -1,4 +1,4 @@
-import { spawnSync } from 'node:child_process';
+import { capture } from './checks/spawn-capture.mjs';
 import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 
 /**
@@ -235,7 +235,7 @@ for (const drill of DRILLS) {
     } else {
       drill.mutate();
     }
-    const run = spawnSync(process.execPath, drill.command, { encoding: 'utf8', env });
+    const run = capture(process.execPath, drill.command, { env });
     const started = run.error === undefined && run.status !== null;
     results.push({
       name: drill.name,

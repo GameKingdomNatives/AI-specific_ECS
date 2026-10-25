@@ -6,6 +6,6 @@
     "tsBuildInfoFile": "dist-ts/.tsbuildinfo",
     "jsx": "react-jsx"
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.json"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.json", "tests/**/*.ts"],
   "references": [{ "path": "../../packages/engine" }, { "path": "../../packages/fixture" }]
 }

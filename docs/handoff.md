@@ -2,7 +2,21 @@
 
 > 每轮收尾更新。新会话先读本节，再读 `docs/00-最终指令.md`。
 
-## 当前状态（2026-10-20 · 第二批进行中）
+## 当前状态（2026-10-25 · 游戏侧首个切片已落地）
+
+**这轮的口径变化**：引擎与游戏是两个**平级项目**（用户 2026-10-25 明确），`apps/game` 不再只是「集成样例」。本轮开始按游戏侧推进，并用游戏侧暴露的问题反哺工程内核。
+
+- 游戏侧首个切片 `flux-core`：辐能状态机（软/硬/过载/红线）+ 旗舰操控 + 主炮 + 1 架敌机 AI（交战/排散后撤）+ 护盾转硬辐能 + 辐能条 HUD。场景 `apps/game/scenes/flux-core.scene.json`，用 `?scene=flux-core.scene.json` 打开；默认仍是 `demo.scene.json`。
+- **工作流已建立**（2026-10-25）：`docs/workflow/iteration-workflow.md`（迭代节奏、证据分层 L0–L4、人的在场规则、收尾清单）+ `templates/iteration.md` + `iterations/iter-001-flux-core.md`。AGENTS 与 00-最终指令 的口径已同步改写为「两个平级项目」。
+- **人的裁定（2026-10-25，Q1–Q24）**：基础工作交工具、人只做判断（Q1/Q3/Q4）；L3 环境受限只能算部分证据、不得称全量 PASS（Q2）；游戏内容与引擎分离、不进包体（Q5）；迭代顺序 **A 三武器槽 → C 标准组件上移 → B 战后复盘**（Q10）；单局 3 分钟、纯色块、敌机两态、数值维持先验值（Q11–Q15）；战后回放而非战中侧栏（Q16）；G6 与文档入口已做（Q20/Q21）；**事后追认只用于人不在场时的可逆 HARD**（Q24）。
+- **工具修复**：`tools/status.mjs` 改文件描述符捕获（不再伪造「HEAD 尚无提交／脏文件 1」）；`gate` 记录环境指纹并标注 L3（G6）；`.archify/` 进 `.gitignore`。
+- 游戏内容层：`apps/game/src/game/`（组件、纯函数辐能模型、7 个系统）；契约测试 `apps/game/tests/*.contract.test.ts` 6 个文件，已进全量门禁（测试文件 45 → 51）。
+- 门禁泛化（HARD，见 ADR-057）：测试根加 `apps/game/dist-ts/tests`；能力校验遍历所有 `*.scene.json`；结构变更扫描加 `apps/game/src/game`；系统契约测试扫描加游戏系统。阈值与规则强度未变。
+- 引擎反馈：`docs/game/engine-feedback.md` 记 F-01～F-07（标准变换组件归属、门禁单场景假设、阵营查询、输入边沿、HUD 图元、世界哈希约定、检查脚本管道子进程）。
+- 修掉一个真实工具链问题：`mcp-smoke` / `package-surface` / `pack-smoke` / `depcruise` / `drill` 的 `spawnSync(..., encoding)` 管道写法在受限沙箱下 EPERM；统一改用新文件 `tools/checks/spawn-capture.mjs`（文件描述符重定向）。
+- 最近一次全量门禁：`20261025T052330Z-19384-u9zgp`，**73/76 PASS**；失败仅 `build` / `storybook` / `starter` 三步，均为本会话沙箱禁止管道子进程（vite/esbuild 内部 spawn EPERM）。本机 `node` 为 v26.12.1、`npm` 解析到需要 Node 22 的 shim。与 2026-10-24 fail-open 审计是同一组环境限制——**不等于代码违规，但按项目规则不能称为「全量 PASS」**，也未提交。
+
+## 历史状态（2026-10-20 · 第二批进行中）
 
 - 第一批已完成并提交：ECS 内核、九端口、事件总线、门禁（含诊断定位）、治理面板、AGENTS.md。
 - 第二批已落地：Pixi 渲染后端（`IRenderer` 实现，渲染表 diff、七图层、相机、逻辑分辨率 1920×1080）、浏览器入口（ESM + Vite）、固定步长循环（60Hz + 累加器）、HUD。

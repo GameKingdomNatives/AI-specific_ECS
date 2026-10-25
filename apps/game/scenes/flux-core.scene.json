@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "name": "flux-core",
+  "resources": {
+    "playerTex": "player",
+    "enemyTex": "box",
+    "bulletTex": "bullet"
+  },
+  "nodes": [
+    {
+      "id": "root",
+      "name": "root"
+    },
+    {
+      "id": "player",
+      "name": "flagship",
+      "parentId": "root",
+      "assets": {
+        "texture": "playerTex"
+      },
+      "components": {
+        "Position": {
+          "x": 960,
+          "y": 540
+        },
+        "Box": {
+          "size": 26,
+          "tint": 16777215
+        },
+        "Mecha": {
+          "faction": 0,
+          "hull": 100,
+          "maxHull": 100
+        },
+        "Flux": {
+          "soft": 0,
+          "hard": 0,
+          "overloadTicks": 0
+        },
+        "Shield": {
+          "active": false,
+          "radius": 46
+        },
+        "Weapon": {
+          "cooldown": 0
+        },
+        "Aim": {
+          "angle": 0
+        },
+        "Vent": {
+          "active": false
+        }
+      }
+    },
+    {
+      "id": "enemy1",
+      "name": "raider",
+      "parentId": "root",
+      "assets": {
+        "texture": "enemyTex"
+      },
+      "components": {
+        "Position": {
+          "x": 1380,
+          "y": 380
+        },
+        "Box": {
+          "size": 30,
+          "tint": 16777215
+        },
+        "Mecha": {
+          "faction": 1,
+          "hull": 140,
+          "maxHull": 140
+        },
+        "Flux": {
+          "soft": 0,
+          "hard": 0,
+          "overloadTicks": 0
+        },
+        "Shield": {
+          "active": true,
+          "radius": 54
+        },
+        "Weapon": {
+          "cooldown": 0
+        },
+        "Aim": {
+          "angle": 3.14159
+        },
+        "Ai": {
+          "mode": 0,
+          "timer": 0
+        },
+        "Vent": {
+          "active": false
+        }
+      }
+    }
+  ],
+  "systems": [
+    {
+      "id": "game.player",
+      "phase": "ai"
+    },
+    {
+      "id": "game.flux",
+      "phase": "ai",
+      "after": [
+        "game.player"
+      ]
+    },
+    {
+      "id": "game.weapon.primary",
+      "phase": "ai",
+      "after": [
+        "game.flux"
+      ]
+    },
+    {
+      "id": "game.enemyAi",
+      "phase": "ai",
+      "after": [
+        "game.weapon.primary"
+      ]
+    },
+    {
+      "id": "game.enemyWeapon",
+      "phase": "ai",
+      "after": [
+        "game.enemyAi"
+      ]
+    },
+    {
+      "id": "game.projectiles",
+      "phase": "movement"
+    },
+    {
+      "id": "physics.bodySync",
+      "phase": "collision"
+    },
+    {
+      "id": "game.combat",
+      "phase": "damage"
+    }
+  ]
+}

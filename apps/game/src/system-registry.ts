@@ -9,6 +9,7 @@ import { Box, createBoxSpawnerSystem, createBulletCleanupSystem,
   createWeaponSystem,
   Position,
 } from '@itb/fixture';
+import { createGameSystems } from './game/systems/index.js';
 
 export interface SystemDeps {
   readonly width: number;
@@ -31,7 +32,9 @@ export function createSceneSystems(deps: SystemDeps, scene: Scene | null): Syste
   for (const system of scene?.systems ?? []) {
     if (system.params !== undefined) params[system.id] = system.params;
   }
-  return createSystems(deps, params);
+  const all = createSystems(deps, params);
+  // 场景不可用时的降级路径只保留夹具系统，避免游戏系统在缺组件世界里空转。
+  return scene === null ? all.filter((system) => !system.name.startsWith('game.')) : all;
 }
 
 function createPlayerSystem(player: EntityId, getInput: () => InputSnapshot, speed: number): SystemDef {
@@ -84,5 +87,12 @@ export function createSystems(deps: SystemDeps, params: Readonly<Record<string, 
     createContactEvents(deps.physics),
     createHitSystem(deps.physics, { player: deps.player }),
     createBulletCleanupSystem(deps.width, deps.height),
+    ...createGameSystems({
+      player: deps.player,
+      getInput: deps.getInput,
+      physics: deps.physics,
+      width: deps.width,
+      height: deps.height,
+    }),
   ];
 }

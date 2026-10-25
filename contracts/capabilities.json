@@ -172,6 +172,161 @@
           "cleanup"
         ]
       }
+    },
+    {
+      "id": "game.player",
+      "phase": "ai",
+      "card": "docs/systems/game-player.md",
+      "contractTest": "apps/game/tests/controls.contract.test.ts",
+      "scene": "apps/game/scenes/flux-core.scene.json",
+      "spec": {
+        "inputs": [
+          "Position",
+          "Flux",
+          "InputSnapshot"
+        ],
+        "outputs": [
+          "Position",
+          "Aim",
+          "Shield",
+          "Vent"
+        ],
+        "owns": [
+          "mecha-control"
+        ]
+      }
+    },
+    {
+      "id": "game.flux",
+      "phase": "ai",
+      "card": "docs/systems/game-flux.md",
+      "contractTest": "apps/game/tests/flux.contract.test.ts",
+      "scene": "apps/game/scenes/flux-core.scene.json",
+      "spec": {
+        "inputs": [
+          "Flux",
+          "Shield",
+          "Vent"
+        ],
+        "outputs": [
+          "Flux",
+          "overload"
+        ],
+        "owns": [
+          "flux"
+        ]
+      }
+    },
+    {
+      "id": "game.weapon.primary",
+      "phase": "ai",
+      "card": "docs/systems/game-weapon-primary.md",
+      "contractTest": "apps/game/tests/weapon.contract.test.ts",
+      "scene": "apps/game/scenes/flux-core.scene.json",
+      "spec": {
+        "inputs": [
+          "Position",
+          "Aim",
+          "Flux",
+          "Weapon"
+        ],
+        "outputs": [
+          "Projectile",
+          "softFlux"
+        ],
+        "owns": [
+          "player-weapon"
+        ]
+      }
+    },
+    {
+      "id": "game.enemyAi",
+      "phase": "ai",
+      "card": "docs/systems/game-enemy-ai.md",
+      "contractTest": "apps/game/tests/enemy.contract.test.ts",
+      "scene": "apps/game/scenes/flux-core.scene.json",
+      "spec": {
+        "inputs": [
+          "Position",
+          "Flux",
+          "Mecha"
+        ],
+        "outputs": [
+          "Ai",
+          "Aim",
+          "Shield",
+          "Vent",
+          "Position"
+        ],
+        "owns": [
+          "enemy-ai"
+        ]
+      }
+    },
+    {
+      "id": "game.enemyWeapon",
+      "phase": "ai",
+      "card": "docs/systems/game-enemy-weapon.md",
+      "contractTest": "apps/game/tests/enemy.contract.test.ts",
+      "scene": "apps/game/scenes/flux-core.scene.json",
+      "spec": {
+        "inputs": [
+          "Ai",
+          "Aim",
+          "Flux",
+          "Weapon"
+        ],
+        "outputs": [
+          "Projectile",
+          "softFlux"
+        ],
+        "owns": [
+          "enemy-weapon"
+        ]
+      }
+    },
+    {
+      "id": "game.projectiles",
+      "phase": "movement",
+      "card": "docs/systems/game-projectiles.md",
+      "contractTest": "apps/game/tests/projectile.contract.test.ts",
+      "scene": "apps/game/scenes/flux-core.scene.json",
+      "spec": {
+        "inputs": [
+          "Position",
+          "Velocity",
+          "Projectile"
+        ],
+        "outputs": [
+          "Position",
+          "despawn"
+        ],
+        "owns": [
+          "projectiles"
+        ]
+      }
+    },
+    {
+      "id": "game.combat",
+      "phase": "damage",
+      "card": "docs/systems/game-combat.md",
+      "contractTest": "apps/game/tests/combat.contract.test.ts",
+      "scene": "apps/game/scenes/flux-core.scene.json",
+      "spec": {
+        "inputs": [
+          "Position",
+          "Projectile",
+          "physics queries"
+        ],
+        "outputs": [
+          "Flux",
+          "Mecha",
+          "game.hit"
+        ],
+        "owns": [
+          "combat"
+        ]
+      }
     }
   ]
 }

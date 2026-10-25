@@ -13,3 +13,4 @@ engineering/source/
 .dsh-code-index/
 starters/*.zip
 clear/
+.archify/

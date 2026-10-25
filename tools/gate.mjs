@@ -14,6 +14,17 @@ mkdirSync(join(ROOT, RUN), { recursive: true });
 mkdirSync(join(ROOT, '.gate', 'stamps'), { recursive: true });
 process.env.GATE_RUN = RUN;
 
+/** G6：记录环境指纹。受限沙箱禁管道子进程时明确标注——未执行 ≠ 通过。 */
+const pipeProbe = spawnSync(process.execPath, ['-e', '0'], { encoding: 'utf8', windowsHide: true });
+const environment = {
+  node: process.version,
+  platform: `${process.platform}-${process.arch}`,
+  pipes: pipeProbe.error === undefined ? 'ok' : 'blocked',
+  npmAgent: process.env.npm_config_user_agent ?? null,
+};
+writeFileSync(join(ROOT, RUN, 'environment.json'), `${JSON.stringify(environment, null, 2)}\n`);
+console.log(`env        node ${environment.node} · ${environment.platform} · pipes ${environment.pipes}`);
+
 const codes = [];
 
 function execute(cmd, args) {
@@ -43,6 +54,7 @@ function runTests() {
   const dirs = [
     join(ROOT, 'packages', 'engine', 'dist', 'tests'),
     join(ROOT, 'packages', 'fixture', 'dist', 'tests'),
+    join(ROOT, 'apps', 'game', 'dist-ts', 'tests'),
   ];
   const coverageDir = join(ROOT, RUN, 'coverage');
   mkdirSync(coverageDir, { recursive: true });
@@ -143,6 +155,12 @@ step('submit-bench', process.execPath, [
 writeFileSync(join(ROOT, RUN, 'codes.txt'), `${codes.map((c) => `${c.name} ${c.code}`).join('\n')}\n`);
 const report = execute(process.execPath, ['tools/report.mjs', RUN]);
 process.stdout.write(report.text);
+const failedSteps = codes.filter((c) => c.code !== 0).map((c) => c.name);
+if (failedSteps.length > 0 && environment.pipes === 'blocked') {
+  console.error(
+    `环境提示（L3）：本会话禁管道子进程；依赖子进程的步骤未通过属环境受限，不是违规，但不计 PASS：${failedSteps.join(', ')}`,
+  );
+}
 const ok = codes.every((c) => c.code === 0) && report.code === 0;
 
 if (ok && !FAST) {

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { capture } from './spawn-capture.mjs';
 
 const ROOT = process.cwd();
 const TEMP = join(ROOT, 'artifacts', 'pack-smoke');
@@ -11,13 +11,13 @@ const errors = [];
 rmSync(TEMP, { recursive: true, force: true });
 mkdirSync(TEMP, { recursive: true });
 
-const pack = spawnSync('npm', ['pack', '--pack-destination', TEMP, '--silent'], {
+const pack = capture('npm.cmd', ['pack', '--pack-destination', TEMP, '--silent'], {
   cwd: ENGINE,
-  encoding: 'utf8',
   shell: true,
 });
 if (pack.status !== 0) {
   console.error(`pack smoke 失败：npm pack 退出码 ${pack.status ?? 1}`);
+  console.error((pack.stderr || pack.stdout || '').split('\n').slice(-5).join('\n'));
   process.exit(1);
 }
 const tarball = readdirSync(TEMP).find((file) => file.endsWith('.tgz'));
@@ -28,13 +28,10 @@ if (tarball === undefined) {
 
 const pkgDir = join(TEMP, 'node_modules', 'agent-specific_ecs');
 mkdirSync(pkgDir, { recursive: true });
-const extract = spawnSync('tar', ['-xzf', tarball, '-C', 'node_modules/agent-specific_ecs', '--strip-components=1'], {
-  cwd: TEMP,
-  encoding: 'utf8',
-});
+const extract = capture('tar', ['-xzf', tarball, '-C', 'node_modules/agent-specific_ecs', '--strip-components=1'], { cwd: TEMP });
 if (extract.status !== 0) {
   console.error(`pack smoke 失败：解包退出码 ${extract.status ?? 1}`);
-  console.error((extract.stderr ?? '').slice(-500));
+  console.error((extract.stderr || '').slice(-500));
   process.exit(1);
 }
 
@@ -56,9 +53,9 @@ writeFileSync(
   ].join('\n'),
 );
 
-const run = spawnSync(process.execPath, [join(TEMP, 'smoke.mjs')], { cwd: TEMP, encoding: 'utf8' });
-if (run.status !== 0) errors.push(`consumer 退出码 ${run.status ?? 1}：${(run.stderr ?? run.stdout ?? '').slice(0, 500)}`);
-if (!(run.stdout ?? '').includes('pack smoke PASS')) errors.push('consumer 没有打印 PASS');
+const run = capture(process.execPath, [join(TEMP, 'smoke.mjs')], { cwd: TEMP });
+if (run.status !== 0) errors.push(`consumer 退出码 ${run.status ?? 1}：${(run.stderr || run.stdout || '').slice(0, 500)}`);
+if (!(run.stdout || '').includes('pack smoke PASS')) errors.push('consumer 没有打印 PASS');
 for (const path of ['package.json', 'dist/src/index.js', 'dist/src/engine.js']) {
   if (!existsSync(join(pkgDir, path))) errors.push(`解包后缺少 ${path}`);
 }

@@ -86,10 +86,14 @@ function checkPortContract() {
 }
 
 function checkSystemContractTests() {
-  const systems = walk(join(ROOT, 'packages/fixture/src')).filter((file) => !file.endsWith('index.ts'));
+  const systems = [
+    ...walk(join(ROOT, 'packages/fixture/src')),
+    ...walk(join(ROOT, 'apps/game/src/game/systems')),
+  ].filter((file) => !file.endsWith('index.ts'));
   const tests = [
     ...walk(join(ROOT, 'packages/engine/tests')),
     ...walk(join(ROOT, 'packages/fixture/tests')),
+    ...walk(join(ROOT, 'apps/game/tests')),
   ].map(safeRelative);
   for (const system of systems) {
     const name = system.split(/[\\/]/).pop().replace('.ts', '');

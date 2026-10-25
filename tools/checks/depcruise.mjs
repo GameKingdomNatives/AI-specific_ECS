@@ -1,6 +1,6 @@
-import { spawnSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { capture } from './spawn-capture.mjs';
 
 /**
  * 依赖边界检查包装器。
@@ -11,16 +11,12 @@ import { join } from 'node:path';
 const RUN = process.argv[2];
 const ROOT = process.cwd();
 
-const result = spawnSync(
-  process.execPath,
-  [
-    'node_modules/dependency-cruiser/bin/dependency-cruiser.mjs',
-    '--output-type',
-    'json',
-    '.',
-  ],
-  { cwd: ROOT, encoding: 'utf8', windowsHide: true },
-);
+const result = capture(process.execPath, [
+  'node_modules/dependency-cruiser/bin/dependency-cruiser.mjs',
+  '--output-type',
+  'json',
+  '.',
+]);
 
 const output = result.stdout ?? '';
 if (RUN !== undefined) {

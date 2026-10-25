@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
+import { capture } from './spawn-capture.mjs';
 
 const ROOT = process.cwd();
 const requests = [
@@ -8,17 +8,15 @@ const requests = [
   { jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} },
   { jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'itb_contract', arguments: {} } },
 ];
-const run = spawnSync(process.execPath, [join(ROOT, 'tools', 'mcp-server.mjs')], {
-  cwd: ROOT,
-  encoding: 'utf8',
+const run = capture(process.execPath, [join(ROOT, 'tools', 'mcp-server.mjs')], {
   input: `${requests.map((request) => JSON.stringify(request)).join('\n')}\n`,
 });
 if (run.status !== 0) {
   console.error('MCP smoke 失败：server 退出码', run.status);
-  console.error((run.stderr ?? '').slice(-500));
+  console.error((run.stderr || '').slice(-500));
   process.exit(1);
 }
-const replies = (run.stdout ?? '')
+const replies = (run.stdout || '')
   .split('\n')
   .filter(Boolean)
   .map((line) => JSON.parse(line));

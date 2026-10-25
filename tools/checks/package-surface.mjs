@@ -1,17 +1,16 @@
 #!/usr/bin/env node
-import { spawnSync } from 'node:child_process';
+import { capture } from './spawn-capture.mjs';
 
 const ROOT = process.cwd();
 const errors = [];
 
-const packed = spawnSync('npm', ['pack', '--dry-run', '--json'], {
+const packed = capture('npm.cmd', ['pack', '--dry-run', '--json'], {
   cwd: `${ROOT}/packages/engine`,
-  encoding: 'utf8',
   shell: true,
 });
 if (packed.status !== 0) {
   console.error(`包面检查失败：npm pack 退出码 ${packed.status ?? 1}`);
-  console.error((packed.stderr ?? '').split('\n').slice(-5).join('\n'));
+  console.error((packed.stderr || packed.stdout || '').split('\n').slice(-5).join('\n'));
   process.exit(1);
 }
 let report;
@@ -20,7 +19,7 @@ try {
   report = Array.isArray(parsed) ? parsed[0] : parsed;
 } catch {
   console.error('包面检查失败：npm pack 没有输出可解析 JSON');
-  console.error((packed.stdout ?? '').slice(-500));
+  console.error((packed.stdout || '').slice(-500));
   process.exit(1);
 }
 const files = report.files.map((entry) => entry.path);

@@ -13,3 +13,10 @@
 | physics.contacts | collision | [physics-contacts.md](physics-contacts.md) |
 | demo.hit | damage | [demo-hit.md](demo-hit.md) |
 | demo.bulletCleanup | cleanup | [demo-bullet-cleanup.md](demo-bullet-cleanup.md) |
+| game.player | ai | [game-player.md](game-player.md) |
+| game.flux | ai | [game-flux.md](game-flux.md) |
+| game.weapon.primary | ai | [game-weapon-primary.md](game-weapon-primary.md) |
+| game.enemyAi | ai | [game-enemy-ai.md](game-enemy-ai.md) |
+| game.enemyWeapon | ai | [game-enemy-weapon.md](game-enemy-weapon.md) |
+| game.projectiles | movement | [game-projectiles.md](game-projectiles.md) |
+| game.combat | damage | [game-combat.md](game-combat.md) |
