@@ -48,6 +48,8 @@ node tools/itb.mjs inspect
 node tools/itb.mjs describe
 ```
 
+Full package lifecycle, code map and agent playbook: [docs/package-guide/README.md](docs/package-guide/README.md).
+
 Engine usage:
 
 ```ts

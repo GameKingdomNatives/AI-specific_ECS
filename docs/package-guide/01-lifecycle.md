@@ -1,0 +1,180 @@
+# 01 · Lifecycle / 从生到死
+
+This document is the operational lifecycle of the package. It is written for both humans and agents.
+
+## Stage 0 — Birth / 出生
+
+### 0.1 Clone and install
+
+```bash
+git clone https://github.com/GameKingdomNatives/AI-specific_ECS
+cd AI-specific_ECS
+npm ci
+```
+
+Requirements:
+
+- Node >= 22 (current repo uses Node 24);
+- npm workspaces;
+- no pnpm/vitest dependency.
+
+### 0.2 Verify the source
+
+```bash
+node tools/status.mjs
+node tools/gate.mjs
+```
+
+If `gate` fails, stop. Do not “fix” by deleting checks. Read `artifacts/gate/<run>/report.md`.
+
+### 0.3 Instantiate the kernel
+
+```ts
+import { createEngine } from 'agent-specific_ecs';
+
+const engine = createEngine({
+  fixedStepMs: 1000 / 60,
+  maxStepsPerFrame: 5,
+});
+```
+
+At birth you get:
+
+- `world`: ECS data;
+- `events`: cold-path event bus;
+- `commands`: structural changes;
+- `scheduler`: seven phases;
+- `clock`: fixed step.
+
+## Stage 1 — Define the domain / 定义领域
+
+1. Define components with `defineComponent` (field kinds only).
+2. Define systems with `reads/writes/update`.
+3. Register systems via `engine.add(system)` or `scheduler.add`.
+4. Cross-system communication:
+   - cold path → EventBus;
+   - structural change → CommandBuffer;
+   - hot path (per-frame thousands) → do not use EventBus.
+
+Rules:
+
+- systems must not import each other;
+- structural changes only at phase boundaries;
+- no `any` / `@ts-ignore` / unsafe assertion.
+
+## Stage 2 — Run / 运行
+
+```ts
+engine.step();            // exactly one fixed step
+engine.advance(16.7);     // real milliseconds → fixed steps
+engine.start();           // real-time interval loop
+engine.stop();
+```
+
+The app should own:
+
+- input/render adapters;
+- UI;
+- scene data;
+- persistence policy.
+
+The engine should not import the app.
+
+## Stage 3 — Integrate surfaces / 接入面
+
+```text
+frontend/app  →  ports/adapters  →  engine core
+fixture       →  demo systems/components (replaceable)
+```
+
+- Rendering: implement `IRenderer` outside core;
+- Physics: implement `IPhysics`, never duplicate positions;
+- Input/audio/storage: ports;
+- MCP: optional thin adapter; source/CLI is first-class.
+
+## Stage 4 — Prove / 证明
+
+Every change must leave evidence:
+
+```bash
+node tools/gate.mjs              # full gate
+node tools/gate.mjs --fast       # fast loop
+node tools/drill.mjs             # negative tests
+node tools/itb.mjs impact        # change impact
+node tools/itb.mjs receipt       # receipt
+```
+
+Required:
+
+- tests/property/golden if behavior changes;
+- contract/gate if API changes;
+- ADR + docs/handoff for architectural decisions;
+- stepwise commits.
+
+## Stage 5 — Release / 发布
+
+```bash
+node tools/checks/api-surface.mjs
+node tools/checks/package-surface.mjs
+node tools/checks/pack-smoke.mjs
+npm pack --workspace packages/engine --dry-run
+```
+
+Release only when:
+
+- full gate PASS;
+- API surface unchanged or intentionally updated;
+- export policy contains runtime only;
+- LICENSE/README updated;
+- version bumped.
+
+npm publishing requires 2FA; use TOTP/security key, or OIDC trusted publishing after the first release.
+
+## Stage 6 — Maintain / 维护
+
+- every change: gate + evidence + docs;
+- every 5 commits: deep audit;
+- 20:00 local nightly + DSH read-only review;
+- `docs/handoff.md` before session ends;
+- update `docs/package-guide/` when public API or structure changes.
+
+## Stage 7 — Death / 死亡
+
+A package can die by deprecation, replacement, or archive. Never silently delete public history.
+
+### Deprecate
+
+```bash
+npm deprecate agent-specific_ecs@0.1.0 "superseded by <new-package>; no new features"
+```
+
+### Announce
+
+- README top: deprecated, replacement, migration link, date;
+- GitHub release note;
+- ADR recording why.
+
+### Migrate
+
+- publish a final version that re-exports or shims the replacement;
+- keep old versions installable;
+- document data/schema migration;
+- remove CI secrets and automation after end-of-life;
+- archive repository or mark read-only.
+
+### Unpublish
+
+Avoid unpublishing. If legally required, follow npm policy; assume downstream users may depend on it.
+
+## Lifecycle checklist / 检查表
+
+| Stage | Exit criterion |
+|---|---|
+| Birth | `npm ci` + full gate PASS |
+| Define | components/systems + contract tests |
+| Run | deterministic replay/step tests |
+| Integrate | app uses `createEngine`, no core app imports |
+| Prove | gate, drill, receipt, docs |
+| Release | API/pack/pack-smoke PASS |
+| Maintain | ADR/handoff/nightly evidence |
+| Death | deprecation notice + migration + archive |
