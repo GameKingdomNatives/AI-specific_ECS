@@ -13,6 +13,7 @@
 - 游戏内容层：`apps/game/src/game/`（组件、纯函数辐能模型、7 个系统）；契约测试 `apps/game/tests/*.contract.test.ts` 6 个文件，已进全量门禁（测试文件 45 → 51）。
 - **本轮已提交**：`900ff58`（flux-core 切片＋工作流）、`657e5b6`（三武器槽）、`9d17626`（交接）。门禁 `20261025T063433Z-44880-9v6iy`：73/76，仅 build／storybook／starter 未执行（L3，管道受限，不计 PASS）；用户在完整会话跑出全量 PASS（`20261025T063833Z-35956-on4if`，pipes ok）并为 `9d17626` 写入 stamp。
 - **推送 tag 修复**（2026-10-25）：`--follow-tags` 的标签对象此前被当成普通 ref 要求 stamp（tag 对象本身永远没有 stamp）→ 现在 tag 不要求 stamp，改为校验「解引用后的提交在当前历史内」；pre-push 在 HEAD 已有 stamp 时跳过重复门禁。`node tools/flow.mjs ship` 重跑即可推送。
+- **AGENTS 规则完善**（2026-10-25）：新增开工首读顺序、单一事实表、新知识落点（灵感/迭代/变更/校正）、文档纪律（禁止复制正文）、第 10 条边界；新增 `docs-map` 门禁检查工程文档结构与旧路径引用。高频错误段记录 spawn 管道、git add -A、tag stamp、L3 误判、文档复制、手记分支命令。
 - **顶层工程文档空间**（2026-10-25）：根目录 `工程文档/`——项目身份 / 当前状态 / 边界约束 / 迭代记录 / 灵感池 / 系统维护 / 变更记录 / 校正记录 / 交接 / _模板；入口 `工程文档/README.md`。工作流仍留在 `docs/workflow/`（full-workflow + iteration-workflow）。
 - **分支生命周期已自动化**（2026-10-25，ADR-059）：新增 `tools/flow.mjs`（status/policy/sweep/ship）与 `npm run flow`；`pre-push` 改为**逐 ref 证据**，不再按分支名拒绝 main。清理：删除 **58 个已合并本地分支**，仅保留 main；远端仍有两个一次性分支（`feat/batch-0.1-local-guards`、`feat/batch-0.2-deep-nightly`），待网络恢复后 `node tools/flow.mjs sweep --remote`。交付口径：`node tools/flow.mjs ship`。
 - **推送仍阻塞，原因是通道而非策略**（2026-10-25 新增诊断）：

@@ -93,6 +93,7 @@ step('pack-smoke', process.execPath, ['tools/checks/pack-smoke.mjs']);
 step('eslint', process.execPath, ['node_modules/eslint/bin/eslint.js', '.', '-f', 'json', '-o', join(RUN, 'eslint.json')]);
 step('registry', process.execPath, ['tools/checks/registry.mjs']);
 step('harness', process.execPath, ['tools/checks/harness.mjs']);
+step('docs-map', process.execPath, ['tools/checks/docs-map.mjs']);
 step('capabilities', process.execPath, ['tools/checks/capabilities.mjs']);
 step('system-structure', process.execPath, ['tools/checks/system-structure.mjs']);
 step('hot-path', process.execPath, ['tools/checks/hot-path.mjs']);
