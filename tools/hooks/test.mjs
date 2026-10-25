@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { deepDue, parsePushLines, verifyRefs, verifyStamp } from './push-guard.mjs';
+import { deepDue, parsePushLines, tagPushes, verifyRefs, verifyStamp } from './push-guard.mjs';
 
 let passed = 0;
 function check(name, fn) {
@@ -57,6 +57,21 @@ check('删除 ref 不需要 stamp', () => {
   try {
     const pushes = parsePushLines('(delete) 0000000000000000000000000000000000000000 refs/heads/old 000\n');
     assert.equal(verifyRefs(dir, pushes).length, 0);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+check('tag 不要求 stamp，但会被单独识别', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'itb-hooks-'));
+  try {
+    const pushes = parsePushLines(
+      'refs/tags/v1 aaa refs/tags/v1 000\nrefs/heads/main bbb refs/heads/main 000\n',
+    );
+    assert.equal(verifyRefs(dir, pushes).length, 1, '只有 main 缺 stamp 被拒');
+    assert.equal(verifyRefs(dir, pushes)[0].remoteRef, 'refs/heads/main');
+    assert.equal(tagPushes(pushes).length, 1);
+    assert.equal(tagPushes(pushes)[0].remoteRef, 'refs/tags/v1');
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

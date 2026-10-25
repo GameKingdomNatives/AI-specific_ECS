@@ -18,10 +18,19 @@ export function parsePushLines(input) {
 
 /**
  * 逐个 ref 校验证据：推送不再区分 main 与 feature。
- * 每个被推送的 tip 都必须有 gate stamp；分支生命周期由 tools/flow.mjs 自动处理。
+ * 分支 tip 必须有 gate stamp；tag 是历史指针，由 pre-push 单独做「可达性」校验（见 tagTargets）。
  */
 export function verifyRefs(root, pushes) {
-  return pushes.filter((push) => !ZERO_SHA.test(push.localSha) && !verifyStamp(root, push.localSha));
+  return pushes.filter((push) => {
+    if (ZERO_SHA.test(push.localSha)) return false;
+    if (push.remoteRef.startsWith('refs/tags/')) return false;
+    return !verifyStamp(root, push.localSha);
+  });
+}
+
+/** 被推送的 tag（排除删除）；脚本用 ^{commit} 解引用后再判断可达性。 */
+export function tagPushes(pushes) {
+  return pushes.filter((push) => push.remoteRef.startsWith('refs/tags/') && !ZERO_SHA.test(push.localSha));
 }
 
 /** 距上次深检 ≥5 个提交且当前 HEAD 没有深检 stamp。 */
