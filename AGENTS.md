@@ -71,4 +71,5 @@ node tools/panel/collect.mjs  # 刷新治理面板数据
 2. 立项：选 1–2 个目标，写迭代记录（`docs/workflow/iterations/iter-NNN-*.md`），过边界检查。
 3. 中途：改完一个模块就 `node tools/gate.mjs --fast`，别攒到最后。
 4. 结束：`node tools/gate.mjs` + 贴报告摘要 + 更新 `docs/handoff.md` 与 `docs/quality-log.md` + 必要时 `node tools/panel/collect.mjs`。
-5. 基础工作交工具：状态检查、门禁、报告、回执全部自动化；工具坏了修工具，不写"注意事项"绕过。
+5. 交付：`node tools/flow.mjs ship`（自动门禁/receipt/深检/合并/推送/清理）；推送通道失败见 `docs/runbooks/04-推送与网络策略.md`，分支清理见 `docs/runbooks/05-分支生命周期.md`。
+6. 基础工作交工具：状态检查、门禁、报告、回执、分支生命周期全部自动化；工具坏了修工具，不写"注意事项"绕过。

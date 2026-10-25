@@ -2,21 +2,13 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { deepDue, hasDirectMainPush, parsePushLines, verifyStamp } from './push-guard.mjs';
+import { deepDue, parsePushLines, verifyRefs } from './push-guard.mjs';
 
 const root = execFileSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' }).trim();
 process.chdir(root);
 
 const input = readFileSync(0, 'utf8');
 const pushes = parsePushLines(input);
-const allowMain = process.env.ALLOW_MAIN_PUSH === '1';
-
-if (hasDirectMainPush(pushes, allowMain)) {
-  console.error('[pre-push] 拒绝对 main 的直接推送。');
-  console.error('  请用 `node tools/hooks/safe-merge.mjs`（本批先手动运行）合并 feature 分支；');
-  console.error('  紧急情况才允许 ALLOW_MAIN_PUSH=1，并说明原因。');
-  process.exit(1);
-}
 
 console.log('[pre-push] 运行全量门禁…');
 const gate = spawnSync(process.execPath, ['tools/gate.mjs'], { stdio: 'inherit', env: process.env });
@@ -26,8 +18,11 @@ if (gate.status !== 0) {
 }
 
 const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-if (!verifyStamp(root, head)) {
-  console.error(`[pre-push] 缺少 ${head} 的 gate stamp；拒绝推送。`);
+const missing = verifyRefs(root, pushes);
+if (missing.length > 0) {
+  console.error('[pre-push] 以下被推送的提交没有 gate stamp；拒绝推送：');
+  for (const push of missing) console.error(`  ${push.remoteRef} ${push.localSha.slice(0, 10)}`);
+  console.error('  自动化入口：node tools/flow.mjs ship（会自动跑门禁/回执/深检并推送）。');
   process.exit(1);
 }
 
@@ -54,7 +49,7 @@ try {
 
 const deepPath = join(root, '.gate', 'deep-stamp.json');
 let commitsSinceDeep = 0;
-let hasDeepStamp = existsSync(join(root, '.gate', 'stamps', `deep-${head}.json`));
+const hasDeepStamp = existsSync(join(root, '.gate', 'stamps', `deep-${head}.json`));
 if (existsSync(deepPath)) {
   try {
     const deep = JSON.parse(readFileSync(deepPath, 'utf8'));
@@ -67,8 +62,8 @@ if (existsSync(deepPath)) {
 }
 if (deepDue(commitsSinceDeep, hasDeepStamp)) {
   console.error(`[pre-push] 距上次深检已 ${commitsSinceDeep} 个提交（阈值 5），当前 HEAD 无深检 stamp；拒绝推送。`);
-  console.error('  先运行 `node tools/deep-audit.mjs`（Batch 0.2 落地）并把结果写入 .gate/stamps/deep-<HEAD>.json。');
+  console.error('  自动化入口：node tools/flow.mjs ship（会自动跑深检）。');
   process.exit(1);
 }
 
-console.log(`[pre-push] PASS：${pushes.length} 个 ref，HEAD ${head.slice(0, 10)} 有 gate stamp。`);
+console.log(`[pre-push] PASS：${pushes.length} 个 ref，HEAD ${head.slice(0, 10)} 有 stamp/receipt。`);

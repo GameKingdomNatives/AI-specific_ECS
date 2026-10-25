@@ -98,7 +98,7 @@
 3. 更新 `docs/quality-log.md` 一行。
 4. 补迭代记录与受影响系统卡 / ADR。
 5. Git：功能级或迭代级 commit；迭代验收通过打 `iter/NNN`；可玩里程碑打 `milestone/<name>`；方向校正打 `pivot/YYYY-MM-DD`。
-6. 推送：先 `node tools/push.mjs` 体检（干净、stamp、通道），再 `--go`；只在完整会话的全量门禁通过并写入 stamp 后推送。失败先分"策略"还是"网络"，原文与通道结论记入 handoff（见 `docs/runbooks/04-推送与网络策略.md`）。
+6. 交付：`node tools/flow.mjs ship`（门禁 → receipt → 按需深检 → ff-only 合并 → 推送 → 删除已合并分支）；网络失败见 `docs/runbooks/04-推送与网络策略.md`，分支清理见 `docs/runbooks/05-分支生命周期.md`。失败先分"策略"还是"网络"，原文记入 handoff。
 
 ## 9. 发布线（当前状态）
 

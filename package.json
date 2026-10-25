@@ -42,7 +42,8 @@
     "typecheck": "node node_modules/typescript/bin/tsc -b",
     "test": "node tools/gate.mjs --fast",
     "replay": "node tools/replay.mjs",
-    "drill": "node tools/drill.mjs"
+    "drill": "node tools/drill.mjs",
+    "flow": "node tools/flow.mjs"
   },
   "devDependencies": {
     "@storybook/react-vite": "^10.6.3",

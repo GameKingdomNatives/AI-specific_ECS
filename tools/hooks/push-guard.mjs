@@ -16,10 +16,12 @@ export function parsePushLines(input) {
     .filter((entry) => entry.localRef !== undefined && entry.localSha !== undefined && entry.remoteRef !== undefined);
 }
 
-/** 直接推送 main（非删除、未显式允许）即拒绝。 */
-export function hasDirectMainPush(pushes, allowMainPush = false) {
-  if (allowMainPush) return false;
-  return pushes.some((push) => push.remoteRef === 'refs/heads/main' && !ZERO_SHA.test(push.localSha));
+/**
+ * 逐个 ref 校验证据：推送不再区分 main 与 feature。
+ * 每个被推送的 tip 都必须有 gate stamp；分支生命周期由 tools/flow.mjs 自动处理。
+ */
+export function verifyRefs(root, pushes) {
+  return pushes.filter((push) => !ZERO_SHA.test(push.localSha) && !verifyStamp(root, push.localSha));
 }
 
 /** 距上次深检 ≥5 个提交且当前 HEAD 没有深检 stamp。 */

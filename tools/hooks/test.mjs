@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { deepDue, hasDirectMainPush, parsePushLines, verifyStamp } from './push-guard.mjs';
+import { deepDue, parsePushLines, verifyRefs, verifyStamp } from './push-guard.mjs';
 
 let passed = 0;
 function check(name, fn) {
@@ -23,17 +23,6 @@ check('解析 pre-push stdin', () => {
   assert.equal(pushes[1].remoteRef, 'refs/heads/main');
 });
 
-check('直接 push main 被拒', () => {
-  const pushes = parsePushLines('refs/heads/main abc refs/heads/main def\n');
-  assert.equal(hasDirectMainPush(pushes, false), true);
-  assert.equal(hasDirectMainPush(pushes, true), false);
-});
-
-check('feature push 允许', () => {
-  const pushes = parsePushLines('refs/heads/feat abc refs/heads/feat def\n');
-  assert.equal(hasDirectMainPush(pushes, false), false);
-});
-
 check('缺少 stamp 拒绝', () => {
   const dir = mkdtempSync(join(tmpdir(), 'itb-hooks-'));
   try {
@@ -42,6 +31,32 @@ check('缺少 stamp 拒绝', () => {
     writeFileSync(join(dir, '.gate', 'stamps', 'abc.json'), JSON.stringify({ head: 'abc' }));
     assert.equal(verifyStamp(dir, 'abc'), true);
     assert.equal(verifyStamp(dir, 'other'), false);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+check('逐 ref 校验：main 与 feature 同规则', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'itb-hooks-'));
+  try {
+    mkdirSync(join(dir, '.gate', 'stamps'), { recursive: true });
+    writeFileSync(join(dir, '.gate', 'stamps', 'aaa.json'), JSON.stringify({ head: 'aaa' }));
+    const pushes = parsePushLines(
+      'refs/heads/main aaa refs/heads/main 000\nrefs/heads/feat bbb refs/heads/feat 000\n',
+    );
+    const missing = verifyRefs(dir, pushes);
+    assert.equal(missing.length, 1);
+    assert.equal(missing[0].localSha, 'bbb');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+check('删除 ref 不需要 stamp', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'itb-hooks-'));
+  try {
+    const pushes = parsePushLines('(delete) 0000000000000000000000000000000000000000 refs/heads/old 000\n');
+    assert.equal(verifyRefs(dir, pushes).length, 0);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
