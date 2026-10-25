@@ -11,7 +11,11 @@
 - **人的裁定（2026-10-25，Q1–Q24）**：基础工作交工具、人只做判断（Q1/Q3/Q4）；L3 环境受限只能算部分证据、不得称全量 PASS（Q2）；游戏内容与引擎分离、不进包体（Q5）；迭代顺序 **A 三武器槽 → C 标准组件上移 → B 战后复盘**（Q10）；单局 3 分钟、纯色块、敌机两态、数值维持先验值（Q11–Q15）；战后回放而非战中侧栏（Q16）；G6 与文档入口已做（Q20/Q21）；**事后追认只用于人不在场时的可逆 HARD**（Q24）。
 - **工具修复**：`tools/status.mjs` 改文件描述符捕获（不再伪造「HEAD 尚无提交／脏文件 1」）；`gate` 记录环境指纹并标注 L3（G6）；`.archify/` 进 `.gitignore`。
 - 游戏内容层：`apps/game/src/game/`（组件、纯函数辐能模型、7 个系统）；契约测试 `apps/game/tests/*.contract.test.ts` 6 个文件，已进全量门禁（测试文件 45 → 51）。
-- **本轮已提交**：`900ff58 feat(game): add flux-core slice and iteration workflow`（59 文件，+2167/−171）。门禁 `20261025T063433Z-44880-9v6iy`：73/76，仅 build／storybook／starter 未执行（L3，管道受限，不计 PASS）。**未推送**：`git push` 失败于环境——Git Bash 的 ssh 无法创建信号管道（`couldn't create signal pipe, Win32 error 5`，exit 128）；请在完整终端推送，并先复跑全量门禁写 stamp。
+- **本轮已提交**：`900ff58`（flux-core 切片＋工作流）、`657e5b6`（三武器槽）、`9d17626`（交接）。门禁 `20261025T063433Z-44880-9v6iy`：73/76，仅 build／storybook／starter 未执行（L3，管道受限，不计 PASS）；用户在完整会话跑出全量 PASS（`20261025T063833Z-35956-on4if`，pipes ok）并为 `9d17626` 写入 stamp。
+- **推送仍阻塞，原因是通道而非策略**（2026-10-25 新增诊断）：
+  - `~/.ssh/config` 把 `github.com` 改写为 `ssh.github.com:443`；该通道在当前网络被重置：`Connection reset by 20.205.243.160 port 443`。
+  - 同期 TCP 探测：`github.com:22` 通、`ssh.github.com:443` 也通（但握手被重置）。受限会话里 ssh.exe 另受"信号管道"限制（exit 128）。
+  - 处理：优先绕开 443 走 22；命令与判定见 `docs/runbooks/04-推送与网络策略.md` 与 `node tools/push.mjs`（`--go` 前会校验干净与 stamp）。
 - 下一步（人已定顺序）：**迭代 002 = A 三武器槽** → 迭代 003 = C 标准组件上移（F-01）→ 迭代 004 = B 战后复盘回放。单局 3 分钟、纯色块、敌机两态、数值不调。
 - **迭代 002（三武器槽）已落地**：主炮左键 / 终结 `E`（26 伤、+12 软辐能、96 tick）/ 支援 `Q`（电子战 `effect=1`，穿盾只加硬辐能）；弹丸新增 `effect` 字段；HUD 显示 E/Q 装填。记录见 `docs/workflow/iterations/iter-002-three-weapon-slots.md`。
 - **质控方案外装命令已规划**：`npx agent-specific_ecs-quality init`（提案 `docs/proposals/007-quality-adoption-cli.md`，文件索引 `docs/quality-adoption.md`）；随 npm 首包之后的 v0.2.0 落地，需同步 export-policy。
