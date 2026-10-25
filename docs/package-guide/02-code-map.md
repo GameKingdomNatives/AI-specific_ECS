@@ -127,6 +127,7 @@ agent-specific_ecs
 ├─ /data      content/assets
 ├─ /determinism
 ├─ /logger /audio /diagnostics /physics /storage
+├─ docs/en, docs/zh    engine-only docs shipped in tarball
 └─ no /demo   fixture is separate/private
 ```
 

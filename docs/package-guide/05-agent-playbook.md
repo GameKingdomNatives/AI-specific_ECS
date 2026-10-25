@@ -54,8 +54,8 @@ Do not import `@itb/engine`; the package was renamed. Do not copy `apps/game` in
 ### “I need to change the export”
 
 - `contracts/export-policy.json` is the only allowlist.
-- Runtime: `packages/engine/dist/src` + `README.md`.
-- Dev-only: tools/contracts/docs/tests/artifacts/fixture.
+- Runtime: `packages/engine/dist/src` + `packages/engine/docs` (EN/ZH) + `README.md`.
+- Dev-only: repo tools/contracts/root docs/tests/artifacts/fixture.
 - `node tools/checks/export-policy.mjs`.
 
 ### “I need to publish”

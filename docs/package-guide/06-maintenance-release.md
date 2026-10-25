@@ -8,7 +8,9 @@
 | Package name | `agent-specific_ecs` |
 | Version | `0.1.0` |
 | npm | **not published** |
-| Staged package | `ec2e8ee5-c630-40d8-bd39-8defb7544de1`, status `staged` |
+| Staged package | `ec2e8ee5-c630-40d8-bd39-8defb7544de1`, status `staged`; **tarball predates the new docs** |
+| Package docs | `packages/engine/docs/en/` + `docs/zh/` included in `files`; package-surface now requires them |
+| Restage | After the hold: `npm stage reject <id>` then `npm stage publish --workspace packages/engine`, so the tarball contains docs |
 | npm account | 72h recovery-code hold, until ~**2026-10-28 00:34 +08** |
 | TOTP | Microsoft Authenticator has **no npm entry** yet |
 | Browser passkey | Edge has a passkey; must be registered to npm to work |
@@ -31,7 +33,7 @@ Requirements:
 
 - full gate PASS;
 - API surface unchanged or consciously updated;
-- pack contains only `dist/src` + package.json/README;
+- pack contains `dist/src` + engine docs (EN/ZH) + package.json/README;
 - export policy contains runtime only;
 - docs/ADR/handoff updated;
 - version bumped when public API changes.

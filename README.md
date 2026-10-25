@@ -35,9 +35,9 @@ English: `contracts/agent.json` declares entrypoints and capabilities; `itb desc
 
 ### 3. 导出边界 / Export boundary
 
-中文：`contracts/export-policy.json` 是唯一 allowlist。只导出 `packages/engine/dist/src` + `README.md`；`tools/`、`contracts/`、`docs/`、`tests/`、`artifacts/` 与 fixture 开发文件不进入产物。
+中文：`contracts/export-policy.json` 是唯一 allowlist。只导出 `packages/engine/dist/src`、`packages/engine/docs`（中英双语引擎文档）与 `README.md`；仓库根 `docs/`、`tools/`、`contracts/`、`tests/`、`artifacts/` 与 fixture 开发文件不进入产物。
 
-English: `contracts/export-policy.json` is the only allowlist. Only `packages/engine/dist/src` + `README.md` are exported; `tools/`, `contracts/`, `docs/`, `tests/`, `artifacts/` and fixture development files never enter the artifact.
+English: `contracts/export-policy.json` is the only allowlist. It exports `packages/engine/dist/src`, `packages/engine/docs` (engine-only EN/ZH docs) and `README.md`; repository root `docs/`, `tools/`, `contracts/`, `tests/`, `artifacts/` and fixture development files never enter the artifact.
 
 ## 快速开始 / Quick start
 

@@ -1,0 +1,76 @@
+# 01 · 快速开始
+
+## 安装
+
+npm 可用后：
+
+```bash
+npm install agent-specific_ecs
+```
+
+发布前请使用 workspace link 或解包 tarball；不要假设 registry 已有。
+
+## 创建引擎
+
+```ts
+import { createEngine } from 'agent-specific_ecs';
+
+const engine = createEngine({
+  fixedStepMs: 1000 / 60,
+  maxStepsPerFrame: 5,
+});
+```
+
+`createEngine` 创建：
+
+- `world`：ECS 数据；
+- `events`：冷路径事件总线；
+- `commands`：延迟结构变更；
+- `scheduler`：七阶段调度；
+- `clock`：固定步长时钟。
+
+## 定义组件
+
+```ts
+import { defineComponent } from 'agent-specific_ecs/core';
+
+const Position = defineComponent('Position', { x: 'f64', y: 'f64' });
+const Velocity = defineComponent('Velocity', { x: 'f64', y: 'f64' });
+```
+
+## 添加系统
+
+```ts
+engine.add({
+  name: 'move',
+  phase: 'movement',
+  reads: [Position, Velocity],
+  writes: [Position],
+  update(ctx) {
+    for (const entity of ctx.world.query(Position, Velocity)) {
+      const p = ctx.world.get(entity, Position);
+      const v = ctx.world.get(entity, Velocity);
+      if (p && v) ctx.world.set(entity, Position, { x: p.x + v.x, y: p.y + v.y });
+    }
+  },
+});
+```
+
+## 步进/运行
+
+```ts
+engine.step();        // 单步
+engine.advance(16.7); // 真实毫秒 → 固定步
+engine.start();       // 实时循环
+engine.stop();
+engine.dispose();
+```
+
+## 生命周期
+
+```text
+createEngine → 定义组件 → 添加系统 → step/advance
+→ 应用渲染 → 测试/回放 → 版本 → 废弃 → 移除
+```
+
+继续读 `02-api.md`。

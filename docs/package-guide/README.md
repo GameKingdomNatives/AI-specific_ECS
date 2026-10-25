@@ -53,8 +53,8 @@ package:  agent-specific_ecs
 version:  0.1.0
 repo:     https://github.com/GameKingdomNatives/AI-specific_ECS
 license:  Apache-2.0
-runtime:  package/engine only (dist/src + README)
-dev-only: tools/ contracts/ docs/ tests/ artifacts/ fixture
+runtime:  package/engine only (dist/src + docs/en + docs/zh + README)
+dev-only: repo tools/ contracts/ root docs/ tests/ artifacts/ fixture
 ```
 
 ## What this is / 是什么
