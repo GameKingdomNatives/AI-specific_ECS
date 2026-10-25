@@ -20,6 +20,8 @@
 | [package-guide/04-frontend-backend.md](package-guide/04-frontend-backend.md) | 为什么没有后端；前端样例与边界 |
 | [package-guide/05-agent-playbook.md](package-guide/05-agent-playbook.md) | 其他 Agent 的发现/修改/验证/发布手册 |
 | [package-guide/06-maintenance-release.md](package-guide/06-maintenance-release.md) | 版本、npm、OIDC、废弃、交接 |
+| [package-guide/07-extending.md](package-guide/07-extending.md) | 扩展包体能力：组件/系统/导出/端口/规则 |
+| [package-guide/08-current-project.md](package-guide/08-current-project.md) | 在本仓库/新产品中接入、验证、升级 |
 
 ## 架构与决策 / Architecture
 

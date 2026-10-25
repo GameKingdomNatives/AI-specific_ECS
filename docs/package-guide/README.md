@@ -17,6 +17,8 @@ This directory is the **from-birth-to-death** guide for the exported package `ag
 | 4 | [04-frontend-backend.md](04-frontend-backend.md) | 为什么没有传统后端；前端样例如何接入 |
 | 5 | [05-agent-playbook.md](05-agent-playbook.md) | 其他 Agent 如何发现能力、改代码、跑证据 |
 | 6 | [06-maintenance-release.md](06-maintenance-release.md) | 版本、门禁、npm 发布、OIDC、废弃 |
+| 7 | [07-extending.md](07-extending.md) | 如何新增组件/系统/导出/端口/规则 |
+| 8 | [08-current-project.md](08-current-project.md) | 如何在本仓库/新产品中接入与升级 |
 
 ## 1 分钟入口 / One-minute start
 
