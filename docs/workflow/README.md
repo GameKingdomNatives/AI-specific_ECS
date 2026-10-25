@@ -1,54 +1,55 @@
 # 工作流（Workflow）
 
-> 一个容器、两个平级项目；流程只定义"怎么推进"，不定义"做什么"。
+> 流程定义层。工程事实（身份/状态/边界/迭代/灵感/维护/变更/校正/交接）在根目录 `工程文档/`。
 
 ## 读什么
 
 | 文件 | 用途 |
 |---|---|
-| `full-workflow.md` | **完整操作手册**：从开工到交付、失败处理矩阵、命令速查 |
+| `full-workflow.md` | **完整操作手册**：开工到交付、失败处理矩阵、命令速查 |
 | `iteration-workflow.md` | 迭代流程定义：证据分层、人的在场规则、收尾清单 |
-| `templates/iteration.md` | 迭代记录模板 |
-| `templates/start-checklist.md` | 开工检查清单 |
-| `templates/finish-checklist.md` | 收尾检查清单 |
-| `templates/direction-correction.md` | 方向校正记录模板 |
-| `iterations/` | 已发生的迭代记录（事实，不是计划） |
-| `records/` | 方向校正 / 回顾 / 一次性复盘 |
+| `../../工程文档/README.md` | 顶层工程文档入口（身份、状态、边界、迭代、灵感、维护、变更、校正、交接） |
+| `../../工程文档/_模板/` | 迭代 / 开工 / 收尾 / 方向校正模板 |
+| `../../工程文档/迭代记录/` | 已发生的迭代记录（事实） |
+| `../../工程文档/校正记录/` | 方向校正 / 回顾 / 一次性复盘 |
 
 ## 目录结构
 
 ```text
-docs/workflow/
-  README.md                  ← 本文件（入口）
-  full-workflow.md           ← 完整操作手册
-  iteration-workflow.md      ← 迭代流程定义
-  templates/
-    iteration.md
-    start-checklist.md
-    finish-checklist.md
-    direction-correction.md
-  iterations/
-    README.md                ← 命名与索引
-    iter-001-flux-core.md
-    iter-002-three-weapon-slots.md
-  records/
-    README.md
+工程文档/                    ← 顶层工程文件（事实）
+  README.md
+  项目身份/项目身份.md
+  当前状态.md
+  边界约束.md
+  迭代记录/                  ← iter-NNN-*.md + README
+  灵感池/                    ← IDEA 模板 + 索引
+  系统维护/                  ← 文档与记忆规范 + 维护入口
+  变更记录/                  ← YYYY-MM.md
+  校正记录/                  ← 方向校正 / 复盘
+  交接/交接清单.md
+  _模板/                     ← 迭代 / 开工 / 收尾 / 方向校正
+
+docs/workflow/               ← 流程（怎么推进）
+  README.md
+  full-workflow.md
+  iteration-workflow.md
 ```
 
 ## 启动一次迭代
 
 ```text
-1. node tools/status.mjs          # HEAD、脏文件、上次门禁
-2. 读 docs/handoff.md 顶部        # 当前状态、待人裁定
-3. 选 1–2 个目标                  # 对照 00-最终指令 与 边界
-4. 复制 templates/iteration.md    # 写成 iterations/iter-NNN-<slug>.md
-5. 单点串行做检查点               # 每个 30min–2h
-6. node tools/flow.mjs ship       # 门禁、回执、深检、合并、推送
-7. 收尾：handoff / quality-log / commit /（验收后）tag
+1. node tools/status.mjs                    # HEAD、脏文件、上次门禁
+2. 读 工程文档/当前状态.md 与 docs/handoff.md 顶部
+3. 选 1–2 个目标，对照项目身份与边界
+4. 复制 工程文档/_模板/iteration.md         # → 工程文档/迭代记录/iter-NNN-<slug>.md
+5. 单点串行做检查点（30min–2h）
+6. node tools/flow.mjs ship                 # 门禁、回执、深检、合并、推送
+7. 收尾：迭代记录 / 变更记录 / handoff / quality-log /（验收后）tag
 ```
 
 ## 与其他目录的关系
 
+- `工程文档/`：工程事实的顶层入口（本仓库的"项目规划蓝图 + 实时开发记录 + 系统维护"）。
 - `docs/adr/`：为什么这样决定。
 - `docs/quality-log.md`：每轮一行，看趋势。
 - `docs/game/`：游戏侧切片、操作、引擎反馈清单。

@@ -12,6 +12,7 @@
 | 游戏 | `apps/game` + `docs/game/` | 产品：场景、游戏系统、HUD、编辑器接线 |
 | 夹具 | `packages/fixture` | 测试替身，不承载游戏内容 |
 | 工程内核 | `tools/`、`contracts/`、`docs/workflow/` | 门禁、契约、流程 |
+| 工程文档 | `工程文档/` | 顶层工程事实：项目身份 / 当前状态 / 边界 / 迭代记录 / 灵感池 / 系统维护 / 变更 / 校正 / 交接 |
 
 - 历史：2026-10-20 ～ 10-24 的工作是**建立引擎框架**；现在进入**在框架上推进游戏，并以游戏的推进反哺引擎**的阶段。
 - 游戏内容**不得进入引擎包体**（`contracts/export-policy.json` + `package-surface` 门禁）。
@@ -68,7 +69,7 @@ node tools/panel/collect.mjs  # 刷新治理面板数据
 ## 会话仪式
 
 1. 开始：`node tools/status.mjs` + 读 `docs/handoff.md` 顶部 + 读 `docs/workflow/iteration-workflow.md`。
-2. 立项：选 1–2 个目标，写迭代记录（`docs/workflow/iterations/iter-NNN-*.md`），过边界检查。
+2. 立项：选 1–2 个目标，写迭代记录（`工程文档/迭代记录/iter-NNN-*.md`），过边界检查。
 3. 中途：改完一个模块就 `node tools/gate.mjs --fast`，别攒到最后。
 4. 结束：`node tools/gate.mjs` + 贴报告摘要 + 更新 `docs/handoff.md` 与 `docs/quality-log.md` + 必要时 `node tools/panel/collect.mjs`。
 5. 交付：`node tools/flow.mjs ship`（自动门禁/receipt/深检/合并/推送/清理）；推送通道失败见 `docs/runbooks/04-推送与网络策略.md`，分支清理见 `docs/runbooks/05-分支生命周期.md`。

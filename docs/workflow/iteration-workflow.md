@@ -34,7 +34,7 @@
 - 一个目标拆 2–5 个功能，一个功能拆 2–4 个检查点。
 - **3 轮修复上限**：同一检查点修 3 轮仍不过，停下上报，不硬磨。
 - 功能完成即更新 `docs/handoff.md` 与相关系统卡，不等迭代结束。
-- 每次迭代一份记录：`docs/workflow/iterations/iter-NNN-<slug>.md`（模板见 `templates/iteration.md`）。
+- 每次迭代一份记录：`工程文档/迭代记录/iter-NNN-<slug>.md`（模板见 `工程文档/_模板/iteration.md`）。
 
 ## 3. 文档职责（唯一真相）
 

@@ -9,6 +9,7 @@
 - [../README.md](../README.md) — 为什么创建、怎么创建、工作原理、原型声明
 - [00-最终指令.md](00-最终指令.md) — 项目宪法（工程范围）
 - [publishing.md](publishing.md) — npm 发布、2FA、安全密钥、72h 冻结
+- [../工程文档/README.md](../工程文档/README.md) — **顶层工程文档**（身份 / 状态 / 边界 / 迭代 / 灵感 / 维护 / 变更 / 校正 / 交接）
 - [workflow/full-workflow.md](workflow/full-workflow.md) — **完整工作流**（开工到交付、失败处理、命令速查）
 - [workflow/iteration-workflow.md](workflow/iteration-workflow.md) — **迭代工作流**（证据分层、人的在场规则、收尾清单）
 - [game/README.md](game/README.md) — **游戏项目**（与引擎平级；切片、操作、引擎反馈）

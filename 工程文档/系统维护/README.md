@@ -1,0 +1,23 @@
+# 系统维护
+
+> 维护这个仓库"怎么改、怎么查、怎么交接"的入口。流程在 `docs/workflow/`，具体操作在 `docs/runbooks/`。
+
+## 索引
+
+| 主题 | 文档 |
+|---|---|
+| 文档与记忆规范 | [文档与记忆规范.md](文档与记忆规范.md) |
+| 完整工作流 | [../../docs/workflow/full-workflow.md](../../docs/workflow/full-workflow.md) |
+| 迭代流程 | [../../docs/workflow/iteration-workflow.md](../../docs/workflow/iteration-workflow.md) |
+| 如何新增系统 | [../../docs/runbooks/07-如何新增系统.md](../../docs/runbooks/07-如何新增系统.md) |
+| 推送与网络 | [../../docs/runbooks/04-推送与网络策略.md](../../docs/runbooks/04-推送与网络策略.md) |
+| 分支生命周期 | [../../docs/runbooks/05-分支生命周期.md](../../docs/runbooks/05-分支生命周期.md) |
+| 系统卡 | [../../docs/systems/](../../docs/systems/) |
+| 决策记录 | [../../docs/adr/](../../docs/adr/) |
+| 经验与教训 | [../../docs/lessons/](../../docs/lessons/) |
+
+## 维护原则
+
+- 一改动一文档：功能完成立即更新系统卡 / 当前状态 / 变更记录。
+- 工具坏了修工具，不写"注意事项"绕过。
+- 文档引用代码路径时，同时给命令，保证可复核。

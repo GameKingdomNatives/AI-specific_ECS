@@ -7,20 +7,20 @@
 **这轮的口径变化**：引擎与游戏是两个**平级项目**（用户 2026-10-25 明确），`apps/game` 不再只是「集成样例」。本轮开始按游戏侧推进，并用游戏侧暴露的问题反哺工程内核。
 
 - 游戏侧首个切片 `flux-core`：辐能状态机（软/硬/过载/红线）+ 旗舰操控 + 主炮 + 1 架敌机 AI（交战/排散后撤）+ 护盾转硬辐能 + 辐能条 HUD。场景 `apps/game/scenes/flux-core.scene.json`，用 `?scene=flux-core.scene.json` 打开；默认仍是 `demo.scene.json`。
-- **工作流已建立**（2026-10-25）：`docs/workflow/iteration-workflow.md`（迭代节奏、证据分层 L0–L4、人的在场规则、收尾清单）+ `templates/iteration.md` + `iterations/iter-001-flux-core.md`。AGENTS 与 00-最终指令 的口径已同步改写为「两个平级项目」。
+- **工作流已建立**（2026-10-25）：`docs/workflow/iteration-workflow.md`（迭代节奏、证据分层 L0–L4、人的在场规则、收尾清单）+ `工程文档/_模板/iteration.md` + `工程文档/迭代记录/iter-001-flux-core.md`。AGENTS 与 00-最终指令 的口径已同步改写为「两个平级项目」。
 - **人的裁定（2026-10-25，Q1–Q24）**：基础工作交工具、人只做判断（Q1/Q3/Q4）；L3 环境受限只能算部分证据、不得称全量 PASS（Q2）；游戏内容与引擎分离、不进包体（Q5）；迭代顺序 **A 三武器槽 → C 标准组件上移 → B 战后复盘**（Q10）；单局 3 分钟、纯色块、敌机两态、数值维持先验值（Q11–Q15）；战后回放而非战中侧栏（Q16）；G6 与文档入口已做（Q20/Q21）；**事后追认只用于人不在场时的可逆 HARD**（Q24）。
 - **工具修复**：`tools/status.mjs` 改文件描述符捕获（不再伪造「HEAD 尚无提交／脏文件 1」）；`gate` 记录环境指纹并标注 L3（G6）；`.archify/` 进 `.gitignore`。
 - 游戏内容层：`apps/game/src/game/`（组件、纯函数辐能模型、7 个系统）；契约测试 `apps/game/tests/*.contract.test.ts` 6 个文件，已进全量门禁（测试文件 45 → 51）。
 - **本轮已提交**：`900ff58`（flux-core 切片＋工作流）、`657e5b6`（三武器槽）、`9d17626`（交接）。门禁 `20261025T063433Z-44880-9v6iy`：73/76，仅 build／storybook／starter 未执行（L3，管道受限，不计 PASS）；用户在完整会话跑出全量 PASS（`20261025T063833Z-35956-on4if`，pipes ok）并为 `9d17626` 写入 stamp。
 - **推送 tag 修复**（2026-10-25）：`--follow-tags` 的标签对象此前被当成普通 ref 要求 stamp（tag 对象本身永远没有 stamp）→ 现在 tag 不要求 stamp，改为校验「解引用后的提交在当前历史内」；pre-push 在 HEAD 已有 stamp 时跳过重复门禁。`node tools/flow.mjs ship` 重跑即可推送。
-- **工作流文件空间**（2026-10-25）：`docs/workflow/full-workflow.md`（完整操作手册）+ `templates/`（迭代/开工/收尾/方向校正）+ `iterations/`（记录与索引）+ `records/`（过程记录）。
+- **顶层工程文档空间**（2026-10-25）：根目录 `工程文档/`——项目身份 / 当前状态 / 边界约束 / 迭代记录 / 灵感池 / 系统维护 / 变更记录 / 校正记录 / 交接 / _模板；入口 `工程文档/README.md`。工作流仍留在 `docs/workflow/`（full-workflow + iteration-workflow）。
 - **分支生命周期已自动化**（2026-10-25，ADR-059）：新增 `tools/flow.mjs`（status/policy/sweep/ship）与 `npm run flow`；`pre-push` 改为**逐 ref 证据**，不再按分支名拒绝 main。清理：删除 **58 个已合并本地分支**，仅保留 main；远端仍有两个一次性分支（`feat/batch-0.1-local-guards`、`feat/batch-0.2-deep-nightly`），待网络恢复后 `node tools/flow.mjs sweep --remote`。交付口径：`node tools/flow.mjs ship`。
 - **推送仍阻塞，原因是通道而非策略**（2026-10-25 新增诊断）：
   - `~/.ssh/config` 把 `github.com` 改写为 `ssh.github.com:443`；该通道在当前网络被重置：`Connection reset by 20.205.243.160 port 443`。
   - 同期 TCP 探测：`github.com:22` 通、`ssh.github.com:443` 也通（但握手被重置）。受限会话里 ssh.exe 另受"信号管道"限制（exit 128）。
   - 处理：优先绕开 443 走 22；命令与判定见 `docs/runbooks/04-推送与网络策略.md` 与 `node tools/push.mjs`（`--go` 前会校验干净与 stamp）。
 - 下一步（人已定顺序）：**迭代 002 = A 三武器槽** → 迭代 003 = C 标准组件上移（F-01）→ 迭代 004 = B 战后复盘回放。单局 3 分钟、纯色块、敌机两态、数值不调。
-- **迭代 002（三武器槽）已落地**：主炮左键 / 终结 `E`（26 伤、+12 软辐能、96 tick）/ 支援 `Q`（电子战 `effect=1`，穿盾只加硬辐能）；弹丸新增 `effect` 字段；HUD 显示 E/Q 装填。记录见 `docs/workflow/iterations/iter-002-three-weapon-slots.md`。
+- **迭代 002（三武器槽）已落地**：主炮左键 / 终结 `E`（26 伤、+12 软辐能、96 tick）/ 支援 `Q`（电子战 `effect=1`，穿盾只加硬辐能）；弹丸新增 `effect` 字段；HUD 显示 E/Q 装填。记录见 `工程文档/迭代记录/iter-002-three-weapon-slots.md`。
 - **质控方案外装命令已规划**：`npx agent-specific_ecs-quality init`（提案 `docs/proposals/007-quality-adoption-cli.md`，文件索引 `docs/quality-adoption.md`）；随 npm 首包之后的 v0.2.0 落地，需同步 export-policy。
 - 门禁泛化（HARD，见 ADR-057）：测试根加 `apps/game/dist-ts/tests`；能力校验遍历所有 `*.scene.json`；结构变更扫描加 `apps/game/src/game`；系统契约测试扫描加游戏系统。阈值与规则强度未变。
 - 引擎反馈：`docs/game/engine-feedback.md` 记 F-01～F-07（标准变换组件归属、门禁单场景假设、阵营查询、输入边沿、HUD 图元、世界哈希约定、检查脚本管道子进程）。

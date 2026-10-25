@@ -2,7 +2,7 @@
 
 放不适合进 ADR 的过程性记录：
 
-- 方向校正（用 `../templates/direction-correction.md`）
+- 方向校正（用 `../_模板/direction-correction.md`）
 - 迭代回顾（做对了什么 / 做错了什么 / 下次改进）
 - 一次性排障复盘（环境、网络、工具）
 

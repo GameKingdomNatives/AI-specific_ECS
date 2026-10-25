@@ -18,13 +18,13 @@ git status --short             # 确认没有意外改动
 
 1. `docs/handoff.md` 顶部（当前状态、待人裁定、环境结论）；
 2. `docs/workflow/iteration-workflow.md`（本轮流程与证据口径）；
-3. `docs/workflow/iterations/` 最后一个迭代记录（上一轮做到哪）。
+3. `工程文档/迭代记录/` 最后一个迭代记录（上一轮做到哪）。
 
 ## 2. 立项（写记录，不超过 10 分钟）
 
 1. 选 **1–2 个目标**，写清「包含 / 不包含」；
-2. 复制 `templates/iteration.md` → `iterations/iter-NNN-<slug>.md`；
-3. 过一遍 `templates/start-checklist.md`；
+2. 复制 `工程文档/_模板/iteration.md` → `工程文档/迭代记录/iter-NNN-<slug>.md`；
+3. 过一遍 `工程文档/_模板/start-checklist.md`；
 4. 确认不违反 `AGENTS.md` 的 9 条边界。
 
 状态字段：`进行中` → `待验收` → `已完成 / 已中止`。
@@ -95,8 +95,8 @@ npm run flow                          # = node tools/flow.mjs
 
 | 产物 | 位置 | 命名 |
 |---|---|---|
-| 迭代记录 | `docs/workflow/iterations/` | `iter-NNN-<slug>.md` |
-| 方向校正 / 回顾 | `docs/workflow/records/` | `YYYY-MM-DD-<slug>.md` |
+| 迭代记录 | `工程文档/迭代记录/` | `iter-NNN-<slug>.md` |
+| 方向校正 / 回顾 | `工程文档/校正记录/` | `YYYY-MM-DD-<slug>.md` |
 | 决策 | `docs/adr/` | `NNN-<slug>.md` |
 | 系统卡 | `docs/systems/` | `<system-id>.md` |
 | 门禁报告 | `artifacts/gate/<run>/` | 自动 |

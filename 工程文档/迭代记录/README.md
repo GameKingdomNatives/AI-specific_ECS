@@ -4,7 +4,7 @@
 
 - 文件名：`iter-NNN-<slug>.md`（NNN 从 001 递增，不复用）
 - 状态：进行中 / 待验收 / 已完成 / 已中止
-- 模板：`../templates/iteration.md`
+- 模板：`../_模板/iteration.md`
 
 ## 索引
 
