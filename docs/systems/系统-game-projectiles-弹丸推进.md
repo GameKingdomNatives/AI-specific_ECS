@@ -20,3 +20,6 @@
 
 ## 验证
 `apps/game/tests/projectile.contract.test.ts`
+
+## 表现（iter-003）
+`Projectile.slot` 区分来源：0 主炮（10px 暖黄）、1 终结（24px 橙）、2 支援（15px 品红）、9 敌机（12px 红）。渲染只读该字段，不再按 effect 猜。

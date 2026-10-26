@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { Position, Velocity } from '@itb/fixture';
-import { Ai, Aim, Flux, Mecha, Projectile, Shield, Vent, Weapon } from '../src/game/components.js';
+import { Ai, Aim, Flux, Mecha, Projectile, Shield, Suppressed, Vent, Weapon } from '../src/game/components.js';
 import { AI_ENGAGE, AI_VENT, createEnemyAiSystem } from '../src/game/systems/enemy.js';
 import { createEnemyWeaponSystem } from '../src/game/systems/weapon.js';
 import { createFixture } from './harness.js';
@@ -18,6 +18,7 @@ function setup(enemyFlux = 0) {
     [Weapon, { cooldown: 0 }],
     [Aim, { angle: 0 }],
     [Ai, { mode: 0, timer: 0 }],
+    [Suppressed, { ticks: 0 }],
   ]);
   return { fixture, player, enemy };
 }
@@ -29,6 +30,14 @@ test('辐能低时保持交战并向玩家靠近', () => {
   assert.equal(fixture.world.get(enemy, Shield)?.active, true);
   const position = fixture.world.get(enemy, Position);
   assert.ok(position !== undefined && position.x < 900);
+});
+
+test('电子压制期间不开盾，即使辐能很低', () => {
+  const { fixture, player, enemy } = setup(10);
+  fixture.world.set(enemy, Suppressed, { ticks: 60 });
+  fixture.run(createEnemyAiSystem({ player, width: 1920, height: 1080 }));
+  assert.equal(fixture.world.get(enemy, Shield)?.active, false);
+  assert.equal(fixture.world.get(enemy, Ai)?.mode, AI_ENGAGE);
 });
 
 test('辐能越线时关盾排散并后撤', () => {

@@ -3,7 +3,7 @@ import type { EntityId, World } from 'agent-specific_ecs/core';
 import { Box, Bullet, Position } from '@itb/fixture';
 import type { RenderItem } from 'agent-specific_ecs/ports';
 import type { SceneAssets } from 'agent-specific_ecs/scene';
-import { Aim, Flux, Mecha, Projectile, Shield, Support, Terminator } from './game/components.js';
+import { Aim, Flux, Mecha, Projectile, Shield, Support, Suppressed, Terminator } from './game/components.js';
 import { FLUX_CAPACITY, FLUX_REDLINE, fluxTotal, isOverloaded } from './game/flux-model.js';
 import { layoutFluxBar } from './game/flux-bar.js';
 
@@ -11,6 +11,7 @@ export interface RenderTableContext {
   readonly player: EntityId;
   readonly kills: number;
   readonly width: number;
+  readonly height: number;
   readonly assets: ReadonlyMap<EntityId, SceneAssets> | undefined;
   readonly url: (name: string) => string;
 }
@@ -44,10 +45,12 @@ function projectileItems(world: World, alpha: number, previous: ReadonlyMap<Enti
     const projectile = world.get(entity, Projectile);
     if (position === undefined || projectile === undefined) continue;
     const point = interpolatePoint(previous.get(entity), position, alpha);
+    const slot = Number(projectile.slot);
+    const size = slot === 1 ? 24 : slot === 2 ? 15 : slot === 9 ? 12 : 10;
+    const tint = slot === 1 ? 0xff9f43 : slot === 2 ? 0xd18cff : projectile.faction === 0 ? 0xffd27a : 0xff6b6b;
     items.push({
-      id: entity, x: point.x, y: point.y, rot: 0, sx: 12, sy: 12, layer: 3, shape: 'circle',
-      tint: projectile.effect === 1 ? 0x7ad7ff : projectile.faction === 0 ? 0xffd27a : 0xff6b6b,
-      alpha: 1, visible: true, texture: context.url('bullet'),
+      id: entity, x: point.x, y: point.y, rot: 0, sx: size, sy: size, layer: 3, shape: 'circle',
+      tint, alpha: 1, visible: true, texture: context.url('bullet'),
     });
   }
 }
@@ -116,12 +119,26 @@ function fluxItems(world: World, previous: ReadonlyMap<EntityId, { x: number; y:
   }
 }
 
-function enemyHullOf(world: World): { hull: number; max: number } {
+function enemyHullOf(world: World): { hull: number; max: number; ew: number } {
   for (const entity of world.query(Position, Mecha)) {
     const other = world.get(entity, Mecha);
-    if (other !== undefined && other.faction !== 0) return { hull: other.hull, max: other.maxHull };
+    if (other !== undefined && other.faction !== 0) {
+      const suppressed = world.get(entity, Suppressed);
+      return { hull: other.hull, max: other.maxHull, ew: suppressed === undefined ? 0 : suppressed.ticks };
+    }
   }
-  return { hull: 0, max: 0 };
+  return { hull: 0, max: 0, ew: 0 };
+}
+
+function suppressedItems(world: World, previous: ReadonlyMap<EntityId, { x: number; y: number }>, items: RenderItem[]): void {
+  for (const entity of world.query(Position, Suppressed)) {
+    const suppressed = world.get(entity, Suppressed);
+    const position = world.get(entity, Position);
+    if (suppressed === undefined || position === undefined || suppressed.ticks <= 0) continue;
+    const point = previous.get(entity) ?? position;
+    items.push({ id: -400000 - entity, x: point.x, y: point.y, rot: 0, sx: 74, sy: 74, layer: 4, shape: 'circle', tint: 0xb07cff, alpha: 0.3, visible: true });
+    items.push({ id: -410000 - entity, x: point.x, y: point.y - 72, rot: 0, sx: 1, sy: 1, layer: 5, shape: 'rect', tint: 0xc9a8ff, alpha: 0.9, visible: true, text: `EW ${(suppressed.ticks / 60).toFixed(1)}s`, font: 'monospace', fontSize: 14 });
+  }
 }
 
 function hudItems(world: World, player: EntityId, context: RenderTableContext, items: RenderItem[]): void {
@@ -133,10 +150,20 @@ function hudItems(world: World, player: EntityId, context: RenderTableContext, i
   const enemy = enemyHullOf(world);
   const enemyHull = enemy.hull;
   const enemyMax = enemy.max;
+  const enemyEw = enemy.ew;
   const status = flux !== undefined && isOverloaded(flux) ? ' · OVERLOAD' : total > FLUX_CAPACITY ? ' · REDLINE' : '';
   const energy = slotOf(world, player, Terminator);
   const support = slotOf(world, player, Support);
-  items.push({ id: -1, x: context.width / 2, y: 58, rot: 0, sx: 1, sy: 1, layer: 5, shape: 'rect', tint: 0xf2eee9, alpha: 0.9, visible: true, text: `FLUX ${Math.round(total)} / ${FLUX_REDLINE} · HULL ${Math.round(hull)}/${Math.round(maxHull)} · ENEMY ${Math.round(enemyHull)}/${Math.round(enemyMax)} · KILLS ${context.kills} · E ${energy} Q ${support}${status}`, font: 'monospace', fontSize: 20 });
+  items.push({ id: -2, x: context.width / 2, y: 88, rot: 0, sx: 1, sy: 1, layer: 5, shape: 'rect', tint: 0xb8ada0, alpha: 0.8, visible: true, text: 'WASD 移动 · 左键 开火 · 空格 护盾 · V 排散 · E 终结 · Q 支援 · ? 教学', font: 'sans-serif', fontSize: 16 });
+  const cards = [
+    ['主炮 LMB · 持续输出 · 6伤 / 1.6软 / 9t', 0xffd27a],
+    ['终结 E · 破甲重击 · 26伤 / 12软 / 96t', 0xff9f43],
+    ['支援 Q · 压盾 1.5s · 穿盾只加压辐能 / 130t', 0xd18cff],
+  ] as const;
+  cards.forEach(([text, tint], index) => {
+    items.push({ id: -10 - index, x: 300, y: context.height - 96 + index * 26, rot: 0, sx: 1, sy: 1, layer: 6, shape: 'rect', tint, alpha: 0.9, visible: true, text, font: 'sans-serif', fontSize: 16 });
+  });
+  items.push({ id: -1, x: context.width / 2, y: 58, rot: 0, sx: 1, sy: 1, layer: 5, shape: 'rect', tint: 0xf2eee9, alpha: 0.9, visible: true, text: `FLUX ${Math.round(total)} / ${FLUX_REDLINE} · HULL ${Math.round(hull)}/${Math.round(maxHull)} · ENEMY ${Math.round(enemyHull)}/${Math.round(enemyMax)}${enemyEw > 0 ? ` · EW ${(enemyEw / 60).toFixed(1)}s` : ''} · KILLS ${context.kills} · E ${energy} Q ${support}${status}`, font: 'monospace', fontSize: 20 });
 }
 
 function slotOf(world: World, player: EntityId, def: typeof Terminator | typeof Support): number {
@@ -164,6 +191,7 @@ export function renderTable(
   shieldItems(world, previous, items);
   fluxItems(world, previous, items);
   hullItems(world, previous, items);
+  suppressedItems(world, previous, items);
   hudItems(world, context.player, context, items);
   return items;
 }

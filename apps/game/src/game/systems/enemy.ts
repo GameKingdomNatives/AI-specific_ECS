@@ -1,6 +1,6 @@
 import type { EntityId, SystemContext, SystemDef } from 'agent-specific_ecs/core';
 import { Position } from '@itb/fixture';
-import { Ai, Aim, Flux, Mecha, Shield, Vent } from '../components.js';
+import { Ai, Aim, Flux, Mecha, Shield, Suppressed, Vent } from '../components.js';
 import { fluxTotal, isOverloaded } from '../flux-model.js';
 
 export interface EnemyAiOptions {
@@ -31,6 +31,11 @@ function clamp(value: number, min: number, max: number): number {
   return value;
 }
 
+function isSuppressed(ctx: SystemContext, entity: EntityId): boolean {
+  const suppressed = ctx.world.get(entity, Suppressed);
+  return suppressed !== undefined && suppressed.ticks > 0;
+}
+
 function stepToward(ctx: SystemContext, entity: EntityId, position: { x: number; y: number }, nx: number, ny: number, speed: number, tuning: Tuning): void {
   ctx.world.set(entity, Position, {
     x: clamp(position.x + nx * speed, tuning.margin, tuning.width - tuning.margin),
@@ -46,7 +51,7 @@ function updateOne(ctx: SystemContext, entity: EntityId, position: { x: number; 
   const venting = fluxTotal(flux) >= tuning.ventAt || isOverloaded(flux);
   ctx.world.set(entity, Ai, { mode: venting ? AI_VENT : AI_ENGAGE });
   ctx.world.set(entity, Vent, { active: venting });
-  ctx.world.set(entity, Shield, { active: !venting });
+  ctx.world.set(entity, Shield, { active: !venting && !isSuppressed(ctx, entity) });
   ctx.world.set(entity, Aim, { angle: Math.atan2(dy, dx) });
   const near = distance < tuning.range * 0.7;
   const far = distance > tuning.range;
@@ -72,7 +77,7 @@ export function createEnemyAiSystem(options: EnemyAiOptions): SystemDef {
   return {
     name: 'game.enemyAi',
     phase: 'ai',
-    reads: [Position, Flux, Mecha, Ai],
+    reads: [Position, Flux, Mecha, Ai, Suppressed],
     writes: [Position, Aim, Shield, Vent, Ai],
     update: (ctx) => {
       const target = ctx.world.get(options.player, Position);

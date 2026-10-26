@@ -29,6 +29,7 @@ test('按住左键发射一颗弹丸，并产生软辐能与装填', () => {
   assert.equal(fixture.commands.size, 1);
   fixture.commands.flush(fixture.world);
   assert.equal(fixture.world.query(Position, Projectile).length, 1);
+  assert.equal(fixture.world.get(fixture.world.query(Position, Projectile)[0]!, Projectile)?.slot, 0);
   assert.ok((fixture.world.get(player, Flux)?.soft ?? 0) > 0);
   assert.ok((fixture.world.get(player, Weapon)?.cooldown ?? 0) > 0);
 });
@@ -48,6 +49,7 @@ test('终结武器：按键发射、软辐能大幅上升、装填变长', () =>
   assert.equal(fixture.commands.size, 1);
   fixture.commands.flush(fixture.world);
   assert.equal(fixture.world.query(Position, Projectile).length, 1);
+  assert.equal(fixture.world.get(fixture.world.query(Position, Projectile)[0]!, Projectile)?.slot, 1);
   assert.ok((fixture.world.get(player, Flux)?.soft ?? 0) >= 12);
   assert.ok((fixture.world.get(player, Terminator)?.cooldown ?? 0) >= 90);
 });
@@ -69,6 +71,7 @@ test('支援武器：发射电子战弹（effect=1）', () => {
   const bullet = bullets[0];
   assert.ok(bullet !== undefined);
   assert.equal(fixture.world.get(bullet, Projectile)?.effect, 1);
+  assert.equal(fixture.world.get(bullet, Projectile)?.slot, 2);
 });
 
 test('过载或排散期间不发射', () => {

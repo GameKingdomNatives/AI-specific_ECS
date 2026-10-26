@@ -14,14 +14,16 @@ export interface WeaponSpec {
   readonly muzzle?: number;
   /** 0 = 直接伤害；1 = 电子战（只加硬辐能）。 */
   readonly effect?: number;
+  /** 武器槽：0 主炮 / 1 终结 / 2 支援 / 9 敌机（给渲染与反馈用）。 */
+  readonly slot?: number;
 }
 
-export const PRIMARY_WEAPON: WeaponSpec = { damage: 6, speed: 18, heat: 1.6, period: 9, muzzle: 26 };
-export const ENEMY_WEAPON: WeaponSpec = { damage: 9, speed: 13, heat: 2.4, period: 16, muzzle: 30 };
+export const PRIMARY_WEAPON: WeaponSpec = { damage: 6, speed: 18, heat: 1.6, period: 9, muzzle: 26, slot: 0 };
+export const ENEMY_WEAPON: WeaponSpec = { damage: 9, speed: 13, heat: 2.4, period: 16, muzzle: 30, slot: 9 };
 /** 终结武器：打在过载窗口里的爆发，代价是几乎一条软辐能。 */
-export const TERMINATOR_WEAPON: WeaponSpec = { damage: 26, speed: 24, heat: 12, period: 96, muzzle: 30 };
+export const TERMINATOR_WEAPON: WeaponSpec = { damage: 26, speed: 24, heat: 12, period: 96, muzzle: 30, slot: 1 };
 /** 支援武器：电子战，穿盾只加硬辐能；低直接伤害、长装填。 */
-export const SUPPORT_WEAPON: WeaponSpec = { damage: 6, speed: 10, heat: 4.5, period: 130, muzzle: 24, effect: 1 };
+export const SUPPORT_WEAPON: WeaponSpec = { damage: 6, speed: 10, heat: 4.5, period: 130, muzzle: 24, effect: 1, slot: 2 };
 
 function spawnShot(ctx: SystemContext, entity: EntityId, spec: WeaponSpec, faction: number): void {
   const position = ctx.world.get(entity, Position);
@@ -31,7 +33,7 @@ function spawnShot(ctx: SystemContext, entity: EntityId, spec: WeaponSpec, facti
   ctx.commands.spawn([
     [Position, { x: position.x + Math.cos(aim.angle) * muzzle, y: position.y + Math.sin(aim.angle) * muzzle }],
     [Velocity, { x: Math.cos(aim.angle) * spec.speed, y: Math.sin(aim.angle) * spec.speed }],
-    [Projectile, { damage: spec.damage, faction, effect: spec.effect ?? 0 }],
+    [Projectile, { damage: spec.damage, faction, effect: spec.effect ?? 0, slot: spec.slot ?? 0 }],
   ]);
   ctx.bus.emit('game.shot', { entity, faction, x: position.x, y: position.y });
 }

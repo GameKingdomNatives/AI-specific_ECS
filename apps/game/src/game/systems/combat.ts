@@ -1,8 +1,11 @@
 import type { EntityId, SystemContext, SystemDef } from 'agent-specific_ecs/core';
 import type { IPhysics } from 'agent-specific_ecs/ports';
 import { Position } from '@itb/fixture';
-import { Flux, Mecha, Projectile, Shield } from '../components.js';
+import { Flux, Mecha, Projectile, Shield, Suppressed } from '../components.js';
 import { addHard } from '../flux-model.js';
+
+/** 压盾时长：90 tick = 1.5s。 */
+export const SUPPRESS_TICKS = 90;
 
 export interface CombatOptions {
   readonly physics: IPhysics;
@@ -31,6 +34,10 @@ function applyDamage(ctx: SystemContext, target: EntityId, damage: number, effec
     if (flux !== undefined) {
       const next = addHard(flux, damage * 1.8);
       ctx.world.set(target, Flux, { soft: next.soft, hard: next.hard, overloadTicks: next.overloadTicks });
+    }
+    // 压盾：即使目标此刻没开盾，也进入 1.5s 护盾压制。
+    if (ctx.world.has(target, Suppressed)) {
+      ctx.world.set(target, Suppressed, { ticks: SUPPRESS_TICKS });
     }
     ctx.bus.emit('game.hit', { target, shielded: false, ew: true, x: at.x, y: at.y, damage });
     return;
@@ -61,9 +68,15 @@ export function createCombatSystem(options: CombatOptions): SystemDef {
   return {
     name: 'game.combat',
     phase: 'damage',
-    reads: [Position, Projectile, Flux, Shield, Mecha],
-    writes: [Flux, Mecha],
+    reads: [Position, Projectile, Flux, Shield, Mecha, Suppressed],
+    writes: [Flux, Mecha, Suppressed],
     update: (ctx) => {
+      for (const entity of ctx.world.query(Suppressed)) {
+        const suppressed = ctx.world.get(entity, Suppressed);
+        if (suppressed !== undefined && suppressed.ticks > 0) {
+          ctx.world.set(entity, Suppressed, { ticks: Math.max(0, suppressed.ticks - 1) });
+        }
+      }
       for (const bullet of ctx.world.query(Position, Projectile)) {
         const position = ctx.world.get(bullet, Position);
         const projectile = ctx.world.get(bullet, Projectile);

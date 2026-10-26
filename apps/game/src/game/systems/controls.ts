@@ -1,7 +1,7 @@
 import type { EntityId, SystemDef } from 'agent-specific_ecs/core';
 import type { InputSnapshot } from 'agent-specific_ecs/ports';
 import { Position } from '@itb/fixture';
-import { Aim, Flux, Shield, Vent } from '../components.js';
+import { Aim, Flux, Shield, Suppressed, Vent } from '../components.js';
 import { performanceFactor } from '../flux-model.js';
 
 export interface MechaControlOptions {
@@ -35,7 +35,7 @@ export function createMechaControlSystem(options: MechaControlOptions): SystemDe
   return {
     name: 'game.player',
     phase: 'ai',
-    reads: [Position, Flux],
+    reads: [Position, Flux, Suppressed],
     writes: [Position, Aim, Shield, Vent],
     update: (ctx) => {
       const entity = options.player;
@@ -44,6 +44,8 @@ export function createMechaControlSystem(options: MechaControlOptions): SystemDe
       const flux = ctx.world.get(entity, Flux);
       const factor = flux === undefined ? 1 : performanceFactor(flux);
       const overloaded = flux !== undefined && flux.overloadTicks > 0;
+      const suppressed = ctx.world.get(entity, Suppressed);
+      const shieldLocked = overloaded || (suppressed !== undefined && suppressed.ticks > 0);
       const input = options.getInput();
       const move = movementOf(input);
       const length = Math.hypot(move.x, move.y);
@@ -57,7 +59,7 @@ export function createMechaControlSystem(options: MechaControlOptions): SystemDe
       ctx.world.set(entity, Aim, {
         angle: Math.atan2(input.pointer.y - position.y, input.pointer.x - position.x),
       });
-      ctx.world.set(entity, Shield, { active: input.keys.has('shield') && !overloaded });
+      ctx.world.set(entity, Shield, { active: input.keys.has('shield') && !shieldLocked });
       ctx.world.set(entity, Vent, { active: input.keys.has('vent') && !overloaded });
     },
   };

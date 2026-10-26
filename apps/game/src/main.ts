@@ -35,6 +35,7 @@ import { parseScene, type Scene } from 'agent-specific_ecs/scene';
 import { mountUi } from './ui/mount.js';
 import { createUiStore } from './ui/snapshot.js';
 import { configHashFor } from './runtime-config.js';
+import { mountTutorial } from './tutorial.js';
 
 const WIDTH = 1920;
 const HEIGHT = 1080;
@@ -45,6 +46,7 @@ if (!(canvas instanceof HTMLCanvasElement)) {
   throw new Error('缺少 #stage 画布');
 }
 const hud = document.getElementById('hud');
+mountTutorial(document);
 const probe = new URLSearchParams(location.search).get('probe');
 const stress = Number(new URLSearchParams(location.search).get('stress') ?? '0');
 const engine = createEngine({
@@ -266,7 +268,7 @@ function frame(now: number): void {
     }
   }
   if (clock.tick % 60 === 0) lastHash = hashWorld(world);
-  renderer.submit(renderTable(world, clock.alpha, frameStart, { player, kills, width: WIDTH, assets: sceneResult.loaded?.assets, url: textures.url }));
+  renderer.submit(renderTable(world, clock.alpha, frameStart, { player, kills, width: WIDTH, height: HEIGHT, assets: sceneResult.loaded?.assets, url: textures.url }));
   renderer.debugDraw(debugView.enabled ? scheduler.collectDebug(world, bus, commands, clock.tick) : []);
   updateHud();
   requestAnimationFrame(frame);

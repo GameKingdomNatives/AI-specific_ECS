@@ -21,3 +21,6 @@
 
 ## 验证
 `apps/game/tests/combat.contract.test.ts`：护盾转硬辐能、无盾扣结构、结构归零销毁并发事件。
+
+## 电子压制（iter-003）
+支援弹（`effect = 1`）命中后，目标 `Suppressed.ticks = 90`（1.5s）：期间目标无法开盾。计时在 `game.combat` 每 tick 递减，不新增系统。

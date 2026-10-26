@@ -55,6 +55,9 @@
         },
         "Vent": {
           "active": false
+        },
+        "Suppressed": {
+          "ticks": 0
         }
       }
     },
@@ -100,6 +103,9 @@
         },
         "Vent": {
           "active": false
+        },
+        "Suppressed": {
+          "ticks": 0
         }
       }
     }

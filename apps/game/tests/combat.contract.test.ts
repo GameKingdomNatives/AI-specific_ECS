@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { Position } from '@itb/fixture';
 import { createPhysicsPort, PhysicsWorld } from 'agent-specific_ecs/physics';
-import { Flux, Mecha, Projectile, Shield } from '../src/game/components.js';
+import { Flux, Mecha, Projectile, Shield, Suppressed } from '../src/game/components.js';
 import { createCombatSystem } from '../src/game/systems/combat.js';
 import { createFixture } from './harness.js';
 
@@ -14,6 +14,7 @@ function setup(shieldActive: boolean) {
     [Mecha, { faction: 1, hull: 20, maxHull: 100 }],
     [Flux, { soft: 10, hard: 10, overloadTicks: 0 }],
     [Shield, { active: shieldActive, radius: 40 }],
+    [Suppressed, { ticks: 0 }],
   ]);
   physics.addCircle(target, 200, 200, 20);
   const bullet = fixture.spawnWith([
@@ -43,6 +44,7 @@ test('电子战弹穿盾：只加硬辐能、不扣结构', () => {
   const flux = fixture.world.get(target, Flux);
   assert.ok(flux !== undefined && flux.hard > 10);
   assert.equal(fixture.world.get(target, Mecha)?.hull, 20);
+  assert.equal(fixture.world.get(target, Suppressed)?.ticks, 90);
 });
 
 test('无盾命中扣结构，结构归零即销毁并发击杀事件', () => {
