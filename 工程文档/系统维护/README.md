@@ -7,6 +7,8 @@
 | 主题 | 文档 |
 |---|---|
 | 文档与记忆规范 | [文档与记忆规范.md](文档与记忆规范.md) |
+| 测试方法（怎么跑、怎么判） | [测试方法.md](测试方法.md) |
+| 验收记录（人的结论） | [../验收记录/](../验收记录/) |
 | 完整工作流 | [../../docs/workflow/full-workflow.md](../../docs/workflow/full-workflow.md) |
 | 迭代流程 | [../../docs/workflow/iteration-workflow.md](../../docs/workflow/iteration-workflow.md) |
 | 如何新增系统 | [../../docs/runbooks/07-如何新增系统.md](../../docs/runbooks/07-如何新增系统.md) |

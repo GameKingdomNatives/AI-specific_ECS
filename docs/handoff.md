@@ -21,6 +21,7 @@
   - 同期 TCP 探测：`github.com:22` 通、`ssh.github.com:443` 也通（但握手被重置）。受限会话里 ssh.exe 另受"信号管道"限制（exit 128）。
   - 处理：优先绕开 443 走 22；命令与判定见 `docs/runbooks/04-推送与网络策略.md` 与 `node tools/push.mjs`（`--go` 前会校验干净与 stamp）。
 - 下一步（人已定顺序）：**迭代 002 = A 三武器槽** → 迭代 003 = C 标准组件上移（F-01）→ 迭代 004 = B 战后复盘回放。单局 3 分钟、纯色块、敌机两态、数值不调。
+- **验收与测试方法已备**（2026-10-26）：`工程文档/验收记录/验收-001-002-首轮.md`（3 轮 × 10 分钟固定问题表，人填）；`工程文档/系统维护/测试方法.md`（L0–L4 全部命令与当前读数）。迭代 001/002 仍为「待验收」，人填完才改「已完成」。门禁 `20261026T080839Z-35352-5jvx0`：80/83 PASS，3 项 L3（build/storybook/starter，管道受限）。本提交因沙箱里 pre-commit 的 sh 起不来（signal pipe），按 AGENTS 环境事实先手动跑全量门禁、再用 `-n` 提交并注明 run id。
 - **迭代 002（三武器槽）已落地**：主炮左键 / 终结 `E`（26 伤、+12 软辐能、96 tick）/ 支援 `Q`（电子战 `effect=1`，穿盾只加硬辐能）；弹丸新增 `effect` 字段；HUD 显示 E/Q 装填。记录见 `工程文档/迭代记录/iter-002-three-weapon-slots.md`。
 - **质控方案外装命令已规划**：`npx agent-specific_ecs-quality init`（提案 `docs/proposals/007-quality-adoption-cli.md`，文件索引 `docs/quality-adoption.md`）；随 npm 首包之后的 v0.2.0 落地，需同步 export-policy。
 - 门禁泛化（HARD，见 ADR-057）：测试根加 `apps/game/dist-ts/tests`；能力校验遍历所有 `*.scene.json`；结构变更扫描加 `apps/game/src/game`；系统契约测试扫描加游戏系统。阈值与规则强度未变。

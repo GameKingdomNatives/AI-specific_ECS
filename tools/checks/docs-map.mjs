@@ -15,10 +15,13 @@ const REQUIRED = [
   '工程文档/当前状态.md',
   '工程文档/边界约束.md',
   '工程文档/迭代记录/README.md',
+  '工程文档/验收记录/README.md',
+  '工程文档/验收记录/验收-001-002-首轮.md',
   '工程文档/灵感池/README.md',
   '工程文档/灵感池/索引.md',
   '工程文档/系统维护/README.md',
   '工程文档/系统维护/文档与记忆规范.md',
+  '工程文档/系统维护/测试方法.md',
   '工程文档/变更记录/README.md',
   '工程文档/校正记录/README.md',
   '工程文档/交接/交接清单.md',
@@ -79,6 +82,15 @@ for (const file of filesUnder(join(ROOT, '工程文档', '迭代记录'))) {
   if (name === 'README.md') continue;
   if (!/^iter-\d{3}-[a-z0-9-]+\.md$/.test(name)) {
     errors.push(`迭代记录命名不合规：${name}（应为 iter-NNN-<slug>.md）`);
+  }
+}
+
+/** 验收记录命名：验收-NNN[-NNN]-<主题>.md。 */
+for (const file of filesUnder(join(ROOT, '工程文档', '验收记录'))) {
+  const name = relative(join(ROOT, '工程文档', '验收记录'), file).replaceAll('\\', '/');
+  if (name === 'README.md') continue;
+  if (!/^验收-\d{3}(?:-\d{3})?-.+\.md$/.test(name)) {
+    errors.push(`验收记录命名不合规：${name}（应为 验收-NNN[-NNN]-<主题>.md）`);
   }
 }
 

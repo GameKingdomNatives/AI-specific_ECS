@@ -61,6 +61,7 @@ node tools/flow.mjs ship       # 门禁 → receipt → 按需深检 → ff-only
 - [ ] 更新 `docs/handoff.md`（完成 / 下一步 / 待人裁定 / 环境说明）；
 - [ ] 更新 `docs/quality-log.md` 一行；
 - [ ] 迭代记录填完检查点、证据分层、回顾；
+- [ ] 需要人判定的迭代：把 `工程文档/验收记录/` 的表填完，结论写「通过 / 需重做 / 中止」；
 - [ ] 有 HARD 决策 → 补 ADR；
 - [ ] 需要清理 → `node tools/flow.mjs sweep`。
 
@@ -96,6 +97,7 @@ npm run flow                          # = node tools/flow.mjs
 | 产物 | 位置 | 命名 |
 |---|---|---|
 | 迭代记录 | `工程文档/迭代记录/` | `iter-NNN-<slug>.md` |
+| 验收记录 | `工程文档/验收记录/` | `验收-NNN[-NNN]-<主题>.md` |
 | 方向校正 / 回顾 | `工程文档/校正记录/` | `YYYY-MM-DD-<slug>.md` |
 | 决策 | `docs/adr/` | `NNN-<slug>.md` |
 | 系统卡 | `docs/systems/` | `<system-id>.md` |
@@ -114,5 +116,5 @@ npm run flow                          # = node tools/flow.mjs
 ## 10. 自动化边界
 
 - 能自动化的：状态、门禁、回执、stamp、深检节奏、分支清理、推送通道诊断。
-- 只能由人给结论的：手感、可读性、是否好玩、方向取舍、发布 2FA 交互。
+- 只能由人给结论的：手感、可读性、是否好玩、方向取舍、发布 2FA 交互——固定问题表见 `工程文档/验收记录/`。
 - **不允许**：用 `--no-verify` 绕过、用 "已知问题" 替代修工具、把 L3 当 PASS。

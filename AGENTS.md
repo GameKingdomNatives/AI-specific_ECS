@@ -115,6 +115,7 @@ node tools/panel/collect.mjs  # 刷新治理面板数据
 - 检查脚本一律用 `tools/checks/spawn-capture.mjs`（文件描述符重定向），**不要用 `spawnSync(..., { encoding })` 管道捕获**。
 - 门禁报告会记录环境指纹（node／平台／管道可用性）；L3 步骤必须点名列出。
 - 推送通道：`~/.ssh/config` 可能把 `github.com` 改写到 `ssh.github.com:443`（会被网络重置）；判定与切换见 `docs/runbooks/04-推送与网络策略.md`。
+- 受限会话里 `.githooks` 的 sh 脚本无法启动（`couldn't create signal pipe, Win32 error 5`），pre-commit 不会执行。**仅在这种情况下**：先手动跑全量 `node tools/gate.mjs`，再 `git commit -n`，并在提交信息里写明门禁 run id 与 L3 项；能用 sh 时不得用 `-n`。
 
 ## 会话仪式
 
