@@ -38,6 +38,9 @@ function createHandlers(state: InputState) {
     onPointerUp: (event: PointerEvent): void => {
       state.buttons.delete(event.button);
     },
+    onContextMenu: (event: Event): void => {
+      event.preventDefault();
+    },
     onBlur: (): void => {
       state.keys.clear();
       state.buttons.clear();
@@ -53,6 +56,7 @@ function attach(target: Target, handlers: Handlers): void {
   window.addEventListener('keyup', handlers.onKeyUp);
   target.addEventListener('pointermove', handlers.onPointerMove);
   target.addEventListener('pointerdown', handlers.onPointerDown);
+  target.addEventListener('contextmenu', handlers.onContextMenu);
   window.addEventListener('pointerup', handlers.onPointerUp);
   window.addEventListener('blur', handlers.onBlur);
 }
@@ -62,6 +66,7 @@ function detach(target: Target, handlers: Handlers): void {
   window.removeEventListener('keyup', handlers.onKeyUp);
   target.removeEventListener('pointermove', handlers.onPointerMove);
   target.removeEventListener('pointerdown', handlers.onPointerDown);
+  target.removeEventListener('contextmenu', handlers.onContextMenu);
   window.removeEventListener('pointerup', handlers.onPointerUp);
   window.removeEventListener('blur', handlers.onBlur);
 }

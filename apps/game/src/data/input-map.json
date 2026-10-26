@@ -1,13 +1,57 @@
 {
   "$schemaVersion": 1,
   "actions": [
-    { "name": "up", "keys": ["KeyW", "ArrowUp"] },
-    { "name": "down", "keys": ["KeyS", "ArrowDown"] },
-    { "name": "left", "keys": ["KeyA", "ArrowLeft"] },
-    { "name": "right", "keys": ["KeyD", "ArrowRight"] },
-    { "name": "fire", "keys": ["Space"] },
-    { "name": "vent", "keys": ["KeyV"] },
-    { "name": "terminator", "keys": ["KeyE"] },
-    { "name": "support", "keys": ["KeyQ"] }
+    {
+      "name": "up",
+      "keys": [
+        "KeyW",
+        "ArrowUp"
+      ]
+    },
+    {
+      "name": "down",
+      "keys": [
+        "KeyS",
+        "ArrowDown"
+      ]
+    },
+    {
+      "name": "left",
+      "keys": [
+        "KeyA",
+        "ArrowLeft"
+      ]
+    },
+    {
+      "name": "right",
+      "keys": [
+        "KeyD",
+        "ArrowRight"
+      ]
+    },
+    {
+      "name": "shield",
+      "keys": [
+        "Space"
+      ]
+    },
+    {
+      "name": "vent",
+      "keys": [
+        "KeyV"
+      ]
+    },
+    {
+      "name": "terminator",
+      "keys": [
+        "KeyE"
+      ]
+    },
+    {
+      "name": "support",
+      "keys": [
+        "KeyQ"
+      ]
+    }
   ]
 }

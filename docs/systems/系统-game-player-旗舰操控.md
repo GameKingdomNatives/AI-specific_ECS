@@ -5,7 +5,7 @@
 - 文件：`apps/game/src/game/systems/controls.ts`
 
 ## 职责
-把玩家输入翻译成旗舰的位置与朝向：WASD 位移、指针朝向、右键护盾、V 排散。红线区按同一个性能系数同时降低移动与装填。
+把玩家输入翻译成旗舰的位置与朝向：WASD 位移、指针朝向、**空格长按护盾**、V 排散。右键不再绑定护盾，页面已拦截 `contextmenu`。红线区按同一个性能系数同时降低移动与装填。
 
 ## 输入 / 输出
 - 读：`Position`、`Flux`、`InputSnapshot`（`getInput()` 注入）
@@ -20,4 +20,4 @@
 `owns: ['mecha-control']` —— 只写玩家实体的控制类组件，不碰其他实体。
 
 ## 验证
-`apps/game/tests/controls.contract.test.ts`：位移方向、朝向、护盾/排散开关、过载拒绝。
+`apps/game/tests/controls.contract.test.ts`：位移方向、朝向、空格护盾/排散开关、过载拒绝、右键不再开盾。

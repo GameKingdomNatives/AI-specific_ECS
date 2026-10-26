@@ -26,7 +26,7 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 /**
- * 旗舰操控：WASD 位移、指针朝向、右键护盾、V 排散。
+ * 旗舰操控：WASD 位移、指针朝向、空格护盾、V 排散。
  * 红线区用同一个性能系数同时降低移动与装填，不另开第二套真相。
  */
 export function createMechaControlSystem(options: MechaControlOptions): SystemDef {
@@ -57,7 +57,7 @@ export function createMechaControlSystem(options: MechaControlOptions): SystemDe
       ctx.world.set(entity, Aim, {
         angle: Math.atan2(input.pointer.y - position.y, input.pointer.x - position.x),
       });
-      ctx.world.set(entity, Shield, { active: input.buttons.has(2) && !overloaded });
+      ctx.world.set(entity, Shield, { active: input.keys.has('shield') && !overloaded });
       ctx.world.set(entity, Vent, { active: input.keys.has('vent') && !overloaded });
     },
   };

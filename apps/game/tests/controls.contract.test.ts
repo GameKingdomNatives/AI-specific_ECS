@@ -23,13 +23,17 @@ test('WASD 位移按 tick 推进，指针决定朝向', () => {
   assert.equal(fixture.world.get(player, Shield)?.active, false);
 });
 
-test('右键开盾、V 排散，过载时两者都被拒绝', () => {
+test('空格开盾、V 排散，过载时两者都被拒绝；右键不再开盾', () => {
   const fixture = createFixture();
   const player = fixture.spawnWith([[Position, { x: 100, y: 100 }], [Flux, { soft: 0, hard: 0, overloadTicks: 0 }], [Shield, { active: false, radius: 40 }], [Vent, { active: false }], [Aim, { angle: 0 }]]);
-  const system = createMechaControlSystem({ player, getInput: () => input(['vent'], [2], { x: 100, y: 300 }), width: 800, height: 600 });
+  const system = createMechaControlSystem({ player, getInput: () => input(['shield', 'vent'], [], { x: 100, y: 300 }), width: 800, height: 600 });
   fixture.run(system);
   assert.equal(fixture.world.get(player, Shield)?.active, true);
   assert.equal(fixture.world.get(player, Vent)?.active, true);
+
+  const rightClick = createMechaControlSystem({ player, getInput: () => input([], [2], { x: 100, y: 300 }), width: 800, height: 600 });
+  fixture.run(rightClick);
+  assert.equal(fixture.world.get(player, Shield)?.active, false);
 
   fixture.world.set(player, Flux, { soft: 0, hard: 0, overloadTicks: 10 });
   fixture.run(system);
