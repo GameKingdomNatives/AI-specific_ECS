@@ -53,13 +53,13 @@ if (lastReport !== null) {
 const stamps = existsSync('.gate/stamps') ? readdirSync('.gate/stamps') : [];
 const waivers = existsSync('tools/waivers.json') ? JSON.parse(readFileSync('tools/waivers.json', 'utf8')) : [];
 
-const qualityLog = existsSync('docs/quality-log.md') ? readFileSync('docs/quality-log.md', 'utf8') : '';
+const qualityLog = existsSync('docs/质量日志.md') ? readFileSync('docs/质量日志.md', 'utf8') : '';
 const trend = qualityLog
   .split('\n')
   .filter((line) => line.startsWith('| v'))
   .map((line) => line.split('|').map((cell) => cell.trim()).filter(Boolean));
 
-const reviewLog = existsSync('docs/review-log.md') ? readFileSync('docs/review-log.md', 'utf8') : '';
+const reviewLog = existsSync('docs/评审日志.md') ? readFileSync('docs/评审日志.md', 'utf8') : '';
 const reviews = reviewLog
   .split('\n')
   .filter((line) => line.startsWith('| ') && !line.startsWith('| 时间'))

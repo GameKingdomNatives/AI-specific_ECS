@@ -23,7 +23,7 @@ try {
   process.exit(1);
 }
 const files = report.files.map((entry) => entry.path);
-const required = ['package.json', 'dist/src/index.js', 'dist/src/index.d.ts', 'dist/src/engine.js', 'docs/README.md', 'docs/en/README.md', 'docs/zh/README.md'];
+const required = ['package.json', 'dist/src/index.js', 'dist/src/index.d.ts', 'dist/src/engine.js', 'docs/索引.md', 'docs/en/README.md', 'docs/zh/索引.md'];
 for (const path of required) if (!files.includes(path)) errors.push(`缺少发布入口 ${path}`);
 for (const path of files) {
   if (path.startsWith('src/') || path.startsWith('tests/') || path.startsWith('dist/tests/') || path === 'tsconfig.json') {

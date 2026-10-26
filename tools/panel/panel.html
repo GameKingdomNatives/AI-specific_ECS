@@ -105,7 +105,7 @@
       <div class="script-head"><span>CMD</span><button id="copy-cmd">复制</button><button id="dl-cmd">下载 .cmd</button></div>
       <pre id="script-cmd"></pre>
     </div>
-    <p class="muted">脚本只做三件事：把结论写进 docs/review-log.md、提示下一步、给出 gate／tag／revert 命令；不会自动提交。</p>
+    <p class="muted">脚本只做三件事：把结论写进 docs/评审日志.md、提示下一步、给出 gate／tag／revert 命令；不会自动提交。</p>
   </div>
 
   <div class="rule"></div>
@@ -244,7 +244,7 @@
     el('changes').appendChild(changed);
 
     if (data.trend.length === 0) {
-      el('trend').appendChild(text('p', '尚无批次读数：完成一批后写入 docs/quality-log.md'));
+      el('trend').appendChild(text('p', '尚无批次读数：完成一批后写入 docs/质量日志.md'));
     } else {
       const table = document.createElement('table');
       const head = document.createElement('tr');

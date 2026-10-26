@@ -48,7 +48,7 @@ node tools/itb.mjs inspect
 node tools/itb.mjs describe
 ```
 
-Full package lifecycle, code map and agent playbook: [docs/package-guide/README.md](docs/package-guide/README.md).
+Full package lifecycle, code map and agent playbook: [docs/package-guide/索引.md](docs/package-guide/索引.md).
 
 Engine usage:
 
@@ -78,4 +78,4 @@ English: All 10 harness rules have guide/sensor/negativeTest; property tests, Wo
 
 ## 许可证 / License
 
-Apache-2.0. Public-readiness and release checklist: `docs/adr/055-m4-open-source-readiness.md`.
+Apache-2.0. Public-readiness and release checklist: `docs/adr/ADR-055-M4-开源准备.md`.

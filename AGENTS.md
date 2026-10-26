@@ -1,7 +1,7 @@
 # 项目宪法（AI 每轮必读）
 
 本文件是**约束**，不是说明书。完整规格见 `docs/00-最终指令.md`，冲突以该文档为准。
-每轮开工还必须读两份地图：**`工程文档/README.md`**（工程事实在哪）与 **`docs/workflow/full-workflow.md`**（怎么操作）。
+每轮开工还必须读两份地图：**`工程文档/索引.md`**（工程事实在哪）与 **`docs/workflow/完整工作流.md`**（怎么操作）。
 
 ## 项目结构（2026-10-25 起）
 
@@ -17,16 +17,16 @@
 
 - 历史：2026-10-20 ～ 10-24 的工作是**建立引擎框架**；现在进入**在框架上推进游戏，并以游戏的推进反哺引擎**的阶段。
 - 游戏内容**不得进入引擎包体**（`contracts/export-policy.json` + `package-surface` 门禁）。
-- 引擎契约变更仍走 ADR 与 HARD 审批；游戏暴露的缺口记 `docs/game/engine-feedback.md`。
-- 迭代方式见 `docs/workflow/iteration-workflow.md`（证据分层、人的在场规则、收尾清单）。
+- 引擎契约变更仍走 ADR 与 HARD 审批；游戏暴露的缺口记 `docs/game/引擎反馈.md`。
+- 迭代方式见 `docs/workflow/迭代流程.md`（证据分层、人的在场规则、收尾清单）。
 
 ### 开工首读顺序（不可跳）
 
 1. `node tools/status.mjs`（HEAD / 分支 / 脏文件 / 上次门禁 / 环境）
 2. `工程文档/当前状态.md`（一屏）
-3. `docs/handoff.md` 顶部（详细事实、待人裁定、环境结论）
+3. `docs/交接.md` 顶部（详细事实、待人裁定、环境结论）
 4. `工程文档/项目身份/项目身份.md`（方向与支柱）
-5. `docs/workflow/iteration-workflow.md`（本轮流程）
+5. `docs/workflow/迭代流程.md`（本轮流程）
 6. `工程文档/迭代记录/` 最后一个记录（上一轮停在哪）
 
 ## 工程文档与事实纪律
@@ -38,7 +38,7 @@
 | 方向 / 支柱 / 感觉词 / 非目标 | `工程文档/项目身份/项目身份.md` |
 | 一屏状态摘要 | `工程文档/当前状态.md` |
 | 可执行边界与权限 | `AGENTS.md`（`工程文档/边界约束.md` 只解释 why） |
-| 详细状态 / 交接 | `docs/handoff.md` |
+| 详细状态 / 交接 | `docs/交接.md` |
 | 迭代事实 | `工程文档/迭代记录/` |
 | 未采纳想法 | `工程文档/灵感池/`（IDEA-NNN） |
 | 维护规范 / 扩展入口 | `工程文档/系统维护/` |
@@ -52,10 +52,10 @@
 ### 新知识落点（不要凭记忆找地方）
 
 - 新想法 → `工程文档/灵感池/`：复制 `_模板.md` 建 `IDEA-NNN-<slug>.md`，更新 `索引.md`。**AI 不自行决定采纳/拒绝**，由人在立项时裁定。
-- 开始一轮工作 → 复制 `工程文档/_模板/iteration.md` 到 `工程文档/迭代记录/iter-NNN-<slug>.md`。
-- 迭代结束 → 迭代记录补检查点/证据/回顾 + `当前状态.md` + `变更记录/YYYY-MM.md` + `docs/handoff.md` + `docs/quality-log.md`。
+- 开始一轮工作 → 复制 `工程文档/_模板/迭代.md` 到 `工程文档/迭代记录/迭代-NNN-<主题>.md`。
+- 迭代结束 → 迭代记录补检查点/证据/回顾 + `当前状态.md` + `变更记录/YYYY-MM.md` + `docs/交接.md` + `docs/质量日志.md`。
 - 新边界/权限 → `AGENTS.md`（并同步 `工程文档/边界约束.md` 的解释；HARD 需批准）。
-- 方向变化 → 项目身份 + `工程文档/校正记录/`（用 `_模板/direction-correction.md`）。
+- 方向变化 → 项目身份 + `工程文档/校正记录/`（用 `_模板/方向校正.md`）。
 - 不构成决策的过程复盘 → `工程文档/校正记录/`；形成决策的 → `docs/adr/`。
 
 ### 文档纪律（违反即视为缺陷）
@@ -92,7 +92,7 @@ node tools/panel/collect.mjs  # 刷新治理面板数据
 - **退出码 ≠ 检查通过**：解析型检查（depcruise、eslint JSON、registry findings）必须解析结果本身；命令没产出可解析结果时判失败，不许当通过。depcruise 的 JSON 模式有违规也退出 0，必须走 `tools/checks/depcruise.mjs` 包装器（ADR-007）。
 - 门禁失败时不许提交、不许推送、不许声称完成。
 - 没跑过门禁就说「完成」，视为未交付。
-- 每次会话结束：跑全量门禁，把 `artifacts/gate/<run>/report.md` 摘要贴进回复，并更新 `docs/handoff.md` 与 `工程文档/当前状态.md`。
+- 每次会话结束：跑全量门禁，把 `artifacts/gate/<run>/report.md` 摘要贴进回复，并更新 `docs/交接.md` 与 `工程文档/当前状态.md`。
 
 ## 权限
 
@@ -120,11 +120,11 @@ node tools/panel/collect.mjs  # 刷新治理面板数据
 ## 会话仪式
 
 1. 开始：按上面"开工首读顺序"读齐；`node tools/status.mjs` 为第一步。
-2. 立项：选 1–2 个目标，写迭代记录（`工程文档/迭代记录/iter-NNN-*.md`，模板 `工程文档/_模板/iteration.md`），过边界检查；需要新想法先进灵感池。
+2. 立项：选 1–2 个目标，写迭代记录（`工程文档/迭代记录/迭代-NNN-*.md`，模板 `工程文档/_模板/迭代.md`），过边界检查；需要新想法先进灵感池。
 3. 中途：改完一个模块就 `node tools/gate.mjs --fast`，别攒到最后。
-4. 结束：`node tools/gate.mjs` + 贴报告摘要 + 更新 `docs/handoff.md`、`docs/quality-log.md`、`工程文档/当前状态.md`、`工程文档/变更记录/` 与迭代记录；必要时 `node tools/panel/collect.mjs`。
+4. 结束：`node tools/gate.mjs` + 贴报告摘要 + 更新 `docs/交接.md`、`docs/质量日志.md`、`工程文档/当前状态.md`、`工程文档/变更记录/` 与迭代记录；必要时 `node tools/panel/collect.mjs`。
 5. 交付：`node tools/flow.mjs ship`（自动门禁/receipt/深检/合并/推送/清理）；通道问题见 `docs/runbooks/04`，分支见 `docs/runbooks/05`。推送前先 `node tools/push.mjs` 体检。
-6. 交接：新会话前更新 `工程文档/交接/交接清单.md`（首读顺序）与 `docs/handoff.md`（详细事实）；不要在别处复制交接正文。
+6. 交接：新会话前更新 `工程文档/交接/交接清单.md`（首读顺序）与 `docs/交接.md`（详细事实）；不要在别处复制交接正文。
 7. 基础工作交工具：状态检查、门禁、报告、回执、分支生命周期全部自动化；工具坏了修工具，不写"注意事项"绕过。
 
 ## 高频错误（历史教训，写进来防复发）

@@ -19,14 +19,14 @@ if (note.length === 0) {
 const tag = flag('--tag');
 
 const now = new Date().toISOString();
-const log = existsSync('docs/review-log.md')
+const log = existsSync('docs/评审日志.md')
   ? ''
   : '# 批阅记录\n\n| 时间 | 结论 | HEAD | 理由 |\n|---|---|---|---|\n';
 mkdirSync('docs', { recursive: true });
-if (log.length > 0) writeFileSync('docs/review-log.md', log);
+if (log.length > 0) writeFileSync('docs/评审日志.md', log);
 
 const head = process.env.GIT_HEAD ?? '(见 gate 报告)';
-appendFileSync('docs/review-log.md', `| ${now} | ${action} | ${head} | ${note} |\n`);
+appendFileSync('docs/评审日志.md', `| ${now} | ${action} | ${head} | ${note} |\n`);
 console.log(`已记录：${action} — ${note}`);
 
 function shellQuote(text, shell) {

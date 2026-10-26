@@ -1,7 +1,7 @@
 /**
  * UI 设计 token 的唯一事实源（本地、零成本）。
  * 组件用 Tailwind 类实现，本文件用于文档、评审与 story 展示；
- * 新增 token 必须先改这里与 docs/ui-final-plan.md。
+ * 新增 token 必须先改这里与 docs/UI最终方案.md。
  */
 export const tokens = {
   color: {

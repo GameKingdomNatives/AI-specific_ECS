@@ -72,11 +72,11 @@ const DRILLS = [
   {
     name: '删系统卡',
     mutate: () => {
-      renameSync('docs/systems/demo-hit.md', 'docs/systems/__drill_card.bak');
+      renameSync('docs/systems/系统-demo-hit-命中.md', 'docs/systems/__drill_card.bak');
     },
     restore: () => {
       if (existsSync('docs/systems/__drill_card.bak')) {
-        renameSync('docs/systems/__drill_card.bak', 'docs/systems/demo-hit.md');
+        renameSync('docs/systems/__drill_card.bak', 'docs/systems/系统-demo-hit-命中.md');
       }
     },
     command: ['tools/checks/harness.mjs'],

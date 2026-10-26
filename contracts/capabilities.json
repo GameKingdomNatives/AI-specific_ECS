@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "source": "docs/audits/engine-spec-audit-2026-10-22.md",
+  "source": "docs/audits/引擎实际能力与规范偏差审计.md",
   "systems": [
     {
       "id": "scene.spawner",
       "phase": "ai",
-      "card": "docs/systems/scene-spawner.md",
+      "card": "docs/systems/系统-scene-spawner-场景生成器.md",
       "contractTest": "packages/fixture/tests/spawner.test.ts",
       "scene": "apps/game/scenes/demo.scene.json",
       "spec": {
@@ -23,7 +23,7 @@
     {
       "id": "demo.movement",
       "phase": "movement",
-      "card": "docs/systems/demo-movement.md",
+      "card": "docs/systems/系统-demo-movement-方块移动.md",
       "contractTest": "packages/fixture/tests/demo.contract.test.ts",
       "scene": "apps/game/scenes/demo.scene.json",
       "spec": {
@@ -42,7 +42,7 @@
     {
       "id": "demo.bulletMovement",
       "phase": "movement",
-      "card": "docs/systems/demo-bullet-movement.md",
+      "card": "docs/systems/系统-demo-bullet-movement-弹丸直线移动.md",
       "contractTest": "packages/fixture/tests/demo.contract.test.ts",
       "scene": "apps/game/scenes/demo.scene.json",
       "spec": {
@@ -62,7 +62,7 @@
     {
       "id": "demo.player",
       "phase": "ai",
-      "card": "docs/systems/demo-player.md",
+      "card": "docs/systems/系统-demo-player-玩家.md",
       "contractTest": "packages/fixture/tests/demo.contract.test.ts",
       "scene": "apps/game/scenes/demo.scene.json",
       "spec": {
@@ -81,7 +81,7 @@
     {
       "id": "demo.weapon",
       "phase": "damage",
-      "card": "docs/systems/demo-weapon.md",
+      "card": "docs/systems/系统-demo-weapon-武器.md",
       "contractTest": "packages/fixture/tests/weapon.contract.test.ts",
       "scene": "apps/game/scenes/demo.scene.json",
       "spec": {
@@ -100,7 +100,7 @@
     {
       "id": "physics.bodySync",
       "phase": "collision",
-      "card": "docs/systems/physics-body-sync.md",
+      "card": "docs/systems/系统-physics-body-sync-刚体同步.md",
       "contractTest": "packages/engine/tests/bridge.contract.test.ts",
       "scene": "apps/game/scenes/demo.scene.json",
       "spec": {
@@ -119,7 +119,7 @@
     {
       "id": "physics.contacts",
       "phase": "collision",
-      "card": "docs/systems/physics-contacts.md",
+      "card": "docs/systems/系统-physics-contacts-接触.md",
       "contractTest": "packages/engine/tests/contacts.test.ts",
       "scene": "apps/game/scenes/demo.scene.json",
       "spec": {
@@ -137,7 +137,7 @@
     {
       "id": "demo.hit",
       "phase": "damage",
-      "card": "docs/systems/demo-hit.md",
+      "card": "docs/systems/系统-demo-hit-命中.md",
       "contractTest": "packages/fixture/tests/hit.contract.test.ts",
       "scene": "apps/game/scenes/demo.scene.json",
       "spec": {
@@ -157,7 +157,7 @@
     {
       "id": "demo.bulletCleanup",
       "phase": "cleanup",
-      "card": "docs/systems/demo-bullet-cleanup.md",
+      "card": "docs/systems/系统-demo-bullet-cleanup-弹丸回收.md",
       "contractTest": "packages/fixture/tests/demo.contract.test.ts",
       "scene": "apps/game/scenes/demo.scene.json",
       "spec": {
@@ -176,7 +176,7 @@
     {
       "id": "game.player",
       "phase": "ai",
-      "card": "docs/systems/game-player.md",
+      "card": "docs/systems/系统-game-player-旗舰操控.md",
       "contractTest": "apps/game/tests/controls.contract.test.ts",
       "scene": "apps/game/scenes/flux-core.scene.json",
       "spec": {
@@ -199,7 +199,7 @@
     {
       "id": "game.flux",
       "phase": "ai",
-      "card": "docs/systems/game-flux.md",
+      "card": "docs/systems/系统-game-flux-辐能推进.md",
       "contractTest": "apps/game/tests/flux.contract.test.ts",
       "scene": "apps/game/scenes/flux-core.scene.json",
       "spec": {
@@ -220,7 +220,7 @@
     {
       "id": "game.weapon.primary",
       "phase": "ai",
-      "card": "docs/systems/game-weapon-primary.md",
+      "card": "docs/systems/系统-game-weapon-primary-主炮.md",
       "contractTest": "apps/game/tests/weapon.contract.test.ts",
       "scene": "apps/game/scenes/flux-core.scene.json",
       "spec": {
@@ -242,7 +242,7 @@
     {
       "id": "game.enemyAi",
       "phase": "ai",
-      "card": "docs/systems/game-enemy-ai.md",
+      "card": "docs/systems/系统-game-enemy-ai-敌机决策.md",
       "contractTest": "apps/game/tests/enemy.contract.test.ts",
       "scene": "apps/game/scenes/flux-core.scene.json",
       "spec": {
@@ -266,7 +266,7 @@
     {
       "id": "game.enemyWeapon",
       "phase": "ai",
-      "card": "docs/systems/game-enemy-weapon.md",
+      "card": "docs/systems/系统-game-enemy-weapon-敌机武器.md",
       "contractTest": "apps/game/tests/enemy.contract.test.ts",
       "scene": "apps/game/scenes/flux-core.scene.json",
       "spec": {
@@ -288,7 +288,7 @@
     {
       "id": "game.projectiles",
       "phase": "movement",
-      "card": "docs/systems/game-projectiles.md",
+      "card": "docs/systems/系统-game-projectiles-弹丸推进.md",
       "contractTest": "apps/game/tests/projectile.contract.test.ts",
       "scene": "apps/game/scenes/flux-core.scene.json",
       "spec": {
@@ -309,7 +309,7 @@
     {
       "id": "game.combat",
       "phase": "damage",
-      "card": "docs/systems/game-combat.md",
+      "card": "docs/systems/系统-game-combat-命中与伤害.md",
       "contractTest": "apps/game/tests/combat.contract.test.ts",
       "scene": "apps/game/scenes/flux-core.scene.json",
       "spec": {
@@ -331,7 +331,7 @@
     {
       "id": "game.weapon.terminator",
       "phase": "ai",
-      "card": "docs/systems/game-weapon-terminator.md",
+      "card": "docs/systems/系统-game-weapon-terminator-终结武器槽.md",
       "contractTest": "apps/game/tests/weapon.contract.test.ts",
       "scene": "apps/game/scenes/flux-core.scene.json",
       "spec": {
@@ -353,7 +353,7 @@
     {
       "id": "game.weapon.support",
       "phase": "ai",
-      "card": "docs/systems/game-weapon-support.md",
+      "card": "docs/systems/系统-game-weapon-support-支援武器槽.md",
       "contractTest": "apps/game/tests/weapon.contract.test.ts",
       "scene": "apps/game/scenes/flux-core.scene.json",
       "spec": {

@@ -9,9 +9,9 @@ English: An agent-native, tool-agnostic 2D ECS runtime kernel. It has no depende
 
 ## Package documentation / 包内文档
 
-English: This tarball includes complete **engine-only** documentation in two separate language sets: [`docs/en/`](docs/en/README.md) and [`docs/zh/`](docs/zh/README.md). They cover quickstart, API, integration, extension, maintenance/deprecation, and an agent playbook. Repository engineering tools (`tools/`, `contracts/`, ADRs, audits) are intentionally **not** included.
+English: This tarball includes complete **engine-only** documentation in two separate language sets: [`docs/en/`](docs/en/README.md) and [`docs/zh/`](docs/zh/索引.md). They cover quickstart, API, integration, extension, maintenance/deprecation, and an agent playbook. Repository engineering tools (`tools/`, `contracts/`, ADRs, audits) are intentionally **not** included.
 
-中文：本 tarball 附带完整的**仅引擎**文档，中英文各自独立：[`docs/en/`](docs/en/README.md) 与 [`docs/zh/`](docs/zh/README.md)，覆盖快速开始、API、集成、扩展、维护/废弃和 Agent 手册。仓库工程工具（`tools/`、`contracts/`、ADR、审计）刻意不随包发布。
+中文：本 tarball 附带完整的**仅引擎**文档，中英文各自独立：[`docs/en/`](docs/en/README.md) 与 [`docs/zh/`](docs/zh/索引.md)，覆盖快速开始、API、集成、扩展、维护/废弃和 Agent 手册。仓库工程工具（`tools/`、`contracts/`、ADR、审计）刻意不随包发布。
 
 ## Quick start / 最小用法
 

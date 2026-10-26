@@ -41,7 +41,7 @@ Storybook 不启动游戏、不加载 Pixi、不需要 Docker 或数据库。
 
 1. 在 `src/ui/` 建 `Xxx.tsx`，props 只接受纯数据/回调；
 2. 建 `Xxx.stories.tsx`，至少覆盖默认/边界（空或错误）/禁用三个状态；
-3. 样式用 Tailwind 工具类，token 见 `docs/ui-final-plan.md` §5；
+3. 样式用 Tailwind 工具类，token 见 `docs/UI最终方案.md` §5；
 4. 跑 `node tools/gate.mjs`（含 `storybook` 构建）。
 
 ## 设计对接

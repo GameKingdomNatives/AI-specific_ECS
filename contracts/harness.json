@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "source": "docs/proposals/005-phase0-local-quality-implementation.md",
+  "source": "docs/proposals/005-阶段-0-落地规划.md",
   "rules": [
     {
       "id": "ARCH-001",
       "title": "系统不得直接 spawn/despawn/add/remove，结构变更只走命令缓冲",
-      "guide": "docs/guides/local-branch-protection.md",
+      "guide": "docs/guides/本地分支护栏使用说明.md",
       "sensor": "tools/checks/system-structure.mjs",
       "negativeTest": "tools/drill.mjs#系统直改结构",
       "severity": "error",
@@ -70,7 +70,7 @@
     {
       "id": "QUAL-001",
       "title": "每条自定义规则必须有 negativeTest 且能变红",
-      "guide": "docs/guides/harness-lessons.md",
+      "guide": "docs/guides/Harness-经验教训.md",
       "sensor": "tools/checks/harness.mjs",
       "negativeTest": "tools/drill.mjs#删规则字段",
       "severity": "error",
@@ -97,7 +97,7 @@
     {
       "id": "PERF-001",
       "title": "每系统 p95 超预算必须告警并留证",
-      "guide": "docs/adr/040-budget-alert.md",
+      "guide": "docs/adr/ADR-040-每系统超预算告警.md",
       "sensor": "tools/checks/perf-budget.mjs",
       "negativeTest": "tools/drill.mjs#删预算告警",
       "severity": "warning",
@@ -125,7 +125,7 @@
     {
       "id": "API-001",
       "title": "公共 API 导出必须有报告与 starter 冒烟",
-      "guide": "docs/guides/quality-primer.md",
+      "guide": "docs/guides/质量术语速查.md",
       "sensor": "tools/checks/api-surface.mjs",
       "negativeTest": "tools/drill.mjs#改API声明",
       "severity": "error",

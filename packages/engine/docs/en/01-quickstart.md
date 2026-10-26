@@ -73,4 +73,4 @@ createEngine → define components → add systems → step/advance
 → app renders → test/replay → version → deprecate → remove
 ```
 
-Read `02-api.md` before adding complexity.
+Read `02-API.md` before adding complexity.
