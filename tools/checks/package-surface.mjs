@@ -23,7 +23,7 @@ try {
   process.exit(1);
 }
 const files = report.files.map((entry) => entry.path);
-const required = ['package.json', 'dist/src/index.js', 'dist/src/index.d.ts', 'dist/src/engine.js', 'docs/索引.md', 'docs/en/README.md', 'docs/zh/索引.md'];
+const required = ['package.json', 'dist/src/index.js', 'dist/src/index.d.ts', 'dist/src/engine.js', 'docs/README.md', 'docs/en/README.md', 'docs/zh/索引.md'];
 for (const path of required) if (!files.includes(path)) errors.push(`缺少发布入口 ${path}`);
 for (const path of files) {
   if (path.startsWith('src/') || path.startsWith('tests/') || path.startsWith('dist/tests/') || path === 'tsconfig.json') {
@@ -35,4 +35,4 @@ if (errors.length > 0) {
   for (const error of errors) console.error(`  - ${error}`);
   process.exit(1);
 }
-console.log(`包面检查通过：${files.length} 个文件，dist/src + docs(en/zh) + package.json/README`);
+console.log(`包面检查通过：${files.length} 个文件，dist/src + docs(root/en/zh) + package.json/README`);
