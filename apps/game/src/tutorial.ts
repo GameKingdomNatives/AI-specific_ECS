@@ -2,8 +2,6 @@
  * 首进教学：三张卡 + 常驻提示。不依赖框架、不碰世界状态；
  * 只做「把机制说清楚」，跳过或按 ? 重开都允许。
  */
-const SEEN_KEY = 'itb.tutorial.v1';
-
 interface Card {
   readonly title: string;
   readonly lines: readonly string[];
@@ -61,36 +59,29 @@ function buildOverlay(doc: Document, close: () => void): HTMLElement {
   return overlay;
 }
 
-/** 挂载教学层：首次自动弹出，? / F1 重开，Esc 关闭。 */
-export function mountTutorial(doc: Document): { open: () => void; close: () => void; dispose: () => void } {
+/** 挂载教学层：每次进入都弹出，? / F1 随时重开，Esc 或「开始」关闭；打开期间由主循环暂停世界。 */
+export function mountTutorial(doc: Document): { open: () => void; close: () => void; isOpen: () => boolean; dispose: () => void } {
   const overlay = buildOverlay(doc, () => close());
   doc.body.append(overlay);
-  let seen = false;
-  try {
-    seen = doc.defaultView?.localStorage.getItem(SEEN_KEY) === '1';
-  } catch {
-    seen = false;
-  }
   function open(): void {
     overlay.style.display = 'flex';
   }
   function close(): void {
     overlay.style.display = 'none';
-    try {
-      doc.defaultView?.localStorage.setItem(SEEN_KEY, '1');
-    } catch {
-      /* 隐私模式写入失败不影响游戏 */
-    }
+  }
+  function isOpen(): boolean {
+    return overlay.style.display !== 'none';
   }
   function onKey(event: KeyboardEvent): void {
     if (event.key === '?' || event.key === 'F1') open();
     if (event.key === 'Escape') close();
   }
   doc.addEventListener('keydown', onKey);
-  if (!seen) open();
+  open();
   return {
     open,
     close,
+    isOpen,
     dispose(): void {
       doc.removeEventListener('keydown', onKey);
       overlay.remove();

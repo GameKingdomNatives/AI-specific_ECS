@@ -6,6 +6,7 @@ import type { SceneAssets } from 'agent-specific_ecs/scene';
 import { Aim, Flux, Mecha, Projectile, Shield, Support, Suppressed, Terminator } from './game/components.js';
 import { FLUX_CAPACITY, FLUX_REDLINE, fluxTotal, isOverloaded } from './game/flux-model.js';
 import { layoutFluxBar } from './game/flux-bar.js';
+import type { FeedEntry } from './flux-feed.js';
 
 export interface HitMark {
   readonly x: number;
@@ -23,6 +24,7 @@ export interface RenderTableContext {
   readonly width: number;
   readonly height: number;
   readonly hits: readonly HitMark[];
+  readonly feed: readonly FeedEntry[];
   readonly nowTick: number;
   readonly assets: ReadonlyMap<EntityId, SceneAssets> | undefined;
   readonly url: (name: string) => string;
@@ -44,7 +46,8 @@ function mechaItems(world: World, alpha: number, previous: ReadonlyMap<EntityId,
     const mecha = world.get(entity, Mecha);
     const tint = mecha === undefined ? (entity === context.player ? 0xffaa66 : 0xf0f0f0) : mecha.faction === 0 ? 0x9fd8ff : 0xff9a7a;
     items.push({
-      id: entity, x: point.x, y: point.y, rot: aim?.angle ?? 0,
+      // 贴图朝上（-y），世界角 0 指向 +x：补 90° 才和鼠标方向一致。
+      id: entity, x: point.x, y: point.y, rot: (aim?.angle ?? 0) + Math.PI / 2,
       sx: box.size, sy: box.size, layer: 4, shape: 'rect', tint, alpha: 0.95, visible: true,
       texture: textureFor(entity, context),
     });
@@ -163,6 +166,12 @@ function hitMarks(context: RenderTableContext, items: RenderItem[]): void {
   }
 }
 
+function feedItems(context: RenderTableContext, items: RenderItem[]): void {
+  context.feed.forEach((entry, index) => {
+    items.push({ id: -700000 - index, x: context.width - 250, y: context.height - 44 - (context.feed.length - 1 - index) * 22, rot: 0, sx: 1, sy: 1, layer: 6, shape: 'rect', tint: entry.tint, alpha: 0.92, visible: true, text: entry.text, font: 'monospace', fontSize: 15 });
+  });
+}
+
 function hudItems(world: World, player: EntityId, context: RenderTableContext, items: RenderItem[]): void {
   const flux = player < 0 ? undefined : world.get(player, Flux);
   const mecha = player < 0 ? undefined : world.get(player, Mecha);
@@ -215,6 +224,7 @@ export function renderTable(
   hullItems(world, previous, items);
   suppressedItems(world, previous, items);
   hitMarks(context, items);
+  feedItems(context, items);
   hudItems(world, context.player, context, items);
   return items;
 }

@@ -18,11 +18,15 @@ export function createFluxSystem(): SystemDef {
         if (flux === undefined) continue;
         const shield = ctx.world.get(entity, Shield);
         const vent = ctx.world.get(entity, Vent);
+        const wasOverloaded = isOverloaded(flux);
         const next = stepFlux(flux, {
           shieldActive: shield?.active === true,
           venting: vent?.active === true,
         });
         ctx.world.set(entity, Flux, { soft: next.soft, hard: next.hard, overloadTicks: next.overloadTicks });
+        if (!wasOverloaded && isOverloaded(next)) {
+          ctx.bus.emit('game.flux', { entity, kind: 'overload' });
+        }
         if (isOverloaded(next)) {
           ctx.world.set(entity, Shield, { active: false });
           ctx.world.set(entity, Vent, { active: false });

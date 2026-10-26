@@ -35,6 +35,7 @@ function render(hits: readonly HitMark[] = [], nowTick = 100) {
     width: WIDTH,
     height: HEIGHT,
     hits,
+    feed: [],
     nowTick,
     assets: undefined,
     url: (name: string) => name,
@@ -89,6 +90,23 @@ test('命中飘字按类型出字并按年龄淡出', () => {
   const blocked = render([{ x: 500, y: 400, damage: 8, slot: 0, shielded: true, ew: false, tick: 100 }], 100)
     .find((item) => item.text === 'BLOCK');
   assert.ok(ew !== undefined && blocked !== undefined);
+});
+
+test('辐能事件流画在右下角且随条目上移', () => {
+  const { fixture, player } = setup();
+  const feed = [
+    { text: '主炮 +1.6 软', tint: 0xffd27a, tick: 95 },
+    { text: '过载 · 停机', tint: 0xff6b6b, tick: 100 },
+  ];
+  const items = renderTable(fixture.world, 1, new Map(), {
+    player, kills: 0, width: WIDTH, height: HEIGHT, hits: [], feed, nowTick: 100, assets: undefined, url: (name: string) => name,
+  });
+  const shots = items.filter((item) => item.text === '主炮 +1.6 软' || item.text === '过载 · 停机');
+  assert.equal(shots.length, 2);
+  for (const item of shots) {
+    assert.ok(item.x > WIDTH / 2, '应落在右半屏');
+    assert.ok(item.y < HEIGHT && item.y > HEIGHT - 200);
+  }
 });
 
 test('过期飘字不再绘制', () => {

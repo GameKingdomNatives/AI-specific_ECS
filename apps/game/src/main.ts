@@ -37,6 +37,10 @@ import { mountUi } from './ui/mount.js';
 import { createUiStore } from './ui/snapshot.js';
 import { configHashFor } from './runtime-config.js';
 import { mountTutorial } from './tutorial.js';
+import { createFluxFeed, liveFeed } from './flux-feed.js';
+import { installDebugGlobals } from './debug-globals.js';
+import { playerLabel, sceneLabel } from './labels.js';
+import { createSystemErrorHandler } from './system-errors.js';
 
 const WIDTH = 1920;
 const HEIGHT = 1080;
@@ -47,12 +51,13 @@ if (!(canvas instanceof HTMLCanvasElement)) {
   throw new Error('缺少 #stage 画布');
 }
 const hud = document.getElementById('hud');
-mountTutorial(document);
+const tutorial = mountTutorial(document);
 const probe = new URLSearchParams(location.search).get('probe');
 const stress = Number(new URLSearchParams(location.search).get('stress') ?? '0');
+const systemErrors = createSystemErrorHandler();
 const engine = createEngine({
   fixedStepMs: STEP_MS,
-  scheduler: { maxConsecutiveFailures: 3, onSystemError, enforceWrites: new URLSearchParams(location.search).has('guard') },
+  scheduler: { maxConsecutiveFailures: 3, onSystemError: systemErrors.handle, enforceWrites: new URLSearchParams(location.search).has('guard') },
 });
 let world = engine.world;
 const textures = await loadTextureUrls();
@@ -84,16 +89,10 @@ let current = input.sample(0);
 
 let scheduler = engine.scheduler;
 let runState = createRunState();
-function onSystemError(system: string, error: unknown, tick: number): void {
-  const stack = error instanceof Error ? (error.stack ?? '') : '';
-  logger.error('system failed', { system, tick, message: String(error) });
-  dumpSink.record({ system, tick, message: String(error), stack });
-  dumpSink.persist();
-  audio.play('error');
-}
+systemErrors.bind({ logger, dumpSink, audio });
 
 function applySystems(list: readonly SystemDef[]): void {
-  scheduler = engine.resetScheduler({ maxConsecutiveFailures: 3, onSystemError, enforceWrites: new URLSearchParams(location.search).has('guard') });
+  scheduler = engine.resetScheduler({ maxConsecutiveFailures: 3, onSystemError: systemErrors.handle, enforceWrites: new URLSearchParams(location.search).has('guard') });
   for (const system of list) {
     if (probe === null || system.name === probe) {
       scheduler.add(system);
@@ -111,9 +110,13 @@ let deps = {
 applySystems(pickSystems(sceneSystems(), sceneResult.loaded));
 let kills = 0;
 bus.on('demo.hit', () => { kills += 1; renderer.shake(10, 180); });
-bus.on('game.shot', () => { audio.play('shoot'); });
+const fluxFeed = createFluxFeed();
+bus.on('game.shot', (event: unknown) => { audio.play('shoot'); fluxFeed.shot(event, player, clock.tick); });
+bus.on('game.flux', (event: unknown) => fluxFeed.overload(event, clock.tick));
+bus.on('game.vent', (event: unknown) => fluxFeed.vent(event, player, clock.tick));
 const hitMarks = createHitMarks();
 bus.on('game.hit', (event: unknown) => {
+  fluxFeed.hit(event, player, clock.tick);
   const slot = hitMarks.handle(event, clock.tick);
   if (slot === null) return;
   renderer.shake(slot === 1 ? 10 : 4, slot === 1 ? 200 : 90);
@@ -121,19 +124,13 @@ bus.on('game.hit', (event: unknown) => {
 });
 bus.on('game.kill', () => { kills += 1; renderer.shake(14, 260); audio.play('explosion'); });
 const initial = initialContent();
-let dataStatus = `${initial.ok ? 'data ok' : `data fallback: ${initial.issue ?? 'invalid'}`} · scene ${sceneResult.loaded === null ? 'fallback' : sceneResult.loaded.scene.name} · player ${player < 0 ? 'missing' : 'ok'}`;
+let dataStatus = `${initial.ok ? 'data ok' : `data fallback: ${initial.issue ?? 'invalid'}`} · scene ${sceneLabel(sceneResult.loaded)} · player ${playerLabel(player)}`;
 function spawnSpec(spec: BoxSpec): EntityId[] {
   const count = probe === null ? (stress > 0 ? stress : spec.count) : Math.min(8, spec.count);
   return spawnBoxes(world, count, WIDTH, HEIGHT, spec.minSize, spec.maxSize, spec.speed);
 }
 let boxes = sceneResult.loaded !== null ? [] : spawnSpec(initial.spec);
 let recorder = new Recorder(20261020, hashWorld(world));
-function sceneLabel(): string {
-  return sceneResult.loaded === null ? 'fallback' : sceneResult.loaded.scene.name;
-}
-function playerLabel(): string {
-  return player < 0 ? 'missing' : 'ok';
-}
 function depsFor(playerId: number) {
   return { width: WIDTH, height: HEIGHT, player: playerId, getInput: (): typeof current => current, physics: createPhysicsPort(new PhysicsWorld()) };
 }
@@ -154,7 +151,7 @@ function rebuild(scene: Scene | null): { ok: boolean; issues: string[] } {
   const hash = hashWorld(world);
   recorder = new Recorder(20261020, hash, configHashFor(sceneResult.loaded === null ? null : sceneResult.loaded.scene));
   lastHash = hash;
-  dataStatus = `scene ${sceneLabel()} · player ${playerLabel()}`;
+  dataStatus = `scene ${sceneLabel(sceneResult.loaded)} · player ${playerLabel(player)}`;
   return { ok: sceneResult.loaded !== null && sceneResult.issues.length === 0, issues: sceneResult.issues.map((issue) => issue.message) };
 }
 let lastAppliedScene = '';
@@ -171,7 +168,7 @@ function applySceneDocument(raw: unknown): { ok: boolean; issues: string[] } {
     lastAppliedScene = json;
     lastHash = hashWorld(world);
     recorder = new Recorder(20261020, lastHash, configHashFor(light.scene));
-    dataStatus = `scene ${sceneLabel()} · player ${playerLabel()}`;
+    dataStatus = `scene ${sceneLabel(sceneResult.loaded)} · player ${playerLabel(player)}`;
     return { ok: true, issues: [] };
   }
   lastAppliedScene = json;
@@ -261,7 +258,8 @@ function frame(now: number): void {
   const delta = now - last;
   last = now;
   const startTick = clock.tick; const frameStart = capturePoses(world);
-  const steps = clock.advance(delta);
+  // 教学打开时世界暂停：不推进 tick，也不采样新输入。
+  const steps = tutorial.isOpen() ? 0 : clock.advance(delta);
   for (let index = 0; index < steps; index += 1) {
     const tick = startTick + index + 1;
     current = input.sample(tick);
@@ -274,15 +272,15 @@ function frame(now: number): void {
     }
   }
   if (clock.tick % 60 === 0) lastHash = hashWorld(world);
-  renderer.submit(renderTable(world, clock.alpha, frameStart, { player, kills, width: WIDTH, height: HEIGHT, hits: hitMarks.list, nowTick: clock.tick, assets: sceneResult.loaded?.assets, url: textures.url }));
+  renderer.submit(renderTable(world, clock.alpha, frameStart, { player, kills, width: WIDTH, height: HEIGHT, hits: hitMarks.list, feed: liveFeed(fluxFeed.list, clock.tick), nowTick: clock.tick, assets: sceneResult.loaded?.assets, url: textures.url }));
   renderer.debugDraw(debugView.enabled ? scheduler.collectDebug(world, bus, commands, clock.tick) : []);
   updateHud();
   requestAnimationFrame(frame);
 }
-Object.assign(globalThis, { __itb: {
+installDebugGlobals({
   recording: () => { recorder.captureEvents(bus.snapshotRecording()); return serialize(recorder.toRecording()); },
-  hash: () => hashWorld(world), snapshot: () => current, player: () => world.get(player, Position),
-  flux: () => world.get(player, Flux), hull: () => world.get(player, Mecha),
+  hash: () => hashWorld(world), snapshot: () => current,
+  player: () => world.get(player, Position), flux: () => world.get(player, Flux), hull: () => world.get(player, Mecha),
   dumps: () => dumpSink.list(), logs: () => logger.entries(), audio: () => audio.stats(),
   worldSnapshot: () => world.snapshot(), restoreWorld: (snapshot: Parameters<typeof world.restore>[0]) => world.restore(snapshot),
   render: () => renderer.stats(), setCulling: (enabled: boolean) => renderer.setCulling(enabled),
@@ -291,7 +289,7 @@ Object.assign(globalThis, { __itb: {
   debugLines: () => scheduler.collectDebug(world, bus, commands, clock.tick),
   shake: (amplitude = 10, durationMs = 180) => renderer.shake(amplitude, durationMs),
   timings: () => scheduler.systemTimings(),
-} });
+});
 if (import.meta.hot !== undefined) {
   import.meta.hot.accept('./system-registry.ts', (module) => {
     if (module !== undefined && schemaGuard()) applySystems(module.createSystems(deps));

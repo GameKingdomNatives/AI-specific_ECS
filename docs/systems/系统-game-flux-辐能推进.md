@@ -20,5 +20,9 @@
 ## 所有权
 `owns: ['flux']` —— 只有辐能系统写辐能状态，其他系统通过读数决策。
 
+## 表现层
+- `apps/game/src/flux-feed.ts`：消费 `game.shot` / `game.hit` / `game.flux`（过载）/ `game.vent`，换算成「+X 软 / +X 硬」条目（右下角，最近 5 条，150 tick 淡出）；数值口径与 `combat.ts` 的加成保持一致。
+- 事件流只做展示，不写任何组件；辐能状态的唯一写入者仍是本系统。
+
 ## 验证
 `apps/game/tests/flux.contract.test.ts`：软/硬消散差异、排散速度、红线与过载边界、过载后残留硬辐能。

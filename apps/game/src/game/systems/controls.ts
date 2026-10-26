@@ -1,4 +1,4 @@
-import type { EntityId, SystemDef } from 'agent-specific_ecs/core';
+import type { EntityId, SystemContext, SystemDef } from 'agent-specific_ecs/core';
 import type { InputSnapshot } from 'agent-specific_ecs/ports';
 import { Position } from '@itb/fixture';
 import { Aim, Flux, Shield, Suppressed, Vent } from '../components.js';
@@ -23,6 +23,14 @@ function clamp(value: number, min: number, max: number): number {
   if (value < min) return min;
   if (value > max) return max;
   return value;
+}
+
+/** 护盾/排散写回：排散从关到开时发一次事件，供 HUD 事件流显示。 */
+function applyToggles(ctx: SystemContext, entity: EntityId, shieldActive: boolean, venting: boolean): void {
+  ctx.world.set(entity, Shield, { active: shieldActive });
+  const wasVenting = ctx.world.get(entity, Vent)?.active === true;
+  ctx.world.set(entity, Vent, { active: venting });
+  if (venting && !wasVenting) ctx.bus.emit('game.vent', { entity });
 }
 
 /**
@@ -59,8 +67,7 @@ export function createMechaControlSystem(options: MechaControlOptions): SystemDe
       ctx.world.set(entity, Aim, {
         angle: Math.atan2(input.pointer.y - position.y, input.pointer.x - position.x),
       });
-      ctx.world.set(entity, Shield, { active: input.keys.has('shield') && !shieldLocked });
-      ctx.world.set(entity, Vent, { active: input.keys.has('vent') && !overloaded });
+      applyToggles(ctx, entity, input.keys.has('shield') && !shieldLocked, input.keys.has('vent') && !overloaded);
     },
   };
 }

@@ -35,7 +35,7 @@ function spawnShot(ctx: SystemContext, entity: EntityId, spec: WeaponSpec, facti
     [Velocity, { x: Math.cos(aim.angle) * spec.speed, y: Math.sin(aim.angle) * spec.speed }],
     [Projectile, { damage: spec.damage, faction, effect: spec.effect ?? 0, slot: spec.slot ?? 0 }],
   ]);
-  ctx.bus.emit('game.shot', { entity, faction, x: position.x, y: position.y });
+  ctx.bus.emit('game.shot', { entity, faction, slot: spec.slot ?? 0, heat: spec.heat, x: position.x, y: position.y });
 }
 
 /** 推进装填并写回；返回推进后的剩余 tick。 */
