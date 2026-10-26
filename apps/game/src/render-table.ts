@@ -7,11 +7,23 @@ import { Aim, Flux, Mecha, Projectile, Shield, Support, Suppressed, Terminator }
 import { FLUX_CAPACITY, FLUX_REDLINE, fluxTotal, isOverloaded } from './game/flux-model.js';
 import { layoutFluxBar } from './game/flux-bar.js';
 
+export interface HitMark {
+  readonly x: number;
+  readonly y: number;
+  readonly damage: number;
+  readonly slot: number;
+  readonly shielded: boolean;
+  readonly ew: boolean;
+  readonly tick: number;
+}
+
 export interface RenderTableContext {
   readonly player: EntityId;
   readonly kills: number;
   readonly width: number;
   readonly height: number;
+  readonly hits: readonly HitMark[];
+  readonly nowTick: number;
   readonly assets: ReadonlyMap<EntityId, SceneAssets> | undefined;
   readonly url: (name: string) => string;
 }
@@ -141,6 +153,16 @@ function suppressedItems(world: World, previous: ReadonlyMap<EntityId, { x: numb
   }
 }
 
+function hitMarks(context: RenderTableContext, items: RenderItem[]): void {
+  for (const hit of context.hits) {
+    const age = context.nowTick - hit.tick;
+    if (age < 0 || age > 24) continue;
+    const tint = hit.ew ? 0xd18cff : hit.shielded ? 0x6fb6ff : hit.slot === 1 ? 0xff9f43 : 0xffd27a;
+    const text = hit.ew ? 'EW' : hit.shielded ? 'BLOCK' : `-${Math.round(hit.damage)}`;
+    items.push({ id: -500000 - hit.tick * 16 - hit.slot, x: hit.x, y: hit.y - 34 - age * 1.4, rot: 0, sx: 1, sy: 1, layer: 6, shape: 'rect', tint, alpha: Math.max(0, 1 - age / 24), visible: true, text, font: 'monospace', fontSize: hit.slot === 1 ? 20 : 16 });
+  }
+}
+
 function hudItems(world: World, player: EntityId, context: RenderTableContext, items: RenderItem[]): void {
   const flux = player < 0 ? undefined : world.get(player, Flux);
   const mecha = player < 0 ? undefined : world.get(player, Mecha);
@@ -192,6 +214,7 @@ export function renderTable(
   fluxItems(world, previous, items);
   hullItems(world, previous, items);
   suppressedItems(world, previous, items);
+  hitMarks(context, items);
   hudItems(world, context.player, context, items);
   return items;
 }

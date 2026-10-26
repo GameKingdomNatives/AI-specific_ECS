@@ -14,6 +14,7 @@ import { createRunState } from './validity.js';
 import { createDebugView } from './debug-view.js';
 import { capturePoses } from './interpolation.js';
 import { renderTable } from './render-table.js';
+import { createHitMarks } from './hit-marks.js';
 import { loadTextureUrls } from './assets.js';
 import { createSchemaGuard } from './hmr-guard.js';
 import { createDumpSink } from 'agent-specific_ecs/diagnostics';
@@ -83,7 +84,6 @@ let current = input.sample(0);
 
 let scheduler = engine.scheduler;
 let runState = createRunState();
-
 function onSystemError(system: string, error: unknown, tick: number): void {
   const stack = error instanceof Error ? (error.stack ?? '') : '';
   logger.error('system failed', { system, tick, message: String(error) });
@@ -112,7 +112,13 @@ applySystems(pickSystems(sceneSystems(), sceneResult.loaded));
 let kills = 0;
 bus.on('demo.hit', () => { kills += 1; renderer.shake(10, 180); });
 bus.on('game.shot', () => { audio.play('shoot'); });
-bus.on('game.hit', () => { renderer.shake(4, 90); audio.play('impact'); });
+const hitMarks = createHitMarks();
+bus.on('game.hit', (event: unknown) => {
+  const slot = hitMarks.handle(event, clock.tick);
+  if (slot === null) return;
+  renderer.shake(slot === 1 ? 10 : 4, slot === 1 ? 200 : 90);
+  audio.play('impact');
+});
 bus.on('game.kill', () => { kills += 1; renderer.shake(14, 260); audio.play('explosion'); });
 const initial = initialContent();
 let dataStatus = `${initial.ok ? 'data ok' : `data fallback: ${initial.issue ?? 'invalid'}`} · scene ${sceneResult.loaded === null ? 'fallback' : sceneResult.loaded.scene.name} · player ${player < 0 ? 'missing' : 'ok'}`;
@@ -200,7 +206,7 @@ const uiStore = createUiStore({
   hash: '',
   dataStatus,
   mode: probe === null ? 'run' : `probe ${probe}`,
-  note: '就绪 · WASD 移动 · 左键开火 · 右键护盾 · V 排散',
+  note: '就绪 · WASD 移动 · 左键开火 · 空格护盾 · V 排散',
 });
 function quarantinedCount(): number {
   return storage.keys().filter((key) => key.startsWith('save:quarantine:')).length;
@@ -268,7 +274,7 @@ function frame(now: number): void {
     }
   }
   if (clock.tick % 60 === 0) lastHash = hashWorld(world);
-  renderer.submit(renderTable(world, clock.alpha, frameStart, { player, kills, width: WIDTH, height: HEIGHT, assets: sceneResult.loaded?.assets, url: textures.url }));
+  renderer.submit(renderTable(world, clock.alpha, frameStart, { player, kills, width: WIDTH, height: HEIGHT, hits: hitMarks.list, nowTick: clock.tick, assets: sceneResult.loaded?.assets, url: textures.url }));
   renderer.debugDraw(debugView.enabled ? scheduler.collectDebug(world, bus, commands, clock.tick) : []);
   updateHud();
   requestAnimationFrame(frame);

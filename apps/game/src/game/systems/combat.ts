@@ -24,7 +24,7 @@ function acquire(ctx: SystemContext, physics: IPhysics, x: number, y: number, ra
   return undefined;
 }
 
-function applyDamage(ctx: SystemContext, target: EntityId, damage: number, effect: number, at: { x: number; y: number }): void {
+function applyDamage(ctx: SystemContext, target: EntityId, damage: number, effect: number, slot: number, at: { x: number; y: number }): void {
   const mecha = ctx.world.get(target, Mecha);
   const flux = ctx.world.get(target, Flux);
   const shield = ctx.world.get(target, Shield);
@@ -39,13 +39,13 @@ function applyDamage(ctx: SystemContext, target: EntityId, damage: number, effec
     if (ctx.world.has(target, Suppressed)) {
       ctx.world.set(target, Suppressed, { ticks: SUPPRESS_TICKS });
     }
-    ctx.bus.emit('game.hit', { target, shielded: false, ew: true, x: at.x, y: at.y, damage });
+    ctx.bus.emit('game.hit', { target, shielded: false, ew: true, slot, x: at.x, y: at.y, damage });
     return;
   }
   if (shield?.active === true && flux !== undefined) {
     const next = addHard(flux, damage * 1.25);
     ctx.world.set(target, Flux, { soft: next.soft, hard: next.hard, overloadTicks: next.overloadTicks });
-    ctx.bus.emit('game.hit', { target, shielded: true, x: at.x, y: at.y, damage });
+    ctx.bus.emit('game.hit', { target, shielded: true, slot, x: at.x, y: at.y, damage });
     return;
   }
   const hull = mecha.hull - damage;
@@ -56,7 +56,7 @@ function applyDamage(ctx: SystemContext, target: EntityId, damage: number, effec
     return;
   }
   ctx.world.set(target, Mecha, { hull });
-  ctx.bus.emit('game.hit', { target, shielded: false, x: at.x, y: at.y, damage });
+  ctx.bus.emit('game.hit', { target, shielded: false, slot, x: at.x, y: at.y, damage });
 }
 
 /**
@@ -84,7 +84,7 @@ export function createCombatSystem(options: CombatOptions): SystemDef {
         const target = acquire(ctx, options.physics, position.x, position.y, radius, projectile.faction, bullet);
         if (target === undefined) continue;
         ctx.commands.despawn(bullet);
-        applyDamage(ctx, target, projectile.damage, projectile.effect, position);
+        applyDamage(ctx, target, projectile.damage, projectile.effect, Number(projectile.slot), position);
       }
     },
   };
