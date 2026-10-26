@@ -3,7 +3,8 @@ import test from 'node:test';
 import type { InputSnapshot } from 'agent-specific_ecs/ports';
 import { Position } from '@itb/fixture';
 import { Aim, Flux, Projectile, Support, Terminator, Vent, Weapon } from '../src/game/components.js';
-import { createPlayerWeaponSystem, createSupportSystem, createTerminatorSystem } from '../src/game/systems/weapon.js';
+import { ENEMY_WEAPON, PRIMARY_WEAPON, createPlayerWeaponSystem, createSupportSystem, createTerminatorSystem } from '../src/game/systems/weapon.js';
+import { SOFT_DISSIPATION } from '../src/game/flux-model.js';
 import { createFixture } from './harness.js';
 
 function fireInput(pointer = { x: 300, y: 100 }): InputSnapshot {
@@ -21,6 +22,11 @@ function setup(soft = 0) {
   ]);
   return { fixture, player };
 }
+
+test('开火期产辐大于散射：持续开火会推高软辐能（节奏的来源）', () => {
+  assert.ok(PRIMARY_WEAPON.heat > SOFT_DISSIPATION * PRIMARY_WEAPON.period, '主炮每发软辐能要大于一个装填周期的散射');
+  assert.ok(ENEMY_WEAPON.heat > SOFT_DISSIPATION * ENEMY_WEAPON.period, '敌机每发软辐能要大于一个装填周期的散射');
+});
 
 test('按住左键发射一颗弹丸，并产生软辐能与装填', () => {
   const { fixture, player } = setup();

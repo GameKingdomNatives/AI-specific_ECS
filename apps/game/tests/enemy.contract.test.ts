@@ -50,6 +50,32 @@ test('辐能越线时关盾排散并后撤', () => {
   assert.ok(position !== undefined && position.x > 900);
 });
 
+test('双机轮换：攻击者到换手线就让位给排散干净的同伴，同一时刻只有一架攻击', () => {
+  const { fixture, player, enemy } = setup(10);
+  const partner = fixture.spawnWith([
+    [Position, { x: 700, y: 700 }],
+    [Mecha, { faction: 1, hull: 100, maxHull: 100 }],
+    [Flux, { soft: 5, hard: 0, overloadTicks: 0 }],
+    [Shield, { active: false, radius: 50 }],
+    [Vent, { active: true }],
+    [Weapon, { cooldown: 0 }],
+    [Aim, { angle: 0 }],
+    [Ai, { mode: 1, timer: 0 }],
+    [Suppressed, { ticks: 0 }],
+  ]);
+  const system = createEnemyAiSystem({ player, width: 1920, height: 1080 });
+  fixture.run(system);
+  const modes = [enemy, partner].map((entity) => fixture.world.get(entity, Ai)?.mode);
+  assert.equal(modes.filter((mode) => mode === AI_ENGAGE).length, 1, '只能有一架攻击');
+
+  fixture.world.set(enemy, Flux, { soft: 75, hard: 0, overloadTicks: 0 });
+  fixture.run(system);
+  assert.equal(fixture.world.get(partner, Ai)?.mode, AI_ENGAGE, '同伴接管');
+  assert.equal(fixture.world.get(enemy, Ai)?.mode, AI_VENT, '原攻击者转入排散');
+  assert.equal(fixture.world.get(enemy, Vent)?.active, true);
+  assert.equal(fixture.world.get(partner, Vent)?.active, false);
+});
+
 test('交战模式才会开火，排散时不发射', () => {
   const { fixture, enemy } = setup(10);
   const weapon = createEnemyWeaponSystem();

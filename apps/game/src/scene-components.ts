@@ -1,7 +1,7 @@
 import type { ComponentDef, World } from 'agent-specific_ecs/core';
 import { hashHex, worldHashGroups } from 'agent-specific_ecs/determinism';
 import { Box, BoxSpawner, Bullet, Position } from '@itb/fixture';
-import { Ai, Aim, Flux, Mecha, Projectile, Shield, Support, Suppressed, Terminator, Vent, Weapon } from './game/components.js';
+import { Ai, Aim, Flux, Mecha, Projectile, Run, Shield, Support, Suppressed, Terminator, Vent, Weapon } from './game/components.js';
 
 /** scene 组件注册表：scene JSON 里的组件名到 ECS 定义的唯一映射。 */
 const COMPONENTS: ReadonlyMap<string, ComponentDef> = new Map<string, ComponentDef>([
@@ -19,6 +19,7 @@ const COMPONENTS: ReadonlyMap<string, ComponentDef> = new Map<string, ComponentD
   ['Terminator', Terminator],
   ['Support', Support],
   ['Suppressed', Suppressed],
+  ['Run', Run],
 ]);
 
 export function componentLookup(name: string): ComponentDef | undefined {

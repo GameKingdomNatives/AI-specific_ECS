@@ -58,6 +58,11 @@
         },
         "Suppressed": {
           "ticks": 0
+        },
+        "Run": {
+          "wave": 1,
+          "maxWave": 3,
+          "spawnTicks": 0
         }
       }
     },
@@ -103,6 +108,54 @@
         },
         "Vent": {
           "active": false
+        },
+        "Suppressed": {
+          "ticks": 0
+        }
+      }
+    },
+    {
+      "id": "enemy2",
+      "name": "raider",
+      "parentId": "root",
+      "assets": {
+        "texture": "enemyTex"
+      },
+      "components": {
+        "Position": {
+          "x": 1380,
+          "y": 760
+        },
+        "Box": {
+          "size": 30,
+          "tint": 16777215
+        },
+        "Mecha": {
+          "faction": 1,
+          "hull": 140,
+          "maxHull": 140
+        },
+        "Flux": {
+          "soft": 0,
+          "hard": 0,
+          "overloadTicks": 0
+        },
+        "Shield": {
+          "active": true,
+          "radius": 54
+        },
+        "Weapon": {
+          "cooldown": 0
+        },
+        "Aim": {
+          "angle": 3.14159
+        },
+        "Ai": {
+          "mode": 1,
+          "timer": 0
+        },
+        "Vent": {
+          "active": true
         },
         "Suppressed": {
           "ticks": 0
@@ -155,6 +208,13 @@
       "phase": "ai",
       "after": [
         "game.enemyAi"
+      ]
+    },
+    {
+      "id": "game.waves",
+      "phase": "cleanup",
+      "after": [
+        "game.enemyWeapon"
       ]
     },
     {

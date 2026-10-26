@@ -18,8 +18,9 @@ export interface WeaponSpec {
   readonly slot?: number;
 }
 
-export const PRIMARY_WEAPON: WeaponSpec = { damage: 6, speed: 18, heat: 1.6, period: 9, muzzle: 26, slot: 0 };
-export const ENEMY_WEAPON: WeaponSpec = { damage: 9, speed: 13, heat: 2.4, period: 16, muzzle: 30, slot: 9 };
+export const PRIMARY_WEAPON: WeaponSpec = { damage: 6, speed: 18, heat: 3.6, period: 9, muzzle: 26, slot: 0 };
+/** 敌机每发 9 软辐能：连射时产辐（33.75/s）明显大于散射（19.2/s），打约 4 秒就得换手排散。 */
+export const ENEMY_WEAPON: WeaponSpec = { damage: 9, speed: 13, heat: 9, period: 16, muzzle: 30, slot: 9 };
 /** 终结武器：打在过载窗口里的爆发，代价是几乎一条软辐能。 */
 export const TERMINATOR_WEAPON: WeaponSpec = { damage: 26, speed: 24, heat: 12, period: 96, muzzle: 30, slot: 1 };
 /** 支援武器：电子战，穿盾只加硬辐能；低直接伤害、长装填。 */

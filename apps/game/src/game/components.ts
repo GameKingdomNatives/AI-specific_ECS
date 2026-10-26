@@ -26,3 +26,6 @@ export const Ai = defineComponent('Ai', { mode: 'u32', timer: 'u32' });
 export const Vent = defineComponent('Vent', { active: 'bool' });
 /** 电子压制：支援弹命中后 90 tick 内目标无法开盾（压盾 1.5s）。 */
 export const Suppressed = defineComponent('Suppressed', { ticks: 'f32' });
+
+/** 单局推进：波次编号、总波数、补位倒计时（0 = 不在补位）。 */
+export const Run = defineComponent('Run', { wave: 'u32', maxWave: 'u32', spawnTicks: 'u32' });

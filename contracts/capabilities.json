@@ -286,6 +286,26 @@
       }
     },
     {
+      "id": "game.waves",
+      "phase": "cleanup",
+      "card": "docs/systems/系统-game-waves-波次推进.md",
+      "contractTest": "apps/game/tests/waves.contract.test.ts",
+      "scene": "apps/game/scenes/flux-core.scene.json",
+      "spec": {
+        "inputs": [
+          "Run",
+          "Mecha"
+        ],
+        "outputs": [
+          "Run",
+          "spawn enemy"
+        ],
+        "owns": [
+          "waves"
+        ]
+      }
+    },
+    {
       "id": "game.projectiles",
       "phase": "movement",
       "card": "docs/systems/系统-game-projectiles-弹丸推进.md",

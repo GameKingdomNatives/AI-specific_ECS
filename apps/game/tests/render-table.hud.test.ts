@@ -70,7 +70,7 @@ test('状态行含辐能、双方结构、击杀与装填，压盾时带 EW 倒�
   assert.ok(status !== undefined);
   assert.match(status, /FLUX 30 \/ 120/);
   assert.match(status, /HULL 100\/100/);
-  assert.match(status, /ENEMY 80\/120/);
+  assert.match(status, /ENEMY 1架 80\/120/);
   assert.match(status, /KILLS 2/);
   assert.match(status, /E 40 Q 12/);
   assert.match(status, /EW 1\.5s/);

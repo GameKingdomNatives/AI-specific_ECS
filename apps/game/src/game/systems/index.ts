@@ -6,11 +6,13 @@ import { createEnemyAiSystem } from './enemy.js';
 import { createFluxSystem } from './flux.js';
 import { createProjectileSystem } from './projectile.js';
 import { createEnemyWeaponSystem, createPlayerWeaponSystem, createSupportSystem, createTerminatorSystem, type WeaponSpec } from './weapon.js';
+import { createWaveSystem } from './waves.js';
 
 export { AI_ENGAGE, AI_VENT, createEnemyAiSystem } from './enemy.js';
 export { createMechaControlSystem } from './controls.js';
 export { createFluxSystem } from './flux.js';
 export { createCombatSystem } from './combat.js';
+export { createWaveSystem, aliveEnemies, WAVE_INTERVAL_TICKS } from './waves.js';
 export { createProjectileSystem } from './projectile.js';
 export { createEnemyWeaponSystem, createPlayerWeaponSystem, createSupportSystem, createTerminatorSystem } from './weapon.js';
 export type { WeaponSpec } from './weapon.js';
@@ -38,6 +40,7 @@ export function createGameSystems(deps: GameSystemDeps): SystemDef[] {
     createSupportSystem({ player: deps.player, getInput: deps.getInput }),
     createEnemyAiSystem({ player: deps.player, width: deps.width, height: deps.height }),
     createEnemyWeaponSystem(deps.enemyWeapon === undefined ? {} : { spec: deps.enemyWeapon }),
+    createWaveSystem({ width: deps.width, height: deps.height }),
     createProjectileSystem({ width: deps.width, height: deps.height }),
     createCombatSystem({ physics: deps.physics }),
   ];
