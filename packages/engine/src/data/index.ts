@@ -1,3 +1,4 @@
+export { Box, Position, Velocity } from './components.js';
 export { createAssetLoader } from './assets.js';
 export type { AssetFetcher, AssetLoader, AssetOutcome, AssetResponse } from './assets.js';
 export { assetManifestSchema, assetUrl, parseAssetManifest } from './assets-manifest.js';

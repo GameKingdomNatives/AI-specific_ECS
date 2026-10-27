@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { Position, Velocity } from '@itb/fixture';
+import { Position, Velocity } from 'agent-specific_ecs/data';
 import { Projectile } from '../src/game/components.js';
 import { createProjectileSystem } from '../src/game/systems/projectile.js';
 import { createFixture } from './harness.js';

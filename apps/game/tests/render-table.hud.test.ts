@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { Box, Position } from '@itb/fixture';
+import { Box, Position } from 'agent-specific_ecs/data';
 import { Flux, Mecha, Suppressed, Terminator, Support } from '../src/game/components.js';
 import { renderTable, type HitMark } from '../src/render-table.js';
 import { createFixture } from './harness.js';

@@ -1,5 +1,5 @@
 import type { SystemContext, SystemDef } from 'agent-specific_ecs/core';
-import { Box, Position } from '@itb/fixture';
+import { Box, Position } from 'agent-specific_ecs/data';
 import { Ai, Aim, Flux, Mecha, Run, Shield, Suppressed, Vent, Weapon } from '../components.js';
 import { AI_VENT } from '../engagement.js';
 

@@ -1,5 +1,5 @@
 import type { SystemDef } from 'agent-specific_ecs/core';
-import { Position, Velocity } from '@itb/fixture';
+import { Position, Velocity } from 'agent-specific_ecs/data';
 import { Projectile } from '../components.js';
 
 /** 弹丸直线飞行；出界即回收，不参与反弹，避免弹幕实体无限堆积。 */

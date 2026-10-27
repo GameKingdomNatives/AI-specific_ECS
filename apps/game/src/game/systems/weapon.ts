@@ -1,6 +1,6 @@
 import type { ComponentDef, EntityId, SystemContext, SystemDef } from 'agent-specific_ecs/core';
 import type { InputSnapshot } from 'agent-specific_ecs/ports';
-import { Position, Velocity } from '@itb/fixture';
+import { Position, Velocity } from 'agent-specific_ecs/data';
 import { Ai, Aim, Flux, Projectile, Support, Terminator, Weapon, Vent } from '../components.js';
 import { addSoft, isOverloaded, performanceFactor, type FluxState } from '../flux-model.js';
 

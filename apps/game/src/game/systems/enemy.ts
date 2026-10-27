@@ -1,5 +1,5 @@
 import type { EntityId, SystemContext, SystemDef } from 'agent-specific_ecs/core';
-import { Position } from '@itb/fixture';
+import { Position } from 'agent-specific_ecs/data';
 import { Ai, Aim, Flux, Mecha, Shield, Suppressed, Vent } from '../components.js';
 import { AI_ENGAGE, AI_VENT, HANDOFF_AT, selectAttacker, type Combatant } from '../engagement.js';
 import { fluxTotal, isOverloaded } from '../flux-model.js';

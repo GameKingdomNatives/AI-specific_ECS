@@ -1,5 +1,6 @@
 import type { EntityId, World } from 'agent-specific_ecs/core';
-import { Box, Bullet, Position } from '@itb/fixture';
+import { Bullet } from '@itb/fixture';
+import { Box, Position } from 'agent-specific_ecs/data';
 import type { Point } from 'agent-specific_ecs/core';
 import { Projectile } from './game/components.js';
 

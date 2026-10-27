@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { EntityId, SystemDef } from 'agent-specific_ecs/core';
-import { Position } from '@itb/fixture';
+import { Position } from 'agent-specific_ecs/data';
 import { Ai, Aim, Flux, Mecha, Shield, Suppressed, Vent, Weapon } from '../src/game/components.js';
 import { AI_ENGAGE } from '../src/game/engagement.js';
 import { isOverloaded } from '../src/game/flux-model.js';

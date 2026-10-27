@@ -1,6 +1,6 @@
 import type { EntityId, SystemContext, SystemDef } from 'agent-specific_ecs/core';
 import type { IPhysics } from 'agent-specific_ecs/ports';
-import { Position } from '@itb/fixture';
+import { Position } from 'agent-specific_ecs/data';
 import { Flux, Mecha, Projectile, Shield, Suppressed } from '../components.js';
 import { addHard } from '../flux-model.js';
 

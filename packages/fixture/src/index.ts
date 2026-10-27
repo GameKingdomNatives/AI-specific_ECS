@@ -1,11 +1,12 @@
 import { defineComponent } from 'agent-specific_ecs/core';
 import type { EntityId, SystemDef, World } from 'agent-specific_ecs/core';
 import type { InputSnapshot, IPhysics } from 'agent-specific_ecs/ports';
+import { Box, Position, Velocity } from 'agent-specific_ecs/data';
 
-/** 技术夹具用组件：不是游戏内容，只用来证明管线通。 */
-export const Position = defineComponent('Position', { x: 'f64', y: 'f64' });
-export const Velocity = defineComponent('Velocity', { x: 'f64', y: 'f64' });
-export const Box = defineComponent('Box', { size: 'f32', tint: 'u32' });
+/** 标准组件由引擎提供（`agent-specific_ecs/data`），夹具只转出同一份对象，保证与游戏共用定义。 */
+export { Box, Position, Velocity };
+
+/** 夹具自己的演示组件：证明管线通，不属于标准词汇表。 */
 export const Bullet = defineComponent('Bullet', { damage: 'f32' });
 
 export function createMovementSystem(worldWidth: number, worldHeight: number): SystemDef {

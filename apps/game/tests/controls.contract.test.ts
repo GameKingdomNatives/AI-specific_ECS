@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { InputSnapshot } from 'agent-specific_ecs/ports';
-import { Position } from '@itb/fixture';
+import { Position } from 'agent-specific_ecs/data';
 import { Aim, Flux, Shield, Suppressed, Vent } from '../src/game/components.js';
 import { createMechaControlSystem } from '../src/game/systems/controls.js';
 import { createFixture } from './harness.js';

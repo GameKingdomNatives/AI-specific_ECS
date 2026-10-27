@@ -1,6 +1,7 @@
 import { interpolatePoint } from 'agent-specific_ecs/core';
 import type { EntityId, World } from 'agent-specific_ecs/core';
-import { Box, Bullet, Position } from '@itb/fixture';
+import { Bullet } from '@itb/fixture';
+import { Box, Position } from 'agent-specific_ecs/data';
 import type { RenderItem } from 'agent-specific_ecs/ports';
 import type { SceneAssets } from 'agent-specific_ecs/scene';
 import { Aim, Flux, Mecha, Projectile, Run, Shield, Support, Suppressed, Terminator } from './game/components.js';

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { InputSnapshot } from 'agent-specific_ecs/ports';
-import { Position } from '@itb/fixture';
+import { Position } from 'agent-specific_ecs/data';
 import { Aim, Flux, Projectile, Support, Terminator, Vent, Weapon } from '../src/game/components.js';
 import { ENEMY_WEAPON, PRIMARY_WEAPON, createPlayerWeaponSystem, createSupportSystem, createTerminatorSystem } from '../src/game/systems/weapon.js';
 import { SOFT_DISSIPATION } from '../src/game/flux-model.js';

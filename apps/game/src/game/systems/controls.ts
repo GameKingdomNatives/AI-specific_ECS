@@ -1,6 +1,6 @@
 import type { EntityId, SystemContext, SystemDef } from 'agent-specific_ecs/core';
 import type { InputSnapshot } from 'agent-specific_ecs/ports';
-import { Position } from '@itb/fixture';
+import { Position } from 'agent-specific_ecs/data';
 import { Aim, Flux, Shield, Suppressed, Vent } from '../components.js';
 import { performanceFactor } from '../flux-model.js';
 

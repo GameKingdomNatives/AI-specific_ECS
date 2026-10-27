@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { Position } from '@itb/fixture';
+import { Position } from 'agent-specific_ecs/data';
 import { createPhysicsPort, PhysicsWorld } from 'agent-specific_ecs/physics';
 import { Flux, Mecha, Projectile, Shield, Suppressed } from '../src/game/components.js';
 import { createCombatSystem } from '../src/game/systems/combat.js';

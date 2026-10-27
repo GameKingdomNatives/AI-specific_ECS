@@ -1,6 +1,7 @@
 import type { ComponentDef, World } from 'agent-specific_ecs/core';
 import { hashHex, worldHashGroups } from 'agent-specific_ecs/determinism';
-import { Box, BoxSpawner, Bullet, Position } from '@itb/fixture';
+import { BoxSpawner, Bullet } from '@itb/fixture';
+import { Box, Position } from 'agent-specific_ecs/data';
 import { Ai, Aim, Flux, Mecha, Projectile, Run, Shield, Support, Suppressed, Terminator, Vent, Weapon } from './game/components.js';
 
 /** scene 组件注册表：scene JSON 里的组件名到 ECS 定义的唯一映射。 */

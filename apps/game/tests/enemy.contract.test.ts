@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { Position, Velocity } from '@itb/fixture';
+import { Position, Velocity } from 'agent-specific_ecs/data';
 import { Ai, Aim, Flux, Mecha, Projectile, Shield, Suppressed, Vent, Weapon } from '../src/game/components.js';
 import { AI_ENGAGE, AI_VENT, createEnemyAiSystem } from '../src/game/systems/enemy.js';
 import { RESUME_AT } from '../src/game/engagement.js';

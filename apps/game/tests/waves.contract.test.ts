@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { Box, Position } from '@itb/fixture';
+import { Box, Position } from 'agent-specific_ecs/data';
 import { Ai, Flux, Mecha, Run, Shield, Vent, Weapon } from '../src/game/components.js';
 import { WAVE_INTERVAL_TICKS, aliveEnemies, createWaveSystem } from '../src/game/systems/waves.js';
 import { createFixture } from './harness.js';

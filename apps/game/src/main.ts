@@ -4,7 +4,7 @@ import { findBudgetBreach, type EntityId, type SystemDef } from 'agent-specific_
 import { createEngine } from 'agent-specific_ecs';
 
 import { Recorder, serialize } from 'agent-specific_ecs/determinism';
-import { Box, Bullet, Position, spawnBoxes } from '@itb/fixture';
+import { Bullet, spawnBoxes } from '@itb/fixture';
 import { Flux, Mecha } from './game/components.js';
 import { componentLookup, hashWorld } from './scene-components.js';
 import { createPixiRenderer } from 'agent-specific_ecs/impl';
@@ -24,7 +24,7 @@ import { createLocalStorage, createSaveStore } from 'agent-specific_ecs/storage'
 import { initialContent, watchContent } from './content.js';
 import { createControls, type SavePayload } from './controls.js';
 import { createBrowserInput } from './input.js';
-import { parseInputMap, type BoxSpec } from 'agent-specific_ecs/data';
+import { Box, parseInputMap, Position, type BoxSpec } from 'agent-specific_ecs/data';
 import inputMapRaw from './data/input-map.json' with { type: 'json' };
 import { createSceneSystems } from './system-registry.js';
 import { currentSceneFile } from './scene-file.js';

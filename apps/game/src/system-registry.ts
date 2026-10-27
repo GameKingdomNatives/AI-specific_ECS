@@ -2,12 +2,14 @@ import type { EntityId, SystemDef } from 'agent-specific_ecs/core';
 import type { InputSnapshot, IPhysics } from 'agent-specific_ecs/ports';
 import type { Scene, SystemParams } from 'agent-specific_ecs/scene';
 import { createContactEvents, createPhysicsBridge } from 'agent-specific_ecs/bridge';
-import { Box, createBoxSpawnerSystem, createBulletCleanupSystem,
+import { Box, Position } from 'agent-specific_ecs/data';
+import {
+  createBoxSpawnerSystem,
+  createBulletCleanupSystem,
   createBulletMovementSystem,
   createHitSystem,
   createMovementSystem,
   createWeaponSystem,
-  Position,
 } from '@itb/fixture';
 import { createGameSystems } from './game/systems/index.js';
 

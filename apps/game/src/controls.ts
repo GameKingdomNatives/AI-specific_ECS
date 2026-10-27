@@ -1,5 +1,5 @@
 import type { EntityId, FixedClock, World } from 'agent-specific_ecs/core';
-import { Position } from '@itb/fixture';
+import { Position } from 'agent-specific_ecs/data';
 import type { Recorder } from 'agent-specific_ecs/determinism';
 import { serialize } from 'agent-specific_ecs/determinism';
 import type { DumpSink } from 'agent-specific_ecs/diagnostics';
