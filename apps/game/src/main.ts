@@ -40,6 +40,7 @@ import { mountTutorial } from './tutorial.js';
 import { createFluxFeed, liveFeed } from './flux-feed.js';
 import { createFluxAlarm } from './flux-alarm.js';
 import { installDebugGlobals } from './debug-globals.js';
+import { attachBattleReview } from './battle-review-host.js';
 import { playerLabel, sceneLabel } from './labels.js';
 import { createSystemErrorHandler } from './system-errors.js';
 
@@ -113,6 +114,7 @@ let kills = 0;
 bus.on('demo.hit', () => { kills += 1; renderer.shake(10, 180); });
 const fluxFeed = createFluxFeed();
 const fluxAlarm = createFluxAlarm({ getFlux: () => (player < 0 ? undefined : world.get(player, Flux)), play: (id) => audio.play(id) });
+const battleLog = attachBattleReview(bus, { player: () => player, tick: () => clock.tick });
 bus.on('game.shot', (event: unknown) => { audio.play('shoot'); fluxFeed.shot(event, player, clock.tick); });
 bus.on('game.flux', (event: unknown) => fluxFeed.overload(event, clock.tick));
 bus.on('game.vent', (event: unknown) => fluxFeed.vent(event, player, clock.tick));
@@ -133,9 +135,6 @@ function spawnSpec(spec: BoxSpec): EntityId[] {
 }
 let boxes = sceneResult.loaded !== null ? [] : spawnSpec(initial.spec);
 let recorder = new Recorder(20261020, hashWorld(world));
-function depsFor(playerId: number) {
-  return { width: WIDTH, height: HEIGHT, player: playerId, getInput: (): typeof current => current, physics: createPhysicsPort(new PhysicsWorld()) };
-}
 function sceneSystems(): SystemDef[] {
   return createSceneSystems(deps, sceneResult.loaded?.scene ?? null);
 }
@@ -145,7 +144,7 @@ function rebuild(scene: Scene | null): { ok: boolean; issues: string[] } {
   const state = scene === null ? null : instantiateSceneState(world, scene, componentLookup);
   sceneResult = { loaded: state?.loaded ?? null, issues: state?.issues ?? [] };
   player = resolvePlayer(world, sceneResult.loaded, { position: Position, box: Box }, WIDTH, HEIGHT) ?? -1;
-  deps = depsFor(player);
+  deps = { width: WIDTH, height: HEIGHT, player, getInput: (): typeof current => current, physics: createPhysicsPort(new PhysicsWorld()) };
   applySystems(pickSystems(sceneSystems(), sceneResult.loaded));
   boxes = sceneResult.loaded === null ? spawnSpec(initial.spec) : [];
   runState = createRunState();
@@ -291,6 +290,7 @@ installDebugGlobals({
   debugLines: () => scheduler.collectDebug(world, bus, commands, clock.tick),
   shake: (amplitude = 10, durationMs = 180) => renderer.shake(amplitude, durationMs),
   timings: () => scheduler.systemTimings(),
+  review: () => battleLog.summary(clock.tick),
 });
 if (import.meta.hot !== undefined) {
   import.meta.hot.accept('./system-registry.ts', (module) => {

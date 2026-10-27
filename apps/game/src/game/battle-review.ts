@@ -20,6 +20,8 @@ export interface BattleEvent {
   readonly damage?: number;
   readonly shielded?: boolean;
   readonly ew?: boolean;
+  /** 开火这一发的热值（来自 game.shot），有限归因用它算窗口内累计热。 */
+  readonly heat?: number;
 }
 
 export interface BattleSummary {
@@ -49,8 +51,11 @@ export interface BattleSummary {
   readonly tail: readonly BattleEvent[];
 }
 
-/** 默认保留最近 512 条：足够一局 3 分钟的完整时间线，又不吃内存。 */
-export const REVIEW_CAPACITY = 512;
+/**
+ * 默认保留 4096 条：一局 3 分钟约 10800 tick，敌我开火合计约两千条，留一倍余量正好完整回放；
+ * 单条是十来个数字的小对象，4096 条仍在几百 KB 量级。
+ */
+export const REVIEW_CAPACITY = 4096;
 
 export interface BattleReview {
   readonly events: readonly BattleEvent[];

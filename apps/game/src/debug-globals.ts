@@ -21,6 +21,7 @@ export interface DebugSources {
   debugLines: () => readonly unknown[];
   shake: (amplitude?: number, durationMs?: number) => void;
   timings: () => unknown;
+  review: () => unknown;
 }
 
 export function installDebugGlobals(sources: DebugSources): void {

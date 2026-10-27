@@ -70,5 +70,5 @@ test('tail 按时间升序，且长度受 tailSize 控制', () => {
   const summary = summarize(review.events, PLAYER, 6, 2);
   assert.deepEqual(summary.tail.map((item) => item.tick), [5, 6]);
   assert.equal(summarize(review.events, PLAYER, 6, 0).tail.length, 0);
-  assert.equal(REVIEW_CAPACITY, 512);
+  assert.equal(REVIEW_CAPACITY, 4096);
 });
