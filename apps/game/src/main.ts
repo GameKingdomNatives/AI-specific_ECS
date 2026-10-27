@@ -40,9 +40,10 @@ import { mountTutorial } from './tutorial.js';
 import { createFluxFeed, liveFeed } from './flux-feed.js';
 import { createFluxAlarm } from './flux-alarm.js';
 import { installDebugGlobals } from './debug-globals.js';
-import { attachBattleReview } from './battle-review-host.js';
+import { attachReplayLog } from './replay-host.js';
 import { playerLabel, sceneLabel } from './labels.js';
 import { createSystemErrorHandler } from './system-errors.js';
+import { mountReplayPanel } from './replay-panel.js';
 
 const WIDTH = 1920;
 const HEIGHT = 1080;
@@ -114,7 +115,7 @@ let kills = 0;
 bus.on('demo.hit', () => { kills += 1; renderer.shake(10, 180); });
 const fluxFeed = createFluxFeed();
 const fluxAlarm = createFluxAlarm({ getFlux: () => (player < 0 ? undefined : world.get(player, Flux)), play: (id) => audio.play(id) });
-const battleLog = attachBattleReview(bus, { player: () => player, tick: () => clock.tick });
+const battleLog = attachReplayLog(bus, { player: () => player, tick: () => clock.tick });
 bus.on('game.shot', (event: unknown) => { audio.play('shoot'); fluxFeed.shot(event, player, clock.tick); });
 bus.on('game.flux', (event: unknown) => fluxFeed.overload(event, clock.tick));
 bus.on('game.vent', (event: unknown) => fluxFeed.vent(event, player, clock.tick));
@@ -147,7 +148,7 @@ function rebuild(scene: Scene | null): { ok: boolean; issues: string[] } {
   deps = { width: WIDTH, height: HEIGHT, player, getInput: (): typeof current => current, physics: createPhysicsPort(new PhysicsWorld()) };
   applySystems(pickSystems(sceneSystems(), sceneResult.loaded));
   boxes = sceneResult.loaded === null ? spawnSpec(initial.spec) : [];
-  runState = createRunState();
+  runState = createRunState(); battleLog.clear();
   kills = 0;
   const hash = hashWorld(world);
   recorder = new Recorder(20261020, hash, configHashFor(sceneResult.loaded === null ? null : sceneResult.loaded.scene));
@@ -230,10 +231,9 @@ watchContent((state) => {
   }
   boxes = spawnSpec(state.spec);
 });
-const captureMode = new URLSearchParams(location.search).has('capture');
-const budgetLimit = Number(new URLSearchParams(location.search).get('budget') ?? '2');
-const batching = new URLSearchParams(location.search).get('batch') !== '0';
-const debugView = createDebugView(new URLSearchParams(location.search).has('debug'));
+const search = new URLSearchParams(location.search);
+const captureMode = search.has('capture'), budgetLimit = Number(search.get('budget') ?? '2'), batching = search.get('batch') !== '0';
+const replayPanel = mountReplayPanel(document, battleLog); const debugView = createDebugView(search.has('debug'));
 const renderer = await createPixiRenderer(canvas, { preserveDrawingBuffer: captureMode, debugGlobal: captureMode, batching });
 renderer.setCamera(WIDTH / 2, HEIGHT / 2, 1);
 let last = performance.now();
@@ -259,11 +259,11 @@ function frame(now: number): void {
   last = now;
   const startTick = clock.tick; const frameStart = capturePoses(world);
   // 教学打开时世界暂停：不推进 tick，也不采样新输入。
-  const steps = tutorial.isOpen() ? 0 : clock.advance(delta);
+  const steps = tutorial.isOpen() || replayPanel.isOpen() ? 0 : clock.advance(delta);
   for (let index = 0; index < steps; index += 1) {
     const tick = startTick + index + 1;
     current = input.sample(tick);
-    if (runState.valid) recorder.record(tick, current);
+    if (runState.valid) recorder.record(tick, current); battleLog.capture(world, tick, current);
     scheduler.run(world, bus, commands, tick);
     if (scheduler.invalid && runState.markInvalid()) {
       recorder.markInvalid();
