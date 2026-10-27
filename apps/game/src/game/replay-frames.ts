@@ -59,6 +59,10 @@ export interface ReplayFrames {
   frameAt(tick: number): ReplayFrame | null;
   /** 取该 tick 或之前最近的帧；早于记录起点返回 null。 */
   frameAtOrBefore(tick: number): ReplayFrame | null;
+  /** 取该 tick 或之前最近帧的下标；没有则 -1。 */
+  indexAtOrBefore(tick: number): number;
+  /** 是否已到单局帧上限（超过后不再记录，避免无限增长）。 */
+  readonly full: boolean;
   clear(): void;
 }
 
@@ -71,6 +75,8 @@ export interface ReplayRecorderOptions {
   readonly player?: () => EntityId;
   /** 单帧实体上限；超出只记前 N 个并累计 dropped。 */
   readonly maxEntitiesPerFrame?: number;
+  /** 单局帧上限，缺省 12000（60Hz 约 3.3 分钟）；到顶后停止记录。 */
+  readonly maxFrames?: number;
 }
 
 function kindOf(world: World, entity: EntityId): number {
@@ -160,6 +166,7 @@ interface State {
   readonly ticks: number[];
   readonly players: number[];
   readonly limit: number;
+  readonly maxFrames: number;
   readonly player: (() => EntityId) | undefined;
   dropped: number;
 }
@@ -172,6 +179,7 @@ function createState(options: ReplayRecorderOptions): State {
     ticks: [],
     players: [],
     limit: Math.max(1, Math.floor(options.maxEntitiesPerFrame ?? 64)),
+    maxFrames: Math.max(1, Math.floor(options.maxFrames ?? 12000)),
     player: options.player,
     dropped: 0,
   };
@@ -250,6 +258,9 @@ function makeRecorder(state: State): ReplayRecorder {
     get dropped(): number {
       return state.dropped;
     },
+    get full(): boolean {
+      return state.ticks.length >= state.maxFrames;
+    },
     tickAt(index: number): number {
       return state.ticks[index] ?? -1;
     },
@@ -264,6 +275,9 @@ function makeRecorder(state: State): ReplayRecorder {
       const index = findAtOrBefore(state.ticks, tick);
       return index < 0 ? null : frameOf(state, index);
     },
+    indexAtOrBefore(tick: number): number {
+      return findAtOrBefore(state.ticks, tick);
+    },
     clear(): void {
       state.offsets.length = 0;
       state.counts.length = 0;
@@ -273,6 +287,7 @@ function makeRecorder(state: State): ReplayRecorder {
       state.dropped = 0;
     },
     capture(world: World, tick: number): void {
+      if (state.ticks.length >= state.maxFrames) return;
       captureFrame(state, world, tick);
     },
   };
