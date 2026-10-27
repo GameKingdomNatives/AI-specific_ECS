@@ -3,6 +3,9 @@ import test from 'node:test';
 import { Position, Velocity } from '@itb/fixture';
 import { Ai, Aim, Flux, Mecha, Projectile, Shield, Suppressed, Vent, Weapon } from '../src/game/components.js';
 import { AI_ENGAGE, AI_VENT, createEnemyAiSystem } from '../src/game/systems/enemy.js';
+import { RESUME_AT } from '../src/game/engagement.js';
+import { fluxTotal } from '../src/game/flux-model.js';
+import { createFluxSystem } from '../src/game/systems/flux.js';
 import { createEnemyWeaponSystem } from '../src/game/systems/weapon.js';
 import { createFixture } from './harness.js';
 
@@ -89,4 +92,34 @@ test('交战模式才会开火，排散时不发射', () => {
   fixture.world.set(enemy, Weapon, { cooldown: 0 });
   weapon.update(fixture.ctx);
   assert.equal(fixture.commands.size, 0);
+});
+
+test('单机排散到接管线以下会自己重新接管（2026-10-27 实跑卡死回归）', () => {
+  const { fixture, player, enemy } = setup(90);
+  const ai = createEnemyAiSystem({ player, width: 1920, height: 1080 });
+  const flux = createFluxSystem();
+  let reengagedAt = -1;
+  for (let tick = 0; tick < 200 && reengagedAt < 0; tick++) {
+    fixture.run(ai);
+    fixture.run(flux);
+    const state = fixture.world.get(enemy, Flux);
+    if (fixture.world.get(enemy, Ai)?.mode === AI_ENGAGE && state !== undefined) {
+      reengagedAt = tick;
+      assert.ok(fluxTotal(state) <= RESUME_AT, '重新接管时辐能必须不高于接管线');
+    }
+  }
+  assert.ok(reengagedAt >= 0, '200 tick 内必须重新接管，不能永久卡在排散态');
+  assert.equal(fixture.world.get(enemy, Vent)?.active, false, '接管后必须停排散');
+  assert.equal(fixture.world.get(enemy, Shield)?.active, true, '接管后必须重新开盾');
+});
+
+test('击杀同伴后剩下的单机若已排散干净，同一 tick 立刻接管', () => {
+  const { fixture, player, enemy } = setup(20);
+  fixture.world.set(enemy, Ai, { mode: AI_VENT, timer: 0 });
+  fixture.world.set(enemy, Vent, { active: true });
+  fixture.world.set(enemy, Shield, { active: false, radius: 50 });
+  const ai = createEnemyAiSystem({ player, width: 1920, height: 1080 });
+  fixture.run(ai);
+  assert.equal(fixture.world.get(enemy, Ai)?.mode, AI_ENGAGE, '没有同伴可换手时必须自己接管');
+  assert.equal(fixture.world.get(enemy, Vent)?.active, false, '接管后必须停排散');
 });

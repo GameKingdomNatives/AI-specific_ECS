@@ -8,6 +8,25 @@ test('单机：辐能低于换手线就继续打，越过换手线就退出攻�
   assert.equal(selectAttacker([], undefined), undefined);
 });
 
+test('单机：排散到接管线以下必须自己重新接管，不能永久停在排散态', () => {
+  assert.equal(selectAttacker([{ id: 7, flux: RESUME_AT, mode: AI_VENT }], undefined), 7);
+  assert.equal(selectAttacker([{ id: 7, flux: RESUME_AT - 10, mode: AI_VENT }], undefined), 7);
+  assert.equal(selectAttacker([{ id: 7, flux: RESUME_AT + 5, mode: AI_VENT }], undefined), undefined);
+});
+
+test('单机：从满辐能排散到接管线，接管恰好发生在 RESUME_AT 这一刻', () => {
+  let attacker: number | undefined;
+  let engagedAt: number | undefined;
+  for (let flux = HANDOFF_AT; flux >= 0; flux -= 1) {
+    attacker = selectAttacker([{ id: 7, flux, mode: flux >= HANDOFF_AT ? AI_ENGAGE : AI_VENT }], undefined);
+    if (attacker === 7) {
+      engagedAt = flux;
+      break;
+    }
+  }
+  assert.equal(engagedAt, RESUME_AT, '只在降到接管线以下（含）才重新接管');
+});
+
 test('双机：攻击者到换手线后交给排散干净的同伴，不出现两个攻击者', () => {
   const enemies = [
     { id: 3, flux: HANDOFF_AT, mode: AI_ENGAGE },

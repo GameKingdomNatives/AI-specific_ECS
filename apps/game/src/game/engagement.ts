@@ -25,18 +25,29 @@ function pickLowest(list: readonly Combatant[]): Combatant | undefined {
   return best;
 }
 
+/** 单机：没有搭档可换手——越过换手线自己排散，降到接管线以下自己重新接管。 */
+function selectSolo(only: Combatant, current: number | undefined): number | undefined {
+  if ((only.mode === AI_ENGAGE || only.id === current) && only.flux < HANDOFF_AT) return only.id;
+  return only.flux <= RESUME_AT ? only.id : undefined;
+}
+
 /**
  * 选攻击者：
- * - 只有一个敌人时，辐能未到换手线就继续打；到了就返回 undefined（它自己排散），保持单机行为不变。
+ * - 只有一个敌人时，辐能未到换手线就继续打；越线就返回 undefined（它自己排散）；降到接管线以下必须自己重新接管。
  * - 多机时，当前攻击者未到换手线就继续；否则优先交给辐能最低且已降到接管线以下的同伴；
  *   若没人降到接管线以下，就交给辐能最低的那架（避免两边都僵在原地）。
  */
 export function selectAttacker(enemies: readonly Combatant[], current: number | undefined): number | undefined {
   if (enemies.length === 0) return undefined;
+  if (enemies.length === 1) {
+    // 单机没有搭档可换手：越过换手线先自己排散，但排散到接管线以下必须自己重新接管。
+    // 否则 mode 停在 VENT、current 恒为空，单机会永远绕圈不再开火（2026-10-27 实跑卡死）。
+    const only = enemies[0];
+    return only === undefined ? undefined : selectSolo(only, current);
+  }
   const sorted = [...enemies].sort((left, right) => left.id - right.id);
   const active = sorted.find((item) => item.id === current);
   if (active !== undefined && active.flux < HANDOFF_AT) return active.id;
-  if (sorted.length === 1) return undefined;
   const ready = sorted.filter((item) => item.flux <= RESUME_AT);
   const pool = ready.length > 0 ? ready : sorted;
   return pickLowest(pool)?.id;
