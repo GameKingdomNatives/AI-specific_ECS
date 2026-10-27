@@ -6,6 +6,7 @@ import type { SceneAssets } from 'agent-specific_ecs/scene';
 import { Aim, Flux, Mecha, Projectile, Run, Shield, Support, Suppressed, Terminator } from './game/components.js';
 import { FLUX_CAPACITY, FLUX_REDLINE, fluxTotal, isOverloaded } from './game/flux-model.js';
 import { layoutFluxBar } from './game/flux-bar.js';
+import { warningLevel, warningPulse, warningText } from './game/flux-warning.js';
 import type { FeedEntry } from './flux-feed.js';
 
 export interface HitMark {
@@ -172,10 +173,59 @@ function hitMarks(context: RenderTableContext, items: RenderItem[]): void {
   }
 }
 
-function feedItems(context: RenderTableContext, items: RenderItem[]): void {
-  context.feed.forEach((entry, index) => {
-    items.push({ id: -700000 - index, x: context.width - 250, y: context.height - 44 - (context.feed.length - 1 - index) * 22, rot: 0, sx: 1, sy: 1, layer: 6, shape: 'rect', tint: entry.tint, alpha: 0.92, visible: true, text: entry.text, font: 'monospace', fontSize: 15 });
+/** 辐能事件跟着玩家走：最关键的博弈信息不能贴在屏幕角落。 */
+function feedItems(world: World, context: RenderTableContext, items: RenderItem[]): void {
+  const anchor = context.player < 0 ? undefined : world.get(context.player, Position);
+  if (anchor === undefined) return;
+  const recent = context.feed.slice(-4);
+  recent.forEach((entry, index) => {
+    const age = context.nowTick - entry.tick;
+    const fade = age > 120 ? Math.max(0, 1 - (age - 120) / 30) : 1;
+    items.push({ id: -700000 - index, x: anchor.x, y: anchor.y - 80 - (recent.length - 1 - index) * 20, rot: 0, sx: 1, sy: 1, layer: 6, shape: 'rect', tint: entry.tint, alpha: 0.95 * fade, visible: true, text: entry.text, font: 'monospace', fontSize: 14 });
   });
+}
+
+/** 四条屏幕边：只负责画，不判断等级。 */
+function edgeBars(context: RenderTableContext, tint: number, alpha: number, thickness: number, items: RenderItem[]): void {
+  const { width, height } = context;
+  items.push({ id: -800001, x: width / 2, y: thickness / 2, rot: 0, sx: width, sy: thickness, layer: 7, shape: 'rect', tint, alpha, visible: true });
+  items.push({ id: -800002, x: width / 2, y: height - thickness / 2, rot: 0, sx: width, sy: thickness, layer: 7, shape: 'rect', tint, alpha, visible: true });
+  items.push({ id: -800003, x: thickness / 2, y: height / 2, rot: 0, sx: thickness, sy: height, layer: 7, shape: 'rect', tint, alpha, visible: true });
+  items.push({ id: -800004, x: width - thickness / 2, y: height / 2, rot: 0, sx: thickness, sy: height, layer: 7, shape: 'rect', tint, alpha, visible: true });
+}
+
+interface WarningView {
+  readonly flux: { soft: number; hard: number; overloadTicks: number };
+  readonly x: number;
+  readonly y: number;
+  readonly level: 1 | 2 | 3;
+}
+
+/** 只在「有东西要警告」时给出视图；没有就是 undefined，调用方直接不画。 */
+function warningView(world: World, player: EntityId): WarningView | undefined {
+  if (player < 0) return undefined;
+  const flux = world.get(player, Flux);
+  const position = world.get(player, Position);
+  if (flux === undefined || position === undefined) return undefined;
+  const level = warningLevel(flux);
+  if (level === 0) return undefined;
+  return { flux, x: position.x, y: position.y, level };
+}
+
+/** 警告层：越危险，屏幕边缘与机甲环呼吸得越快；文字写在机甲脚下。 */
+function warningItems(world: World, player: EntityId, context: RenderTableContext, items: RenderItem[]): void {
+  const view = warningView(world, player);
+  if (view === undefined) return;
+  const { level, x, y, flux } = view;
+  const pulse = warningPulse(context.nowTick, level);
+  const tint = level === 3 ? 0xff3b3b : 0xff8a4c;
+  const thickness = level >= 2 ? 10 : 6;
+  const edgeAlpha = 0.05 + pulse * (level >= 2 ? 0.16 : 0.08);
+  edgeBars(context, tint, edgeAlpha, thickness, items);
+  if (level >= 2) {
+    items.push({ id: -800010, x, y, rot: 0, sx: 96, sy: 96, layer: 4, shape: 'circle', tint, alpha: 0.08 + pulse * 0.12, visible: true });
+  }
+  items.push({ id: -800020, x, y: y + 48, rot: 0, sx: 1, sy: 1, layer: 7, shape: 'rect', tint, alpha: 0.95, visible: true, text: warningText(flux), font: 'monospace', fontSize: level >= 2 ? 18 : 15 });
 }
 
 /** 波次后缀：标题行只关心「第几波 / 还差几秒补位」。 */
@@ -241,7 +291,8 @@ export function renderTable(
   hullItems(world, previous, items);
   suppressedItems(world, previous, items);
   hitMarks(context, items);
-  feedItems(context, items);
+  feedItems(world, context, items);
+  warningItems(world, context.player, context, items);
   hudItems(world, context.player, context, items);
   return items;
 }

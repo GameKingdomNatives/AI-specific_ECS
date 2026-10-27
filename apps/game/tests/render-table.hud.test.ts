@@ -42,6 +42,19 @@ function render(hits: readonly HitMark[] = [], nowTick = 100) {
   });
 }
 
+function renderWithFlux(flux: { soft: number; hard: number; overloadTicks: number }) {
+  const fixture = createFixture();
+  const player = fixture.spawnWith([
+    [Position, { x: 600, y: 500 }],
+    [Box, { size: 44 }],
+    [Mecha, { faction: 0, hull: 100, maxHull: 100 }],
+    [Flux, flux],
+  ]);
+  return renderTable(fixture.world, 1, new Map(), {
+    player, kills: 0, width: WIDTH, height: HEIGHT, hits: [], feed: [], nowTick: 10, assets: undefined, url: (name: string) => name,
+  });
+}
+
 function texts(items: ReturnType<typeof render>): string[] {
   return items.flatMap((item) => (typeof item.text === 'string' ? [item.text] : []));
 }
@@ -92,7 +105,7 @@ test('命中飘字按类型出字并按年龄淡出', () => {
   assert.ok(ew !== undefined && blocked !== undefined);
 });
 
-test('辐能事件流画在右下角且随条目上移', () => {
+test('辐能事件流跟着玩家走且向上堆叠', () => {
   const { fixture, player } = setup();
   const feed = [
     { text: '主炮 +1.6 软', tint: 0xffd27a, tick: 95 },
@@ -104,9 +117,24 @@ test('辐能事件流画在右下角且随条目上移', () => {
   const shots = items.filter((item) => item.text === '主炮 +1.6 软' || item.text === '过载 · 停机');
   assert.equal(shots.length, 2);
   for (const item of shots) {
-    assert.ok(item.x > WIDTH / 2, '应落在右半屏');
-    assert.ok(item.y < HEIGHT && item.y > HEIGHT - 200);
+    assert.equal(item.x, 600, '锚定在玩家位置，不再贴屏幕角落');
+    assert.ok(item.y < 500, '应浮在机甲上方');
   }
+  const older = shots.find((item) => item.text === '主炮 +1.6 软');
+  const newer = shots.find((item) => item.text === '过载 · 停机');
+  assert.ok(older !== undefined && newer !== undefined && older.y < newer.y, '旧条目被顶上去，新条目出现在下方');
+});
+
+test('辐能警告：预警/红区/过载各有文字与屏幕边缘提示', () => {
+  const warn = renderWithFlux({ soft: 70, hard: 14, overloadTicks: 0 });
+  assert.ok(warn.some((item) => item.text === '辐能 84 / 120'));
+  assert.equal(warn.filter((item) => typeof item.layer === 'number' && item.layer === 7 && item.text === undefined).length >= 4, true, '四条边');
+
+  const redline = renderWithFlux({ soft: 60, hard: 50, overloadTicks: 0 });
+  assert.ok(redline.some((item) => typeof item.text === 'string' && item.text.startsWith('红区')));
+
+  const overload = renderWithFlux({ soft: 0, hard: 50, overloadTicks: 150 });
+  assert.ok(overload.some((item) => typeof item.text === 'string' && item.text.startsWith('过载 2.5s')));
 });
 
 test('过期飘字不再绘制', () => {

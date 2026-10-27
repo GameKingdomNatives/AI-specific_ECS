@@ -26,8 +26,11 @@
 - 推论：主炮连射约 13s 到 100；敌机连射约 4s 到换手线 60，正好构成轮换节奏。
 
 ## 表现层
-- `apps/game/src/flux-feed.ts`：消费 `game.shot` / `game.hit` / `game.flux`（过载）/ `game.vent`，换算成「+X 软 / +X 硬」条目（右下角，最近 5 条，150 tick 淡出）；数值口径与 `combat.ts` 的加成保持一致。
-- 事件流只做展示，不写任何组件；辐能状态的唯一写入者仍是本系统。
+- `apps/game/src/flux-feed.ts`：消费 `game.shot` / `game.hit` / `game.flux`（过载）/ `game.vent`，换算成「+X 软 / +X 硬」条目（**机甲上方**，旧条目向上顶，最近 4 条，120 tick 后淡出）；数值口径与 `combat.ts` 的加成保持一致。
+- `apps/game/src/game/flux-warning.ts`：三级警告的纯函数——`warnLevel` 70%（≥84 软+硬）/ 满容量 100 / 过载，给出文字与呼吸系数（周期 48/24/12 tick）。
+- `apps/game/src/render-table.ts` 的 `warningView` + `edgeBars`：四边脉冲、红区/过载机甲外环、机甲脚下 `+48` 处的文字（`辐能 84 / 120`｜`红区 100 / 120 · 输出衰减`｜`过载 2.5s`）。
+- `apps/game/src/flux-alarm.ts`：只在等级**上升**时响一次（预警 `click`、红区及以上 `error`）；退回安全区再进入会重响。
+- 以上只做展示，不写任何组件；辐能状态的唯一写入者仍是本系统。
 
 ## 验证
 `apps/game/tests/flux.contract.test.ts`：软/硬消散差异、排散速度、红线与过载边界、过载后残留硬辐能。

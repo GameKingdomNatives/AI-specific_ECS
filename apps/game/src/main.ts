@@ -38,6 +38,7 @@ import { createUiStore } from './ui/snapshot.js';
 import { configHashFor } from './runtime-config.js';
 import { mountTutorial } from './tutorial.js';
 import { createFluxFeed, liveFeed } from './flux-feed.js';
+import { createFluxAlarm } from './flux-alarm.js';
 import { installDebugGlobals } from './debug-globals.js';
 import { playerLabel, sceneLabel } from './labels.js';
 import { createSystemErrorHandler } from './system-errors.js';
@@ -111,6 +112,7 @@ applySystems(pickSystems(sceneSystems(), sceneResult.loaded));
 let kills = 0;
 bus.on('demo.hit', () => { kills += 1; renderer.shake(10, 180); });
 const fluxFeed = createFluxFeed();
+const fluxAlarm = createFluxAlarm({ getFlux: () => (player < 0 ? undefined : world.get(player, Flux)), play: (id) => audio.play(id) });
 bus.on('game.shot', (event: unknown) => { audio.play('shoot'); fluxFeed.shot(event, player, clock.tick); });
 bus.on('game.flux', (event: unknown) => fluxFeed.overload(event, clock.tick));
 bus.on('game.vent', (event: unknown) => fluxFeed.vent(event, player, clock.tick));
@@ -247,11 +249,10 @@ function updateHud(): void {
       dumpSink.persist();
     }
   }
-  const mode = probe === null ? 'run' : `probe ${probe}`;
   const bullets = world.query(Position, Bullet).length;
   const bodies = deps.physics.stats().bodies;
   const renderStats = renderer.stats();
-  hud.textContent = `${mode} · tick ${clock.tick} · entities ${world.aliveCount} · bullets ${bullets} · kills ${kills} · bodies ${bodies} · vis ${renderStats.submitted}/${renderStats.total} · a ${clock.alpha.toFixed(2)} · sub ${renderStats.submitAvgMs.toFixed(2)}ms · rec ${recorder.count} · err ${dumpSink.list().length} · ${lastHash} · ${dataStatus}`;
+  hud.textContent = `${probe === null ? 'run' : `probe ${probe}`} · tick ${clock.tick} · entities ${world.aliveCount} · bullets ${bullets} · kills ${kills} · bodies ${bodies} · vis ${renderStats.submitted}/${renderStats.total} · a ${clock.alpha.toFixed(2)} · sub ${renderStats.submitAvgMs.toFixed(2)}ms · rec ${recorder.count} · err ${dumpSink.list().length} · ${lastHash} · ${dataStatus}`;
   uiStore.update({ tick: clock.tick, entities: world.aliveCount, bullets, kills, bodies, recordingTicks: recorder.count, dumps: dumpSink.list().length, audioPlays: audio.stats().plays, hash: lastHash, dataStatus });
 }
 function frame(now: number): void {
@@ -272,6 +273,7 @@ function frame(now: number): void {
     }
   }
   if (clock.tick % 60 === 0) lastHash = hashWorld(world);
+  fluxAlarm.tick();
   renderer.submit(renderTable(world, clock.alpha, frameStart, { player, kills, width: WIDTH, height: HEIGHT, hits: hitMarks.list, feed: liveFeed(fluxFeed.list, clock.tick), nowTick: clock.tick, assets: sceneResult.loaded?.assets, url: textures.url }));
   renderer.debugDraw(debugView.enabled ? scheduler.collectDebug(world, bus, commands, clock.tick) : []);
   updateHud();
