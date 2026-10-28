@@ -1,5 +1,5 @@
 /**
- * 回放帧的底层存储：按需翻倍的 Float32/Uint8 双数组 + 定长步进读写。
+ * 回放帧的底层存储：按需翻倍的 Float32/Uint16 双数组 + 定长步进读写。
  * 只负责「内存里的字节怎么摆」，不关心世界里有什么实体。
  */
 
@@ -10,12 +10,13 @@ export const KIND_MASK = 7;
 
 export interface Storage {
   values: Float32Array;
-  flags: Uint8Array;
+  /** 标记位：低 8 位是类型/状态，高 8 位留给槽位（见 `replay-entity.ts`）。 */
+  flags: Uint16Array;
   used: number;
 }
 
 export function createStorage(): Storage {
-  return { values: new Float32Array(128 * REPLAY_STRIDE), flags: new Uint8Array(128), used: 0 };
+  return { values: new Float32Array(128 * REPLAY_STRIDE), flags: new Uint16Array(128), used: 0 };
 }
 
 export function grow(storage: Storage, needed: number): void {
@@ -24,7 +25,7 @@ export function grow(storage: Storage, needed: number): void {
   while (size < needed) size *= 2;
   const values = new Float32Array(size * REPLAY_STRIDE);
   values.set(storage.values);
-  const flags = new Uint8Array(size);
+  const flags = new Uint16Array(size);
   flags.set(storage.flags);
   storage.values = values;
   storage.flags = flags;

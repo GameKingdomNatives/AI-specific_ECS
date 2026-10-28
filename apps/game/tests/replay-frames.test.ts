@@ -12,6 +12,7 @@ import {
   REPLAY_FLAG_VENT,
   REPLAY_KIND_MECHA,
   REPLAY_KIND_PROJECTILE,
+  slotOf,
 } from '../src/game/replay-frames.js';
 
 function world(): World {
@@ -129,4 +130,37 @@ test('clear 清空记录与统计', () => {
   assert.equal(recorder.frames, 0);
   assert.equal(recorder.dropped, 0);
   assert.equal(recorder.frameAtOrBefore(3), null);
+});
+
+test('没有 Box 的弹丸也要记（尺寸按槽位、槽位可读回）', () => {
+  const target = world();
+  const player = spawnMecha(target, 0, 0, FACTION_PLAYER);
+  const bullet = target.spawn();
+  target.add(bullet, Position, { x: 30, y: 40 });
+  target.add(bullet, Projectile, { damage: 26, faction: FACTION_PLAYER, effect: 0, slot: 1 });
+  const recorder = createReplayRecorder({ player: () => player });
+  recorder.capture(target, 1);
+  const entries = recorder.frameAt(1)?.entities ?? [];
+  const shot = entries.find((entry) => entry.entity === bullet);
+  assert.ok(shot !== undefined);
+  assert.equal(shot.kind, REPLAY_KIND_PROJECTILE);
+  assert.equal(shot.x, 30);
+  assert.equal(shot.y, 40);
+  assert.equal(shot.size, 24);
+  assert.equal(slotOf(shot), 1);
+});
+
+test('弹丸多了也不会被 Mecha 挤掉：帧里同时有本体与在飞的子弹', () => {
+  const target = world();
+  const player = spawnMecha(target, 0, 0, FACTION_PLAYER);
+  for (let index = 0; index < 6; index += 1) {
+    const bullet = target.spawn();
+    target.add(bullet, Position, { x: index * 10, y: 10 });
+    target.add(bullet, Projectile, { damage: 6, faction: FACTION_PLAYER, effect: 0, slot: 0 });
+  }
+  const recorder = createReplayRecorder({ player: () => player });
+  recorder.capture(target, 1);
+  const entries = recorder.frameAt(1)?.entities ?? [];
+  assert.equal(entries.length, 7);
+  assert.equal(entries.filter((entry) => entry.kind === REPLAY_KIND_PROJECTILE).length, 6);
 });

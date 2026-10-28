@@ -1,13 +1,16 @@
 /**
- * 复盘面板的画面：把记录下来的**历史帧**画成俯视图，并把事件摊到时间轴条上。
+ * 复盘面板的画面：把记录下来的历史帧画成俯视图。
  *
- * 只读 `ReplayFrame` 与总线事件，不碰世界、不跑系统——所以画出来的东西永远是当时的那一帧。
- * 颜色沿用 `render-table.ts` 的阵营色，玩家与敌人一眼能分开。
+ * 只读 ReplayFrame 与事件表，不碰世界、不跑系统——所以画出来的东西永远是当时的那一帧。
+ * 颜色沿用 render-table.ts 的阵营色与弹丸槽位色，玩家、敌人、三种弹药一眼能分开。
+ * 事件标记与操作标签在 replay-draw-marks.ts，这里只负责实体、状态环与信息条。
  */
 
 import type { EntityId } from 'agent-specific_ecs/core';
 import type { BattleEvent } from './game/battle-review.js';
-import { REPLAY_FLAG_ENEMY, REPLAY_FLAG_OVERLOAD, REPLAY_FLAG_SHIELD, REPLAY_FLAG_SUPPRESSED, REPLAY_FLAG_VENT, REPLAY_KIND_MECHA, REPLAY_KIND_PROJECTILE, type ReplayEntry, type ReplayFrame } from './game/replay-frames.js';
+import { collectMarks, REPLAY_MARK_WINDOW } from './game/replay-events.js';
+import { REPLAY_FLAG_ENEMY, REPLAY_FLAG_OVERLOAD, REPLAY_FLAG_SHIELD, REPLAY_FLAG_SUPPRESSED, REPLAY_FLAG_VENT, REPLAY_KIND_MECHA, REPLAY_KIND_PROJECTILE, slotOf, type ReplayEntry, type ReplayFrame } from './game/replay-frames.js';
+import { drawEventMarks, drawInputChips } from './replay-draw-marks.js';
 
 export interface ReplayViewOptions {
   /** 世界坐标尺寸（1920×1080），画布按比例缩放。 */
@@ -16,14 +19,34 @@ export interface ReplayViewOptions {
   readonly player: EntityId;
   /** 当时鼠标的世界坐标；给了就画准星，能看出「他在瞄哪」。 */
   readonly pointer?: { readonly x: number; readonly y: number };
+  /** 事件表；给了就画出时间窗内的事件标记。 */
+  readonly events?: readonly BattleEvent[];
+  /** 播放头 tick；缺省用当前帧的 tick。 */
+  readonly tick?: number;
+  /** 事件在画面上停留的 tick 数；缺省 REPLAY_MARK_WINDOW。 */
+  readonly markWindow?: number;
+  /** 这一秒按下的键与鼠标按钮；非空时贴在玩家机甲上方。 */
+  readonly chips?: readonly string[];
 }
 
-/** 辐能容量：与 `flux-model.ts` 的 120 同口径，条子才能和游戏里一样长。 */
+/** 辐能容量：与 flux-model.ts 的 120 同口径，条子才能和游戏里一样长。 */
 const FLUX_CAPACITY = 120;
+
+const MONO = 'ui-monospace, Consolas, monospace';
+
+/** 弹丸槽位色：与 render-table.ts 的 projectileItems 同色（终结橙、支援紫、敌机红）。 */
+function projectileColor(entry: ReplayEntry): string {
+  const enemy = (entry.flags & REPLAY_FLAG_ENEMY) !== 0;
+  if (enemy) return '#ff6b6b';
+  const slot = slotOf(entry);
+  if (slot === 1) return '#ff9f43';
+  if (slot === 2) return '#d18cff';
+  return '#ffd27a';
+}
 
 function colorOf(entry: ReplayEntry, player: EntityId): string {
   const enemy = (entry.flags & REPLAY_FLAG_ENEMY) !== 0;
-  if (entry.kind === REPLAY_KIND_PROJECTILE) return enemy ? '#ff6b6b' : '#ffd27a';
+  if (entry.kind === REPLAY_KIND_PROJECTILE) return projectileColor(entry);
   if (entry.kind === REPLAY_KIND_MECHA) return enemy ? '#ff9a7a' : (entry.entity === player ? '#9fd8ff' : '#cfe6ff');
   return '#d8d2c8';
 }
@@ -57,21 +80,42 @@ function drawShield(ctx: CanvasRenderingContext2D, entry: ReplayEntry, scale: nu
   ctx.stroke();
 }
 
+function barText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, color: string): void {
+  ctx.font = '600 11px ' + MONO;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = 'rgba(12,10,9,0.7)';
+  const width = ctx.measureText(text).width + 4;
+  ctx.fillRect(x - 2, y - 7, width, 13);
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+}
+
+/** 机甲的信息条：结构 + 辐能（软/硬分段），并给数字读数——3px 的细线读不出「还剩多少」。 */
 function drawBars(ctx: CanvasRenderingContext2D, entry: ReplayEntry, scale: number): void {
-  const width = Math.max(18, entry.size * scale);
-  const height = 3;
+  const width = Math.max(40, entry.size * scale * 2);
+  const hullHeight = 7;
+  const fluxHeight = 5;
+  const gap = 2;
   const x = entry.x * scale - width / 2;
-  const y = entry.y * scale - entry.size * scale * 0.72;
-  ctx.fillStyle = 'rgba(20,18,16,0.82)';
-  ctx.fillRect(x, y, width, height);
+  const baseY = entry.y * scale - entry.size * scale * 0.72;
+  const hullY = baseY - hullHeight - fluxHeight - gap;
+  ctx.fillStyle = 'rgba(20,18,16,0.85)';
+  ctx.fillRect(x - 1, hullY - 1, width + 2, hullHeight + 2);
   const hullRatio = entry.hullMax > 0 ? Math.max(0, Math.min(1, entry.hull / entry.hullMax)) : 0;
   ctx.fillStyle = hullRatio > 0.35 ? '#b8f28c' : '#ff9f43';
-  ctx.fillRect(x, y, width * hullRatio, height);
-  const fluxRatio = Math.max(0, Math.min(1, (entry.soft + entry.hard) / FLUX_CAPACITY));
-  if (fluxRatio > 0) {
-    ctx.fillStyle = entry.hard > 0 ? '#ff4d4d' : '#ffb347';
-    ctx.fillRect(x, y + height + 1, width * fluxRatio, 2);
-  }
+  ctx.fillRect(x, hullY, width * hullRatio, hullHeight);
+  const fluxY = hullY + hullHeight + gap;
+  ctx.fillStyle = 'rgba(20,18,16,0.85)';
+  ctx.fillRect(x - 1, fluxY - 1, width + 2, fluxHeight + 2);
+  const softRatio = Math.max(0, Math.min(1, entry.soft / FLUX_CAPACITY));
+  const hardRatio = Math.max(0, Math.min(1, entry.hard / FLUX_CAPACITY));
+  ctx.fillStyle = '#ffb347';
+  ctx.fillRect(x, fluxY, width * softRatio, fluxHeight);
+  ctx.fillStyle = '#ff4d4d';
+  ctx.fillRect(x + width * softRatio, fluxY, width * Math.min(hardRatio, 1 - softRatio), fluxHeight);
+  barText(ctx, Math.round(entry.hull) + '/' + Math.round(entry.hullMax), x, hullY - 8, '#d8f7bd');
+  barText(ctx, String(Math.round(entry.soft + entry.hard)), x + width - 26, fluxY - 8, entry.hard > 0 ? '#ff8b8b' : '#ffcf8a');
 }
 
 function drawMarks(ctx: CanvasRenderingContext2D, entry: ReplayEntry, scale: number): void {
@@ -126,10 +170,12 @@ function drawEntry(ctx: CanvasRenderingContext2D, entry: ReplayEntry, options: R
   ctx.save();
   ctx.translate(x, y);
   if (entry.kind === REPLAY_KIND_PROJECTILE) {
-    ctx.fillStyle = colorOf(entry, options.player);
+    ctx.fillStyle = projectileColor(entry);
+    ctx.globalAlpha = 0.95;
     ctx.beginPath();
-    ctx.arc(0, 0, Math.max(2, size * 0.35), 0, Math.PI * 2);
+    ctx.arc(0, 0, Math.max(2.5, size * 0.4), 0, Math.PI * 2);
     ctx.fill();
+    ctx.globalAlpha = 1;
   } else {
     ctx.rotate(entry.angle);
     ctx.fillStyle = colorOf(entry, options.player);
@@ -146,7 +192,11 @@ function drawEntry(ctx: CanvasRenderingContext2D, entry: ReplayEntry, options: R
   }
 }
 
-/** 画一帧历史画面：`ctx` 尺寸已由调用方设定，这里按世界坐标等比缩放。 */
+function playerEntry(frame: ReplayFrame, player: EntityId): ReplayEntry | undefined {
+  return frame.entities.find((entry) => entry.entity === player && entry.kind === REPLAY_KIND_MECHA);
+}
+
+/** 画一帧历史画面：ctx 尺寸已由调用方设定，这里按世界坐标等比缩放。 */
 export function drawReplayFrame(ctx: CanvasRenderingContext2D, frame: ReplayFrame, options: ReplayViewOptions): void {
   const { width, height } = ctx.canvas;
   drawBackdrop(ctx, width, height);
@@ -156,7 +206,16 @@ export function drawReplayFrame(ctx: CanvasRenderingContext2D, frame: ReplayFram
   ctx.save();
   ctx.translate(offsetX, offsetY);
   for (const entry of frame.entities) drawEntry(ctx, entry, options, scale);
+  const tick = options.tick ?? frame.tick;
+  const events = options.events ?? [];
+  if (events.length > 0) {
+    const marks = collectMarks(frame, events, tick, { windowTicks: options.markWindow ?? REPLAY_MARK_WINDOW });
+    drawEventMarks(ctx, marks, scale);
+  }
   if (options.pointer !== undefined) drawPointer(ctx, options.pointer, scale);
+  if (options.chips !== undefined && options.chips.length > 0) {
+    drawInputChips(ctx, options.chips, playerEntry(frame, options.player), scale);
+  }
   ctx.restore();
 }
 

@@ -22,6 +22,9 @@ export interface BattleEvent {
   readonly ew?: boolean;
   /** 开火这一发的热值（来自 game.shot），有限归因用它算窗口内累计热。 */
   readonly heat?: number;
+  /** 事件发生的世界坐标（开火是射手位置，命中/击毁是受击点）；回放面板据此把事件画在发生的地方。 */
+  readonly x?: number;
+  readonly y?: number;
 }
 
 export interface BattleSummary {

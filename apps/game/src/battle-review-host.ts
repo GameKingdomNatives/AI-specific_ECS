@@ -34,6 +34,12 @@ function numberAt(payload: Record<string, unknown>, key: string): number | undef
   return typeof value === 'number' ? value : undefined;
 }
 
+function positionOf(payload: Record<string, unknown>): { readonly x?: number; readonly y?: number } {
+  const x = numberAt(payload, 'x');
+  const y = numberAt(payload, 'y');
+  return { ...(x === undefined ? {} : { x }), ...(y === undefined ? {} : { y }) };
+}
+
 function flagAt(payload: Record<string, unknown>, key: string): boolean | undefined {
   const value = payload[key];
   return typeof value === 'boolean' ? value : undefined;
@@ -44,7 +50,7 @@ function shotEvent(payload: Record<string, unknown>, tick: number): BattleEvent 
   if (entity === undefined) return null;
   const slot = numberAt(payload, 'slot');
   const heat = numberAt(payload, 'heat');
-  return { tick, kind: 'shot', entity, ...(slot === undefined ? {} : { slot }), ...(heat === undefined ? {} : { heat }) };
+  return { tick, kind: 'shot', entity, ...positionOf(payload), ...(slot === undefined ? {} : { slot }), ...(heat === undefined ? {} : { heat }) };
 }
 
 function hitEvent(payload: Record<string, unknown>, tick: number): BattleEvent | null {
@@ -59,6 +65,7 @@ function hitEvent(payload: Record<string, unknown>, tick: number): BattleEvent |
     kind: 'hit',
     entity: target,
     target,
+    ...positionOf(payload),
     ...(slot === undefined ? {} : { slot }),
     ...(damage === undefined ? {} : { damage }),
     ...(shielded === undefined ? {} : { shielded }),
@@ -69,7 +76,7 @@ function hitEvent(payload: Record<string, unknown>, tick: number): BattleEvent |
 function killEvent(payload: Record<string, unknown>, tick: number): BattleEvent | null {
   const target = numberAt(payload, 'target');
   if (target === undefined) return null;
-  return { tick, kind: 'kill', entity: target, target };
+  return { tick, kind: 'kill', entity: target, target, ...positionOf(payload) };
 }
 
 function fluxEvent(payload: Record<string, unknown>, tick: number): BattleEvent | null {

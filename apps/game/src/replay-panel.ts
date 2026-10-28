@@ -9,6 +9,7 @@
 import type { EntityId } from 'agent-specific_ecs/core';
 import { drawReplayFrame, drawReplayTimeline } from './replay-draw.js';
 import type { ReplayLog } from './replay-host.js';
+import type { ReplayInput } from './game/replay-inputs.js';
 import { buildReplayDom, formatEvent, formatInput, REPLAY_ACCENT, REPLAY_BORDER, REPLAY_TEXT, type PanelDom } from './replay-panel-dom.js';
 
 export interface ReplayPanel {
@@ -52,16 +53,29 @@ function paintSummary(state: PanelState): void {
   state.dom.summary.textContent = '开火 ' + summary.playerShots + ' · 命中 ' + summary.playerHits + ' · 造成 ' + summary.damageDealt + ' · 承受 ' + summary.damageTaken + ' · 击毁 ' + summary.kills + ' · 过载 ' + summary.overloads + ' · 排散 ' + summary.vents;
 }
 
+const BUTTON_NAMES: Readonly<Record<number, string>> = { 0: '左键', 1: '中键', 2: '右键' };
+
+/** 这一秒的操作：按键与鼠标按钮，贴在玩家机甲上方。 */
+function chipsOf(input: ReplayInput | null): string[] {
+  if (input === null) return [];
+  const buttons = input.buttons.map((button) => BUTTON_NAMES[button] ?? String(button));
+  return [...input.keys, ...buttons];
+}
+
 function paintStage(state: PanelState): void {
   const frame = state.log.cursor.frame();
   const ctx = state.dom.stage.getContext('2d');
   if (ctx === null || frame === null) return;
   const player: EntityId = frame.player >= 0 ? frame.player : -1;
-  const input = state.log.inputAt(state.log.cursor.tick);
+  const tick = state.log.cursor.tick;
+  const input = state.log.inputAt(tick);
   drawReplayFrame(ctx, frame, {
     worldWidth: state.options.worldWidth ?? 1920,
     worldHeight: state.options.worldHeight ?? 1080,
     player,
+    tick,
+    events: state.log.events,
+    chips: chipsOf(input),
     ...(input === null ? {} : { pointer: { x: input.x, y: input.y } }),
   });
 }
