@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { Position } from 'agent-specific_ecs/data';
-import { Aim, Flux, Mecha, Vent, Wingman } from '../src/game/components.js';
+import { Position, Velocity } from 'agent-specific_ecs/data';
+import { Aim, Flux, Mecha, Projectile, Vent, Wingman } from '../src/game/components.js';
 import { createWingmanSystem } from '../src/game/systems/wingman.js';
 import { WING_ENGAGE, WING_FOLLOW, WING_HANDOFF_AT, WING_VENT } from '../src/game/wingman-model.js';
 import { createFixture } from './harness.js';
@@ -70,6 +70,39 @@ test('玩家不存在时系统直接跳过，不抛错', () => {
   const { fixture, wingman } = setup();
   const before = fixture.world.get(wingman, Position);
   fixture.run(createWingmanSystem({ player: 999, width: WIDTH, height: HEIGHT }));
+  const after = fixture.world.get(wingman, Position);
+  assert.deepEqual(after, before);
+});
+
+test('交战态会开火：生成友军弹丸、抬升自身辐能并进入装填', () => {
+  const { fixture, player, wingman } = setup();
+  spawnEnemy(fixture, 1000, 600);
+  fixture.run(createWingmanSystem({ player, width: WIDTH, height: HEIGHT }));
+  assert.equal(fixture.world.get(wingman, Wingman)?.mode, WING_ENGAGE);
+  assert.equal(fixture.world.query(Position, Velocity, Projectile).length, 1, '应当打出一发弹丸');
+  const flux = fixture.world.get(wingman, Flux);
+  assert.ok(flux !== undefined && flux.soft > 0, '开火必须产生软辐能');
+  assert.ok(Number(fixture.world.get(wingman, Wingman)?.timer) > 0, '开火后应当进入装填');
+  const shot = fixture.world.query(Projectile)[0];
+  assert.ok(shot !== undefined);
+  assert.equal(fixture.world.get(shot, Projectile)?.faction, 0, '僚机的弹丸属于友军');
+});
+
+test('跟随时不开火，辐能不变', () => {
+  const { fixture, player, wingman } = setup();
+  fixture.run(createWingmanSystem({ player, width: WIDTH, height: HEIGHT }));
+  assert.equal(fixture.world.get(wingman, Wingman)?.mode, WING_FOLLOW);
+  assert.equal(fixture.world.query(Projectile).length, 0);
+  const flux = fixture.world.get(wingman, Flux);
+  assert.equal(flux?.soft, 0);
+});
+
+test('落在死区里就不动：不会在落点旁边来回摆', () => {
+  const { fixture, player, wingman } = setup();
+  // 玩家 600,600 → 跟队落点 480,696；放进死区内 4px。
+  fixture.world.set(wingman, Position, { x: 483, y: 699 });
+  const before = fixture.world.get(wingman, Position);
+  fixture.run(createWingmanSystem({ player, width: WIDTH, height: HEIGHT }));
   const after = fixture.world.get(wingman, Position);
   assert.deepEqual(after, before);
 });

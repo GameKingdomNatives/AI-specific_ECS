@@ -25,8 +25,11 @@ export const ENEMY_WEAPON: WeaponSpec = { damage: 9, speed: 13, heat: 9, period:
 export const TERMINATOR_WEAPON: WeaponSpec = { damage: 26, speed: 24, heat: 12, period: 96, muzzle: 30, slot: 1 };
 /** 支援武器：电子战，穿盾只加硬辐能；低直接伤害、长装填。 */
 export const SUPPORT_WEAPON: WeaponSpec = { damage: 6, speed: 10, heat: 4.5, period: 130, muzzle: 24, effect: 1, slot: 2 };
+/** 僚机武器：低伤、短装填、小热负荷；打得出贡献但不替玩家结束战斗。 */
+export const WINGMAN_WEAPON: WeaponSpec = { damage: 5, speed: 16, heat: 3.2, period: 14, muzzle: 20, slot: 3 };
 
-function spawnShot(ctx: SystemContext, entity: EntityId, spec: WeaponSpec, faction: number): void {
+/** 生成一发弹丸并广播 game.shot；僚机等其它系统复用它，避免第二套发射实现。 */
+export function spawnShot(ctx: SystemContext, entity: EntityId, spec: WeaponSpec, faction: number): void {
   const position = ctx.world.get(entity, Position);
   const aim = ctx.world.get(entity, Aim);
   if (position === undefined || aim === undefined) return;

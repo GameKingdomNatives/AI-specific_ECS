@@ -123,3 +123,19 @@ test('击杀同伴后剩下的单机若已排散干净，同一 tick 立刻接�
   assert.equal(fixture.world.get(enemy, Ai)?.mode, AI_ENGAGE, '没有同伴可换手时必须自己接管');
   assert.equal(fixture.world.get(enemy, Vent)?.active, false, '接管后必须停排散');
 });
+
+test('僚机比玩家更近时，敌机改打僚机', () => {
+  const { fixture, enemy } = setup(10);
+  const wingman = fixture.spawnWith([
+    [Position, { x: 1000, y: 300 }],
+    [Mecha, { faction: 0, hull: 80, maxHull: 80 }],
+  ]);
+  fixture.run(createEnemyAiSystem({ player: fixture.spawnWith([[Position, { x: 400, y: 300 }], [Mecha, { faction: 0, hull: 100, maxHull: 100 }]]), width: 1920, height: 1080 }));
+  const aim = fixture.world.get(enemy, Aim);
+  const mecha = fixture.world.get(wingman, Mecha);
+  assert.equal(mecha?.faction, 0);
+  assert.ok(aim !== undefined && Math.abs(aim.angle) < 0.2, `应当朝 +x 的僚机瞄准，实际 ${aim?.angle}`);
+  const position = fixture.world.get(enemy, Position);
+  // 敌机在射程带内偏近，会先拉开距离再对射：位置应向 -x 退。
+  assert.ok(position !== undefined && position.x < 900, '应当远离过近的僚机，保持在射程带');
+});

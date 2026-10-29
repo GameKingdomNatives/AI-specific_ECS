@@ -63,6 +63,10 @@
           "wave": 1,
           "maxWave": 3,
           "spawnTicks": 0
+        },
+        "WingSlot": {
+          "respawnTicks": 0,
+          "losses": 0
         }
       }
     },

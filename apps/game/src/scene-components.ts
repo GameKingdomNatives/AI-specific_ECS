@@ -2,7 +2,7 @@ import type { ComponentDef, World } from 'agent-specific_ecs/core';
 import { hashHex, worldHashGroups } from 'agent-specific_ecs/determinism';
 import { BoxSpawner, Bullet } from '@itb/fixture';
 import { Box, Position } from 'agent-specific_ecs/data';
-import { Ai, Aim, Flux, Mecha, Projectile, Run, Shield, Support, Suppressed, Terminator, Vent, Weapon, Wingman } from './game/components.js';
+import { Ai, Aim, Flux, Mecha, Projectile, Run, Shield, Support, Suppressed, Terminator, Vent, Weapon, Wingman, WingSlot } from './game/components.js';
 
 /** scene 组件注册表：scene JSON 里的组件名到 ECS 定义的唯一映射。 */
 const COMPONENTS: ReadonlyMap<string, ComponentDef> = new Map<string, ComponentDef>([
@@ -22,6 +22,7 @@ const COMPONENTS: ReadonlyMap<string, ComponentDef> = new Map<string, ComponentD
   ['Suppressed', Suppressed],
   ['Run', Run],
   ['Wingman', Wingman],
+  ['WingSlot', WingSlot],
 ]);
 
 export function componentLookup(name: string): ComponentDef | undefined {

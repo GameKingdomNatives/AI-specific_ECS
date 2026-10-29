@@ -4,7 +4,7 @@ import { Bullet } from '@itb/fixture';
 import { Box, Position } from 'agent-specific_ecs/data';
 import type { RenderItem } from 'agent-specific_ecs/ports';
 import type { SceneAssets } from 'agent-specific_ecs/scene';
-import { Aim, Flux, Mecha, Projectile, Run, Shield, Support, Suppressed, Terminator } from './game/components.js';
+import { Aim, Flux, Mecha, Projectile, Run, Shield, Support, Suppressed, Terminator, Wingman } from './game/components.js';
 import { FLUX_CAPACITY, FLUX_REDLINE, fluxTotal, isOverloaded } from './game/flux-model.js';
 import { layoutFluxBar } from './game/flux-bar.js';
 import { warningLevel, warningPulse, warningText } from './game/flux-warning.js';
@@ -33,10 +33,10 @@ export interface RenderTableContext {
   readonly url: (name: string) => string;
 }
 
-function textureFor(entity: EntityId, context: RenderTableContext): string {
+function textureFor(world: World, entity: EntityId, context: RenderTableContext): string {
   const sceneTexture = context.assets?.get(entity)?.texture;
   if (sceneTexture !== undefined) return context.url(sceneTexture);
-  return entity === context.player ? context.url('player') : context.url('box');
+  return context.url(entity === context.player || world.get(entity, Wingman) !== undefined ? 'player' : 'box');
 }
 
 function mechaItems(world: World, alpha: number, previous: ReadonlyMap<EntityId, { x: number; y: number }>, context: RenderTableContext, items: RenderItem[]): void {
@@ -52,7 +52,7 @@ function mechaItems(world: World, alpha: number, previous: ReadonlyMap<EntityId,
       // 贴图朝上（-y），世界角 0 指向 +x：补 90° 才和鼠标方向一致。
       id: entity, x: point.x, y: point.y, rot: (aim?.angle ?? 0) + Math.PI / 2,
       sx: box.size, sy: box.size, layer: 4, shape: 'rect', tint, alpha: 0.95, visible: true,
-      texture: textureFor(entity, context),
+      texture: textureFor(world, entity, context),
     });
     const badge = wingmanBadge(world, entity, point, box.size);
     if (badge !== null) items.push(badge);

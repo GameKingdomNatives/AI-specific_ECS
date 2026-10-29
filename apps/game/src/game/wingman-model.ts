@@ -16,6 +16,12 @@ export const WING_HANDOFF_AT = 60;
 export const WING_RESUME_AT = 30;
 /** 交战半径：敌人在这之内才推进，否则跟队。 */
 export const WING_RANGE = 620;
+/** 退出交战的额外余量：进了交战就允许敌人再退开这么多才回跟队，避免在边界上来回切。 */
+export const WING_RANGE_EXIT = WING_RANGE + 140;
+/** 到点死区：离落点这么近就不动，避免每 tick 微调造成的高频抖动。 */
+export const WING_DEADZONE = 12;
+/** 接近落点时的减速半径：越近越慢，落点不会「啪」地跳过去。 */
+export const WING_SLOW_RADIUS = 70;
 /** 与敌机保持的侧向距离；同时是「不站在玩家火线上」的最小车道距离。 */
 export const WING_LANE = 90;
 /** 每 tick 位移上限（玩家 10，敌机 3；僚机取中间偏快，跟得上又不飘）。 */
@@ -36,6 +42,10 @@ export interface WingInput {
   readonly enemy?: WingPoint;
   /** 软 + 硬辐能。 */
   readonly flux: number;
+  /** 上一次的模式：用于交战/排散/跟队的迟滞，避免阈值上反复横跳。 */
+  readonly previousMode?: number;
+  /** 侧向偏好（1 / -1）：由实体决定并保持不变，僚机不会在线两侧来回翻。 */
+  readonly side?: number;
 }
 
 export interface WingPlan {
@@ -66,9 +76,9 @@ function unitAway(from: WingPoint, of: WingPoint): WingPoint {
 }
 
 /** 交战落点：敌机侧后方（按玩家→敌机方向取侧向），再沿侧向推开到车道距离之外。 */
-function flankPoint(player: WingPoint, enemy: WingPoint): WingPoint {
+function flankPoint(player: WingPoint, enemy: WingPoint, side: number): WingPoint {
   const dir = unitAway(enemy, player);
-  const perp = { x: -dir.y, y: dir.x };
+  const perp = { x: -dir.y * side, y: dir.x * side };
   const base = { x: enemy.x - dir.x * WING_STANDOFF + perp.x * WING_LANE, y: enemy.y - dir.y * WING_STANDOFF + perp.y * WING_LANE };
   const lane = laneDistance(base, player, enemy);
   if (lane >= WING_LANE) return base;
@@ -77,16 +87,19 @@ function flankPoint(player: WingPoint, enemy: WingPoint): WingPoint {
 }
 
 export function planWingman(input: WingInput): WingPlan {
-  const { player, self, enemy, flux } = input;
-  if (flux >= WING_HANDOFF_AT) {
+  const { player, self, enemy, flux, side = 1 } = input;
+  const previous = input.previousMode;
+  // 排散也带迟滞：只有降到接管线以下才允许回到交战/跟队，否则会在 60 附近抖。
+  if (flux >= WING_HANDOFF_AT || (previous === WING_VENT && flux > WING_RESUME_AT)) {
     const away = unitAway(self, enemy ?? player);
     return { mode: WING_VENT, target: { x: self.x + away.x * WING_SPEED * 4, y: self.y + away.y * WING_SPEED * 4 } };
   }
-  if (enemy === undefined || distance(self, enemy) > WING_RANGE) {
+  const exitRange = previous === WING_ENGAGE ? WING_RANGE_EXIT : WING_RANGE;
+  if (enemy === undefined || distance(self, enemy) > exitRange) {
     const follow = { x: player.x + WING_FOLLOW_OFFSET.x, y: player.y + WING_FOLLOW_OFFSET.y };
     return { mode: WING_FOLLOW, target: follow };
   }
-  return { mode: WING_ENGAGE, target: flankPoint(player, enemy) };
+  return { mode: WING_ENGAGE, target: flankPoint(player, enemy, side) };
 }
 
 /** 排散结束后能否回到交战：降到接管线以下即可。 */

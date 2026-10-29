@@ -64,6 +64,23 @@ function stepVenting(ctx: SystemContext, entity: EntityId, position: { x: number
   stepToward(ctx, entity, position, nx / length, ny / length, tuning.speed * 1.05, tuning);
 }
 
+/** 最近的可打目标（阵营 0，含玩家与僚机）；全场没有就退回玩家。 */
+function nearestTarget(ctx: SystemContext, from: { x: number; y: number }, fallback: { x: number; y: number }): { x: number; y: number } {
+  let best = fallback;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  for (const entity of ctx.world.query(Position, Mecha)) {
+    const mecha = ctx.world.get(entity, Mecha);
+    const position = ctx.world.get(entity, Position);
+    if (mecha === undefined || position === undefined || mecha.faction !== 0) continue;
+    const distance = Math.hypot(position.x - from.x, position.y - from.y);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = { x: position.x, y: position.y };
+    }
+  }
+  return best;
+}
+
 function collect(ctx: SystemContext): Combatant[] {
   const list: Combatant[] = [];
   for (const entity of ctx.world.query(Mecha, Flux, Ai)) {
@@ -123,7 +140,8 @@ export function createEnemyAiSystem(options: EnemyAiOptions): SystemDef {
         if (mecha === undefined || position === undefined || flux === undefined) continue;
         if (mecha.faction === 0) continue;
         const forcedVent = fluxTotal(flux) >= tuning.ventAt || isOverloaded(flux);
-        applyEnemy(ctx, entity, position, target, flux, entity === attacker && !forcedVent, tuning);
+        const aimAt = nearestTarget(ctx, position, target);
+        applyEnemy(ctx, entity, position, aimAt, flux, entity === attacker && !forcedVent, tuning);
       }
     },
   };

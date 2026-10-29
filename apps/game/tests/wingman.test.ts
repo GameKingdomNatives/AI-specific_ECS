@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { laneDistance, planWingman, WING_ENGAGE, WING_FOLLOW, WING_FOLLOW_OFFSET, WING_HANDOFF_AT, WING_LANE, WING_RANGE, WING_VENT } from '../src/game/wingman-model.js';
+import { laneDistance, planWingman, WING_DEADZONE, WING_ENGAGE, WING_FOLLOW, WING_FOLLOW_OFFSET, WING_HANDOFF_AT, WING_LANE, WING_RANGE, WING_RANGE_EXIT, WING_RESUME_AT, WING_VENT } from '../src/game/wingman-model.js';
 
 const player = { x: 400, y: 500 };
 
@@ -37,4 +37,30 @@ test('laneDistance 量的是到线段的距离', () => {
   assert.equal(laneDistance({ x: 50, y: 0 }, { x: 0, y: 0 }, { x: 100, y: 0 }), 0);
   assert.equal(laneDistance({ x: 50, y: 90 }, { x: 0, y: 0 }, { x: 100, y: 0 }), 90);
   assert.equal(laneDistance({ x: -30, y: 0 }, { x: 0, y: 0 }, { x: 100, y: 0 }), 30);
+});
+
+test('已经交战时敌人退到原半径外一点仍保持交战（避免边界抖动）', () => {
+  const enemy = { x: player.x + WING_RANGE + 60, y: player.y };
+  const plan = planWingman({ player, self: { x: player.x + 10, y: player.y }, enemy, flux: 0, previousMode: WING_ENGAGE });
+  assert.equal(plan.mode, WING_ENGAGE);
+  assert.ok(WING_RANGE_EXIT > WING_RANGE);
+});
+
+test('排散中辐能还没降到接管线以下就继续排散', () => {
+  const enemy = { x: player.x + 200, y: player.y };
+  const plan = planWingman({ player, self: { x: player.x + 10, y: player.y }, enemy, flux: WING_RESUME_AT + 10, previousMode: WING_VENT });
+  assert.equal(plan.mode, WING_VENT);
+});
+
+test('侧的偏好由外部给定，换侧不会凭空翻转落点', () => {
+  const enemy = { x: player.x + 400, y: player.y };
+  const self = { x: player.x + 200, y: player.y };
+  const left = planWingman({ player, self, enemy, flux: 0, side: 1 });
+  const right = planWingman({ player, self, enemy, flux: 0, side: -1 });
+  assert.notDeepEqual(left.target, right.target);
+});
+
+test('死区与减速半径是正数且死区小于减速半径', () => {
+  assert.ok(WING_DEADZONE > 0);
+  assert.ok(WING_DEADZONE < 70);
 });

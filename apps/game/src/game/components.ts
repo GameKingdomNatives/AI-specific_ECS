@@ -29,5 +29,8 @@ export const Suppressed = defineComponent('Suppressed', { ticks: 'f32' });
 /** 僚机：自主协作状态（0 跟随 / 1 交战 / 2 排散 / 3 待命），逐 tick 由决策层写入。 */
 export const Wingman = defineComponent('Wingman', { mode: 'u32', timer: 'u32' });
 
+/** 僚机位：挂在玩家身上的补位状态（0 = 僚机在场，>0 = 补位倒计时）；损失数用于复盘。 */
+export const WingSlot = defineComponent('WingSlot', { respawnTicks: 'u32', losses: 'u32' });
+
 /** 单局推进：波次编号、总波数、补位倒计时（0 = 不在补位）。 */
 export const Run = defineComponent('Run', { wave: 'u32', maxWave: 'u32', spawnTicks: 'u32' });
