@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>深入战火 · 引擎技术夹具</title>
+    <title>深入战火 · 僚机战场</title>
     <style>
       html, body { margin: 0; height: 100%; background: #111; overflow: hidden; }
       #stage { display: block; width: 100vw; height: 100vh; }
@@ -18,6 +18,11 @@
     <canvas id="stage"></canvas>
     <div id="ui-root"></div>
     <div id="hud">tick 0 · entities 0</div>
+    <script>
+      // 启动期异常不能只躺在控制台：留在 window.__bootError，HUD/调试与自动化都能读到。
+      addEventListener("error", (event) => { window.__bootError = String((event.error && event.error.stack) || event.message); var hud = document.getElementById("hud"); if (hud) hud.textContent = "启动失败：" + window.__bootError.split("\n")[0]; });
+      addEventListener("unhandledrejection", (event) => { window.__bootError = String((event.reason && event.reason.stack) || event.reason); });
+    </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

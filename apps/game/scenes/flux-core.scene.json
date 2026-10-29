@@ -71,7 +71,7 @@
       "name": "wingman",
       "parentId": "root",
       "assets": {
-        "texture": "box"
+        "texture": "playerTex"
       },
       "components": {
         "Position": {
@@ -248,9 +248,7 @@
     {
       "id": "game.wingman",
       "phase": "ai",
-      "after": [
-        "game.enemyAi"
-      ]
+      "after": ["game.enemyAi", "game.enemyWeapon"]
     },
     {
       "id": "game.enemyWeapon",

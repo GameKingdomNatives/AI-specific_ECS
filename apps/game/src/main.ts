@@ -53,7 +53,7 @@ const canvas = document.getElementById('stage');
 if (!(canvas instanceof HTMLCanvasElement)) {
   throw new Error('缺少 #stage 画布');
 }
-const hud = document.getElementById('hud');
+const hud = document.getElementById('hud'), sceneIssueLine = (): string => (sceneResult.loaded !== null || sceneResult.issues.length === 0 ? '' : ` · scene invalid: ${sceneResult.issues[0]?.message ?? 'unknown'}`);
 const tutorial = mountTutorial(document);
 const probe = new URLSearchParams(location.search).get('probe');
 const stress = Number(new URLSearchParams(location.search).get('stress') ?? '0');
@@ -129,7 +129,7 @@ bus.on('game.hit', (event: unknown) => {
 });
 bus.on('game.kill', () => { kills += 1; renderer.shake(14, 260); audio.play('explosion'); });
 const initial = initialContent();
-let dataStatus = `${initial.ok ? 'data ok' : `data fallback: ${initial.issue ?? 'invalid'}`} · scene ${sceneLabel(sceneResult.loaded)} · player ${playerLabel(player)}`;
+let dataStatus = `${initial.ok ? 'data ok' : `data fallback: ${initial.issue ?? 'invalid'}`} · scene ${sceneLabel(sceneResult.loaded)} · player ${playerLabel(player)}${sceneIssueLine()}`;
 function spawnSpec(spec: BoxSpec): EntityId[] {
   const count = probe === null ? (stress > 0 ? stress : spec.count) : Math.min(8, spec.count);
   return spawnBoxes(world, count, WIDTH, HEIGHT, spec.minSize, spec.maxSize, spec.speed);

@@ -1,16 +1,26 @@
 import type { Scene } from 'agent-specific_ecs/scene';
 
-export const DEFAULT_SCENE_FILE = 'demo.scene.json';
+/** 游戏场景是默认入口；引擎夹具场景只用于引擎能力对照。 */
+export const GAME_SCENE_FILE = 'flux-core.scene.json';
+export const DEMO_SCENE_FILE = 'demo.scene.json';
+export const DEFAULT_SCENE_FILE = GAME_SCENE_FILE;
 const FILE_PATTERN = /^[A-Za-z0-9._-]+\.scene\.json$/;
 
 export function isSceneFile(value: unknown): value is string {
   return typeof value === 'string' && FILE_PATTERN.test(value);
 }
 
-/** URL `?scene=` 指定文件；非法或缺省回退 demo。 */
+/**
+ * URL `?scene=` 指定文件：整名（flux-core.scene.json）或省略后缀（flux-core）都认，
+ * 这样手敲链接不会因为少写后缀掉回默认场景。非法/缺省用游戏场景。
+ */
 export function resolveSceneFile(search: string = location.search): string {
-  const candidate = new URLSearchParams(search).get('scene');
-  return isSceneFile(candidate) ? candidate : DEFAULT_SCENE_FILE;
+  const raw = new URLSearchParams(search).get('scene');
+  const candidate = raw === null ? '' : raw.trim();
+  if (candidate === '') return DEFAULT_SCENE_FILE;
+  if (isSceneFile(candidate)) return candidate;
+  const withSuffix = `${candidate}.scene.json`;
+  return isSceneFile(withSuffix) ? withSuffix : DEFAULT_SCENE_FILE;
 }
 
 /** 运行时当前文件：编辑器打开/另存后写全局；否则按 URL。 */
