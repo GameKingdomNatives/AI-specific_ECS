@@ -67,6 +67,48 @@
       }
     },
     {
+      "id": "wingman",
+      "name": "wingman",
+      "parentId": "root",
+      "assets": {
+        "texture": "box"
+      },
+      "components": {
+        "Position": {
+          "x": 820,
+          "y": 660
+        },
+        "Box": {
+          "size": 22,
+          "tint": 16777215
+        },
+        "Mecha": {
+          "faction": 0,
+          "hull": 80,
+          "maxHull": 80
+        },
+        "Flux": {
+          "soft": 0,
+          "hard": 0,
+          "overloadTicks": 0
+        },
+        "Shield": {
+          "active": false,
+          "radius": 40
+        },
+        "Aim": {
+          "angle": 0
+        },
+        "Vent": {
+          "active": false
+        },
+        "Wingman": {
+          "mode": 0,
+          "timer": 0
+        }
+      }
+    },
+    {
       "id": "enemy1",
       "name": "raider",
       "parentId": "root",
@@ -201,6 +243,13 @@
       "phase": "ai",
       "after": [
         "game.weapon.support"
+      ]
+    },
+    {
+      "id": "game.wingman",
+      "phase": "ai",
+      "after": [
+        "game.enemyAi"
       ]
     },
     {

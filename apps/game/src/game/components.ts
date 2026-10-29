@@ -26,6 +26,8 @@ export const Ai = defineComponent('Ai', { mode: 'u32', timer: 'u32' });
 export const Vent = defineComponent('Vent', { active: 'bool' });
 /** 电子压制：支援弹命中后 90 tick 内目标无法开盾（压盾 1.5s）。 */
 export const Suppressed = defineComponent('Suppressed', { ticks: 'f32' });
+/** 僚机：自主协作状态（0 跟随 / 1 交战 / 2 排散 / 3 待命），逐 tick 由决策层写入。 */
+export const Wingman = defineComponent('Wingman', { mode: 'u32', timer: 'u32' });
 
 /** 单局推进：波次编号、总波数、补位倒计时（0 = 不在补位）。 */
 export const Run = defineComponent('Run', { wave: 'u32', maxWave: 'u32', spawnTicks: 'u32' });

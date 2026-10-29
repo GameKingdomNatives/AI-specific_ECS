@@ -391,6 +391,31 @@
           "support"
         ]
       }
+    },
+    {
+      "id": "game.wingman",
+      "phase": "ai",
+      "card": "docs/systems/系统-game-wingman-僚机.md",
+      "contractTest": "apps/game/tests/wingman.contract.test.ts",
+      "scene": "apps/game/scenes/flux-core.scene.json",
+      "spec": {
+        "inputs": [
+          "Position",
+          "Mecha",
+          "Flux",
+          "Wingman",
+          "Vent"
+        ],
+        "outputs": [
+          "Position",
+          "Aim",
+          "Wingman",
+          "Vent"
+        ],
+        "owns": [
+          "wingman"
+        ]
+      }
     }
   ]
 }

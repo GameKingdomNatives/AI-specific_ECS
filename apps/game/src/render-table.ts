@@ -9,6 +9,7 @@ import { FLUX_CAPACITY, FLUX_REDLINE, fluxTotal, isOverloaded } from './game/flu
 import { layoutFluxBar } from './game/flux-bar.js';
 import { warningLevel, warningPulse, warningText } from './game/flux-warning.js';
 import type { FeedEntry } from './flux-feed.js';
+import { wingmanBadge } from './game/wingman-label.js';
 
 export interface HitMark {
   readonly x: number;
@@ -53,6 +54,8 @@ function mechaItems(world: World, alpha: number, previous: ReadonlyMap<EntityId,
       sx: box.size, sy: box.size, layer: 4, shape: 'rect', tint, alpha: 0.95, visible: true,
       texture: textureFor(entity, context),
     });
+    const badge = wingmanBadge(world, entity, point, box.size);
+    if (badge !== null) items.push(badge);
   }
 }
 
@@ -238,8 +241,7 @@ function waveLabel(run: { wave: number; maxWave: number; spawnTicks: number } | 
 
 /** 敌机聚合：多机时显示「架数 + 总血量」，避免只看得到最后一架。 */
 function enemyLabel(enemy: { hull: number; max: number; ew: number; count: number }): string {
-  const ew = enemy.ew > 0 ? ` · EW ${(enemy.ew / 60).toFixed(1)}s` : '';
-  return `ENEMY ${enemy.count}架 ${Math.round(enemy.hull)}/${Math.round(enemy.max)}${ew}`;
+  return `ENEMY ${enemy.count}架 ${Math.round(enemy.hull)}/${Math.round(enemy.max)}${enemy.ew > 0 ? ` · EW ${(enemy.ew / 60).toFixed(1)}s` : ''}`;
 }
 
 function hudItems(world: World, player: EntityId, context: RenderTableContext, items: RenderItem[]): void {
@@ -266,9 +268,7 @@ function hudItems(world: World, player: EntityId, context: RenderTableContext, i
 }
 
 function slotOf(world: World, player: EntityId, def: typeof Terminator | typeof Support): number {
-  if (player < 0) return 0;
-  const slot = world.get(player, def);
-  return slot === undefined ? 0 : Math.ceil(slot.cooldown);
+  return player < 0 ? 0 : Math.ceil(world.get(player, def)?.cooldown ?? 0);
 }
 
 /** 世界 → 渲染表：机甲、弹丸、护盾、辐能条与顶部 HUD 都只读世界，不写回。 */
