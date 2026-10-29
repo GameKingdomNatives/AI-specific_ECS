@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { Box, Position } from 'agent-specific_ecs/data';
-import { Flux, Mecha, Suppressed, Terminator, Support } from '../src/game/components.js';
+import { Aim, Flux, Mecha, Suppressed, Terminator, Support, Vent, Wingman } from '../src/game/components.js';
+import { WING_ENGAGE } from '../src/game/wingman-model.js';
 import { renderTable, type HitMark } from '../src/render-table.js';
 import { createFixture } from './harness.js';
 
@@ -140,4 +141,27 @@ test('辐能警告：预警/红区/过载各有文字与屏幕边缘提示', () 
 test('过期飘字不再绘制', () => {
   const stale = render([{ x: 500, y: 400, damage: 12, slot: 0, shielded: false, ew: false, tick: 10 }], 100);
   assert.equal(stale.filter((item) => item.text === '-12').length, 0);
+});
+
+test('僚机实体在机甲上方渲染一行可读状态（交战）', () => {
+  const fixture = createFixture();
+  const player = fixture.spawnWith([
+    [Position, { x: 600, y: 500 }],
+    [Box, { size: 44 }],
+    [Mecha, { faction: 0, hull: 100, maxHull: 100 }],
+  ]);
+  fixture.spawnWith([
+    [Position, { x: 480, y: 596 }],
+    [Box, { size: 22 }],
+    [Mecha, { faction: 0, hull: 80, maxHull: 80 }],
+    [Wingman, { mode: WING_ENGAGE, timer: 0 }],
+    [Vent, { active: false }],
+    [Aim, { angle: 0 }],
+  ]);
+  const items = renderTable(fixture.world, 1, new Map(), {
+    player, kills: 0, width: WIDTH, height: HEIGHT, hits: [], feed: [], nowTick: 10, assets: undefined, url: (name: string) => name,
+  });
+  const badge = texts(items).find((text) => text.includes('僚机'));
+  assert.ok(badge !== undefined, '僚机缺少状态标签');
+  assert.ok(badge.includes('交战'), `状态行应显示当前模式，实际：${badge}`);
 });
