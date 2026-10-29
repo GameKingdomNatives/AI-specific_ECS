@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Storybook 中文手册（本地版） · 深入战火</title>
+<style>
+:root{--bg:#faf7f2;--card:#fffdf9;--ink:#2b2622;--ink-2:#5a5048;--ink-3:#8a7a68;--line:#e6ded2;--accent:#b4552f;--accent-soft:#f3e7dd;--code:#2c2925;--code-ink:#f2ece3}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Lanxi-正文","Songti SC","Noto Serif SC",Georgia,serif;line-height:1.85;font-size:16px}
+a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-soft)}
+a:hover{border-bottom-color:var(--accent)}
+.wrap{display:grid;grid-template-columns:248px minmax(0,1fr);gap:0;max-width:1180px;margin:0 auto}
+nav.toc{position:sticky;top:0;align-self:start;height:100vh;overflow:auto;padding:32px 20px 48px;border-right:1px solid var(--line);font-family:"Lanxi-正文",system-ui,sans-serif;font-size:13.5px}
+nav.toc h2{font-size:12px;letter-spacing:.18em;color:var(--ink-3);margin:0 0 12px;font-weight:600}
+nav.toc ol{margin:0;padding:0 0 0 18px;color:var(--ink-2)}
+nav.toc li{margin:7px 0}
+nav.toc a{border:0;color:var(--ink-2)}
+nav.toc a:hover{color:var(--accent)}
+main{padding:56px 48px 96px;min-width:0}
+header.hero{padding-bottom:28px;border-bottom:1px solid var(--line);margin-bottom:40px}
+.kicker{font-family:"Lanxi-正文",system-ui,sans-serif;font-size:12px;letter-spacing:.22em;color:var(--accent);margin:0 0 14px}
+h1{font-size:38px;line-height:1.25;margin:0 0 14px;font-weight:600;letter-spacing:.01em}
+.lede{color:var(--ink-2);font-size:17px;margin:0}
+.meta{margin-top:18px;font-family:"Lanxi-正文",system-ui,sans-serif;font-size:12.5px;color:var(--ink-3);display:flex;gap:18px;flex-wrap:nowrap}
+section{margin:0 0 46px}
+h2.sec{font-size:24px;margin:44px 0 16px;font-weight:600;border-left:3px solid var(--accent);padding-left:12px}
+h3{font-size:18px;margin:26px 0 10px;font-weight:600;color:var(--ink)}
+p{margin:0 0 14px}
+ul,ol.body-list{margin:0 0 16px;padding-left:22px}
+li{margin:6px 0}
+code{font-family:"Cascadia Code",Consolas,"Courier New",monospace;font-size:13.5px;background:#f1ebe1;padding:1px 5px;border-radius:3px}
+pre{background:var(--code);color:var(--code-ink);padding:16px 18px;border-radius:6px;overflow:auto;font-size:13px;line-height:1.7;margin:0 0 18px}
+pre code{background:none;color:inherit;padding:0;font-size:13px}
+.note{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);padding:14px 18px;border-radius:0 6px 6px 0;margin:0 0 18px;font-size:14.5px;color:var(--ink-2)}
+.note strong{color:var(--ink)}
+table{border-collapse:collapse;width:100%;margin:0 0 18px;font-size:14px;font-family:"Lanxi-正文",system-ui,sans-serif}
+th,td{border-bottom:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}
+th{color:var(--ink-3);font-weight:600;font-size:12.5px;letter-spacing:.06em}
+footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);color:var(--ink-3);font-size:12.5px;font-family:"Lanxi-正文",system-ui,sans-serif}
+@media print{nav.toc{display:none}.wrap{grid-template-columns:1fr}main{padding:0}body{background:#fff}}
+@media (max-width:820px){.wrap{grid-template-columns:1fr}nav.toc{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}main{padding:32px 20px 64px}h1{font-size:30px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="toc"><h2>目录</h2><ol>
+<li><a href="#why">0 · 这本书怎么用</a></li>
+<li><a href="#why-sb">1 · Storybook 是什么</a></li>
+<li><a href="#install">2 · 安装与版本要求</a></li>
+<li><a href="#story">3 · 写一个 story</a></li>
+<li><a href="#args">4 · Args：组件的输入</a></li>
+<li><a href="#parameters">5 · Parameters：外挂配置</a></li>
+<li><a href="#controls">6 · Controls：实时改参数</a></li>
+<li><a href="#autodocs">7 · Autodocs：文档自动生成</a></li>
+<li><a href="#build">8 · 构建与发布</a></li>
+<li><a href="#local">9 · 在本项目里怎么用</a></li>
+<li><a href="#src">附 · 来源与译文说明</a></li>
+</ol></nav>
+<main>
+<header class="hero">
+<p class="kicker">STORYBOOK · 中文手册 · 本地版</p>
+<h1>Storybook 中文手册</h1>
+<p class="lede">把官方文档（v10.6）里真正会用到的那几页，翻成中文并按「能照着做」的顺序重排：装、写 story、改 args、调参数、看文档、打包。最后一章落回本项目。</p>
+<div class="meta"><span>版本基准：Storybook 10.6</span><span>抓取日期：2026-10-29</span><span>用途：项目内部离线阅读</span></div>
+</header>
+<section id="why">
+<h2 class="sec">0 · 这本书怎么用</h2>
+<p>这不是官方文档的逐字译本，而是<b>按使用顺序重排的要点版</b>：每一章对应官方文档的一页或几页，删掉了营销段落和框架分支（React / Vue / Angular / Svelte 的差异），只保留与本项目相关的 React 路径。官方原文链接在文末「来源」里，遇到本书没覆盖的细节以原文为准。</p>
+<div class="note"><strong>读法建议：</strong>先在 <code>apps/game</code> 下跑一次 <code>npm run storybook</code>，边看边读第 3–6 章；第 9 章是本项目的落位说明，读完能直接动手加一个 story。</div>
+</section>
+<section id="why-sb">
+<h2 class="sec">1 · Storybook 是什么</h2>
+<p>Storybook 是一个<b>组件工作台</b>：它把组件的每一个「有意思的状态」单独渲染成一个页面，你不用启动整个应用、不用点到那个状态，就能看到组件长什么样、改一个参数立刻变化。</p>
+<p>官方对「story」的定义是：<i>A story captures the rendered state of a UI component.</i> 一个 story 就是组件在某一组参数下的渲染快照。同一个组件可以有很多 story：正常、禁用、长文案、加载中、报错。</p>
+<h3>它解决三个具体问题</h3>
+<ul>
+<li><b>状态不可见</b>：组件在真实应用里要连点三步才出现，改一行 CSS 要重新走一遍流程。story 把它变成一次点击。</li>
+<li><b>边界不可枚举</b>：长文案、空数据、极端宽度这些「很少发生」的状态没人测。story 强制你把它们写下来，写下来就永远能看。</li>
+<li><b>设计评审没有共同对象</b>：讨论「这个按钮太重了」时，双方看的可能是不同页面。story 是可指认的单一坐标。</li>
+</ul>
+<p>story 文件是<b>开发期文件</b>，不会进生产包——它只是一个记录了「怎么把组件渲染成某个状态」的 ES 模块。</p>
+</section>
+<section id="install">
+<h2 class="sec">2 · 安装与版本要求</h2>
+<p>官方推荐用 CLI 安装，在项目根目录执行：</p>
+<pre><code>npm create storybook@latest</code></pre>
+<p>CLI 会读项目的依赖，自动选最合适的框架配置，并在项目里生成 <code>.storybook/</code>（配置目录）和若干示例组件与 story。安装过程可以终止，配置会保留。</p>
+<h3>环境要求（官方列出的下限）</h3>
+<table><tr><th>项目类型</th><th>要求</th></tr><tr><td>Node.js</td><td>20+</td></tr><tr><td>npm / pnpm</td><td>npm 10+ / pnpm 9+</td></tr><tr><td>React</td><td>18+（本项目为 19）</td></tr><tr><td>构建器</td><td>Vite 或 Webpack（本项目走 Vite）</td></tr></table>
+<div class="note"><strong>本项目的实况：</strong>Storybook 已装好（10.6.3），不需要再跑安装命令。启动命令与端口见第 9 章。</div>
+</section>
+<section id="story">
+<h2 class="sec">3 · 写一个 story</h2>
+<p>story 文件与被测组件<b>放在同一个目录</b>，文件名形如 <code>Button.stories.tsx</code>。一句话记住结构：<b>默认导出描述「这是哪个组件」，具名导出描述「这个组件的某个状态」</b>。</p>
+<h3>最小可用例子</h3>
+<pre><code>// Button.stories.tsx
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Button } from './Button';
+
+const meta = {
+  title: '基础组件/按钮',      // 左侧栏的层级，用 / 分层
+  component: Button,            // 让 Controls 能自动推断 props
+  args: { children: '确认' },   // 所有 story 共享的默认参数
+} satisfies Meta&lt;typeof Button&gt;;
+
+export default meta;
+type Story = StoryObj&lt;typeof meta&gt;;
+
+// 只要名字：直接复用 meta.args
+export const 默认: Story = {};
+
+// 改一个参数：在默认值上覆盖
+export const 禁用: Story = { args: { disabled: true } };
+
+// 极端内容：长文案撑开时的表现
+export const 长文案: Story = {
+  args: { children: '这是一段非常长的按钮文案，用来检查省略号与换行' },
+};</code></pre>
+<h3>几条会被反复用到的规则</h3>
+<ul>
+<li><code>title</code> 决定侧边栏位置；<code>基础组件/按钮</code> 会渲染成可折叠的一级「基础组件」。</li>
+<li>导出名就是 story 名。用中文导出名在本项目里是<b>约定</b>：评审时读的是中文，不是 <code>Primary</code>。</li>
+<li><code>args</code> 可以在 meta 上写（共享默认值），也可以在单个 story 上写（覆盖）。story 级别的值优先。</li>
+<li><code>satisfies Meta&lt;typeof Button&gt;</code> 让 TypeScript 校验你的 story 参数真的对得上组件 props。</li>
+</ul>
+<div class="note"><strong>常见误区：</strong>story 里不要写「业务逻辑」。story 只描述<b>状态</b>；需要交互流程（点击后展开、异步加载）用 <code>play</code> 函数（官方单独一页，本书不展开）。</div>
+</section>
+<section id="args">
+<h2 class="sec">4 · Args：组件的输入</h2>
+<p>官方定义：<i>Args are Storybook’s mechanism for defining those arguments in a single JavaScript object.</i> 它把 React 的 props（Vue 的 props、Angular 的 @Input）统一收进一个对象，于是 Storybook 和它的插件可以「只改这一个对象」就把组件换成另一个状态——<b>不需要改组件代码</b>。</p>
+<h3>三层覆盖</h3>
+<pre><code>// 1) 组件级默认值（meta）
+const meta = { args: { size: 'md', children: '确认' } } satisfies Meta&lt;typeof Button&gt;;
+
+// 2) story 级覆盖
+export const 小号: Story = { args: { size: 'sm' } };
+
+// 3) 组合：只覆盖关心的键，其余继承
+export const 小号禁用: Story = { args: { size: 'sm', disabled: true } };</code></pre>
+<h3>为什么用 args 而不是直接写 JSX</h3>
+<ul>
+<li><b>可编辑</b>：Controls 面板可以直接改 args，组件实时重渲染——这是 Storybook 最常用的一步。</li>
+<li><b>可复用</b>：同一份 args 能带进文档页、交互测试、视觉回归。</li>
+<li><b>可序列化</b>：args 是纯数据，才能跨 URL、跨工具传递。</li>
+</ul>
+<p>和 args 配套的是 <code>argTypes</code>：它描述参数<b>怎么被控制</b>（用什么控件、有哪些选项、会不会出现在面板里），而不是参数的值。第 6 章会用到。</p>
+</section>
+<section id="parameters">
+<h2 class="sec">5 · Parameters：外挂配置</h2>
+<p>官方定义：<i>Parameters are a set of static, named metadata about a story, typically used to control the behavior of Storybook features and addons.</i> 一句话区分：<b>args 是给组件的，parameters 是给 Storybook 的</b>。</p>
+<p>官方给的例子是背景色工具条：</p>
+<pre><code>export const 深色背景: Story = {
+  parameters: {
+    backgrounds: {
+      options: { dark: { name: '深色', value: '#1a1a1a' } },
+    },
+  },
+};</code></pre>
+<h3>三个作用域</h3>
+<table><tr><th>层级</th><th>写在哪</th><th>影响范围</th></tr><tr><td>全局</td><td><code>.storybook/preview.ts</code> 的 <code>parameters</code></td><td>所有组件、所有 story</td></tr><tr><td>组件级</td><td>meta 上的 <code>parameters</code></td><td>该组件下所有 story</td></tr><tr><td>story 级</td><td>具名导出上的 <code>parameters</code></td><td>只有这一个 story</td></tr></table>
+<p>parameters 是<b>静态元数据</b>：它不参与组件渲染，改它组件不会因为「参数变了」而重渲染。所以「这个控件有哪些选项」放 parameters，「组件现在的值是多少」放 args，两者不要混。</p>
+</section>
+<section id="controls">
+<h2 class="sec">6 · Controls：实时改参数</h2>
+<p>Controls 是下方那块「参数面板」：它根据组件的 props 自动生成输入控件（文本框、开关、下拉、颜色……），你在面板里改一下，上面的组件立刻重渲染。<b>不需要给组件加任何代码</b>。</p>
+<h3>自动推断的边界</h3>
+<p>TypeScript 类型能被推断的（<code>boolean</code> → 开关、<code>&#x27;a&#x27;|&#x27;b&#x27;</code> → 下拉、<code>string</code> → 输入框），面板会自动生成；推断不出来的（联合类型没写全、样式对象、插槽内容），要手工补 <code>argTypes</code>：</p>
+<pre><code>const meta = {
+  component: Button,
+  argTypes: {
+    size: { control: 'inline-radio', options: ['sm', 'md', 'lg'] },
+    onClick: { action: 'clicked' },   // 在 Actions 面板里显示调用
+    children: { control: 'text' },
+    // 不想出现在面板里：
+    className: { control: false },
+  },
+} satisfies Meta&lt;typeof Button&gt;;</code></pre>
+<h3>几种常用 control</h3>
+<table><tr><th>control</th><th>适用</th><th>效果</th></tr><tr><td><code>text</code></td><td>字符串</td><td>单行输入</td></tr><tr><td><code>boolean</code></td><td>开关类</td><td>勾选框</td></tr><tr><td><code>select</code> / <code>inline-radio</code></td><td>有限枚举</td><td>下拉 / 横排单选</td></tr><tr><td><code>range</code></td><td>数值区间</td><td>滑块（配 <code>min</code>/<code>max</code>/<code>step</code>）</td></tr><tr><td><code>color</code></td><td>颜色</td><td>取色器</td></tr><tr><td><code>false</code></td><td>不需要暴露</td><td>从面板隐藏</td></tr></table>
+<div class="note"><strong>为什么值得花时间写 argTypes：</strong>它同时喂给 Controls 和 Autodocs。写一次，面板和文档页都对了；不写，面板会冒出一堆 <code>unknown</code> 控件，评审时没人愿意点。</div>
+</section>
+<section id="autodocs">
+<h2 class="sec">7 · Autodocs：文档自动生成</h2>
+<p>Autodocs 把 story 变成<b>活的文档页</b>：它读取 meta 上的 <code>args</code> / <code>argTypes</code> / <code>parameters</code>，生成一页包含「组件说明 + 所有状态预览 + 参数表」的文档，位置在该组件的根级。</p>
+<h3>开启方式</h3>
+<pre><code>const meta = {
+  component: Button,
+  tags: ['autodocs'],   // 一行开启
+} satisfies Meta&lt;typeof Button&gt;;</code></pre>
+<p>也可以在 <code>.storybook/preview.ts</code> 里给全部组件默认开启（<code>tags: [&#x27;autodocs&#x27;]</code>），再在单个组件上关掉。</p>
+<h3>和 MDX 的分工</h3>
+<ul>
+<li><b>Autodocs</b>：structure 由 story 自动推导，适合「参数多、状态多」的组件，几乎不写文字就能有一页能看的文档。</li>
+<li><b>MDX</b>：手写文档（设计动机、用法禁忌、对比图），可以嵌入 story 预览。<u>本项目暂不使用 MDX</u>——文档正文仍写在 Markdown 里，Storybook 只负责「看组件」。</li>
+</ul>
+</section>
+<section id="build">
+<h2 class="sec">8 · 构建与发布</h2>
+<p>开发时用 <code>storybook dev</code>（默认 6006 端口）。要交付或部署时构建成纯静态文件：</p>
+<pre><code>npx storybook build -o storybook-static</code></pre>
+<p>产物是 <code>storybook-static/</code>——没有后端、没有路由依赖，任何静态服务器都能托管（内网、对象存储、GitHub Pages 均可）。构建产物里每个 story 都对应一个可直达的 URL，评审时可以直接甩链接。</p>
+<table><tr><th>命令</th><th>用途</th><th>本项目端口</th></tr><tr><td><code>npm run storybook</code></td><td>组件工作台（开发）</td><td>6006</td></tr><tr><td><code>npm run storybook:build</code></td><td>构建静态产物</td><td>—</td></tr><tr><td><code>npm run storybook:preview</code>（如有）</td><td>预览已构建产物</td><td>7007</td></tr></table>
+<div class="note"><strong>受限环境注意：</strong>本项目的受限会话跑不了 <code>storybook build</code>（子进程管道被禁）。构建属于 L3 环境受限项，不算 PASS，需要在完整会话（人的终端）里验证。</div>
+</section>
+<section id="local">
+<h2 class="sec">9 · 在本项目里怎么用</h2>
+<p>这一章不是官方内容，是本项目的落位约定。完整的目录地图与维护规则见 <code>工程文档/系统维护/UI设计入口.md</code>。</p>
+<h3>三条命令</h3>
+<table><tr><th>命令</th><th>打开</th><th>说明</th></tr><tr><td><code>npm run dev</code></td><td>localhost:5173</td><td>游戏本体（场景 flux-core），验收用的是它</td></tr><tr><td><code>npm run storybook</code></td><td>localhost:6006</td><td>组件工作台，改 UI 组件时用</td></tr><tr><td><code>npm run storybook:build</code></td><td>—</td><td>出静态产物；受限会话跳过</td></tr></table>
+<h3>加一个 story 的四步</h3>
+<ol class="body-list">
+<li>在组件同目录建 <code>X.stories.tsx</code>，默认导出写 <code>title: &#x27;分组/组件名&#x27;</code>（中文）。</li>
+<li>至少写三个状态：正常、禁用/边界、长文案或极端尺寸。只写一个「默认」等于没写。</li>
+<li>颜色、间距、字号只用 <code>apps/game/src/ui/tokens.ts</code> 里的 token，不要在 story 里写死 hex。</li>
+<li>跑一遍 <code>npm run storybook</code> 确认没有渲染报错，再把 story 名和截图放进 PR 说明。</li>
+</ol>
+<h3>本项目已知边界</h3>
+<ul>
+<li>Storybook 的<b>界面外壳是英文且没有官方 i18n</b>（10.x 未提供语言包）。中文只覆盖到 story 名、组件说明与文档页内容——侧边栏按钮、面板标题仍是英文，这是预期状态，不做 hack。</li>
+<li>战场渲染（<code>render-table.ts</code>）不在组件库里，Storybook 里看不到游戏画面；这是有意的边界，别为了「全部进 Storybook」去拆渲染层。</li>
+<li>UI 层有一条依赖规则 <code>ui-no-engine-internals</code>：UI 组件不得 import 引擎内部实现。写 story 时若发现必须 import 引擎内部，说明组件放错了层。</li>
+</ul>
+</section>
+<section id="src">
+<h2 class="sec">附 · 来源与译文说明</h2>
+<p>本手册基于以下官方页面（2026-10-29 抓取），按其结构与要点重排翻译，<b>非逐字对应</b>：</p>
+<ul>
+<li><a href="https://storybook.js.org/docs/get-started/install">Get Started · Install</a>（安装与版本要求）</li>
+<li><a href="https://storybook.js.org/docs/get-started/whats-a-story">Get Started · What&#x27;s a story?</a>（story 的定义）</li>
+<li><a href="https://storybook.js.org/docs/writing-stories">Stories · How to write stories</a>（CSF 结构与文件位置）</li>
+<li><a href="https://storybook.js.org/docs/writing-stories/args">Stories · Args</a>（args 机制与三层覆盖）</li>
+<li><a href="https://storybook.js.org/docs/writing-stories/parameters">Stories · Parameters</a>（parameters 的作用域）</li>
+<li><a href="https://storybook.js.org/docs/essentials/controls">Essentials · Controls</a>（参数面板与 argTypes）</li>
+<li><a href="https://storybook.js.org/docs/writing-docs/autodocs">Docs · Autodocs</a>（文档自动生成）</li>
+</ul>
+<p>版本基准为 Storybook 10.6（官网顶部标注 <code>Version 10.6</code>）。代码示例按本项目技术栈（React 19 + Vite + TypeScript）改写，官方示例中的 Vue/Angular/Svelte 分支未收录。</p>
+<p>抓取方式与清洗脚本留在 <code>artifacts/sb-docs/</code>（临时产物，不入库）；若官方文档更新，重跑同一份清单即可刷新。</p>
+</section>
+<footer>
+<p>深入战火 · 内部手册 · 生成于 2026-10-29。文中的本项目约定若与 <code>工程文档/系统维护/UI设计入口.md</code> 冲突，以后者为准。</p>
+</footer>
+</main>
+</div>
+</body>
+</html>

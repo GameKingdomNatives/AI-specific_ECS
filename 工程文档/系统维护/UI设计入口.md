@@ -69,7 +69,10 @@ npm run storybook:serve   # 起静态包，7007；给别人看用这个，不暴
   - **路线 A（推荐）**：不动外壳，把「我们用到的那几页」写成中文速查（本文件 + `docs/runbooks/05` + `src/ui/README.md` 已经是这件事），人不需要读英文文档就能用。
   - **路线 B（可做但脆）**：加 `.storybook/manager.ts` 用官方 manager API 改品牌名（`brandTitle: 深入战火 · 组件画布`，这一项是官方支持的）；更彻底要把侧栏/工具栏按钮文字换掉，只能注入 CSS 覆盖英文，**每次升级 Storybook 都可能失效**。
   - **路线 C**：只翻译官方文档里我们真用的四页（安装/写 story/参数与控件/构建发布），落到 `docs/ui/` 下作为中文速查，不追全量。
-- **待你裁定**：要不要做 B（我做完需要你在完整终端跑一次 `npm run storybook` 验收），要不要做 C（我按四页翻，不做全站）。在你定之前，仓库保持 A。
+- **已落地（2026-10-29）**：人裁定「Storybook 最多只需要把它的文档拉取和做本地翻译为 html 电子书，目前不需要其余工作」——于是只做 C 的收窄版：
+  - 产物：[docs/ui/storybook-手册.html](storybook-手册.html)（单文件、无外链资源、可离线读、可打印为 PDF）+ [storybook-手册-来源.md](storybook-手册-来源.md)（来源 URL、抓取日期、翻译口径、刷新方法）。
+  - 覆盖：为什么用 / 安装与版本要求 / 写 story / Args / Parameters / Controls / Autodocs / 构建发布 / 本项目落位，共 10 章。
+  - **不做**：B（管理器外壳汉化）已明确放弃；不改 `.storybook/manager.ts`、不注入覆盖英文的 CSS。侧边栏 English 是预期状态，写进手册第 9 章。
 
 ## 常态化审计服务器（提案，不实现）
 
